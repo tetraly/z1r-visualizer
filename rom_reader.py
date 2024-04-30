@@ -34,17 +34,3 @@ class RomReader:
     def GetLevelInfo(self, level_num: int) -> List[int]:
         start = VARIOUS_DATA_LOCATION + level_num * 0xFC
         return self._ReadMemory(start, 0xFC)
-
-if __name__ == '__main__':
-  f = open('z1.nes', 'rb')
-  r = RomReader(f)
-  #d = r.GetRoomGridRawData(0)
-  d = r.GetLevelInfo(1)
-
-  for i in range(0, 0xFC):
-    if i % 0x10 == 0:
-      print('')
-    if i % 0x80 == 0:
-      print('')
-    print('%02x ' % d[i], end='')
-  print('')

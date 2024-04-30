@@ -1,0 +1,4 @@
+__pycache__
+testdata
+.gitignore.swp
+.DS_Store
