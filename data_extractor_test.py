@@ -29,7 +29,6 @@ class DataExtractorTest(unittest.TestCase):
         with open('testdata/z1-prg0-12345-with-rr-354.nes', 'rb') as f:
             de = DataExtractor(f)
             self.assertTrue(de.is_z1r)
- #           print(de.data[1])
             level_1_test_room = de.data[1][12]
             self.assertEqual('black', level_1_test_room['south.color'])
             self.assertEqual('black', level_1_test_room['west.color'])

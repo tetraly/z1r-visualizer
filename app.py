@@ -48,7 +48,6 @@ if uploaded_file is None:
         "Please upload a Legend of Zelda ROM using the file widget above.")
     st.stop()
 
-#de = DataExtractor(rom=uploaded_file, allow_decoding_roms=clear_to_decode_rom())
 try:
   de = DataExtractor(rom=uploaded_file, allow_decoding_roms=clear_to_decode_rom())
 except Exception as e:

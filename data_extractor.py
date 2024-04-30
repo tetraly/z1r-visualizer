@@ -150,31 +150,21 @@ class DataExtractor(object):
                         from_dir=self.GetLevelEntranceDirection(level_num))
         stairway_num = 1
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
-#            print('Visiting level %d Stairway room 0x%x' % (level_num, stairway_room_num))
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
             self._VisitRoom(level_num, left_exit)
             self._VisitRoom(level_num, right_exit)
             if left_exit == right_exit:
-#              print("Found an item!")
               item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
               self.data[level_num][left_exit]['stair_info'] = '%s' % ITEMS[item_type]
               self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEMS[item_type]
-#              print("Found item %x" % item_type)       
             else:
               self.data[level_num][left_exit]['stair_info'] = 'Stair #%d' % stairway_num
               self.data[level_num][right_exit]['stair_info'] = 'Stair #%d' % stairway_num
               self.data[level_num][left_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
               self.data[level_num][right_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
-#              print("Setting stairway for %x and %x" % (left_exit, right_exit))       
               stairway_num += 1
             
-        """        for i in range(0, 0x80):
-          if i % 0x10 == 0:
-            print('')
-          print('-' if i not in self.data[level_num] else '*', end='')
-        print('')
-"""
     def GetLevelDisplayOffset(self, level_num: int) -> int:
         return self.level_info[level_num][DISPLAY_OFFSET_OFFSET] - 3
 
