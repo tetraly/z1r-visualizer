@@ -118,14 +118,10 @@ class DataExtractor(object):
     def ProcessOverworld(self) -> None:
         self.data[0] = {}
         for screen_num in range(0, 0x80):
-#            print("Screen %x val is %x" % (screen_num, self.GetRoomData(0, screen_num + 5*0x80)))
             if (self.GetRoomData(0, screen_num + 5*0x80) & 0x80) > 0:
                 continue
-#            ("Screen %x" % screen_num)
             foo = self.GetRoomData(0, screen_num + 1*0x80)
-#            ("Found 0x%x" % foo)
             bar = foo >> 2
-#            print("Now 0x%x" % bar)
             if bar == 0:
               continue
             x = screen_num % 0x10 
