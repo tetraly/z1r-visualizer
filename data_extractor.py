@@ -1,9 +1,10 @@
 from rom_reader import RomReader
+from encoded_rom_reader import EncodedRomReader
 import io
 from typing import IO, List
 import math
 from typing import Any, Dict, List, Optional
-from constants import Direction, WallType
+from constants import Direction, WallType, ROOM_TYPES, ENEMY_TYPES, ITEM_TYPES
 from constants import ENTRANCE_DIRECTION_MAP, ITEMS, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
 
 PALETTE_OFFSET = 0xB
@@ -12,10 +13,23 @@ STAIRWAY_LIST_OFFSET = 0x34
 DISPLAY_OFFSET_OFFSET = 0x2D
 
 class DataExtractor(object):
-    def __init__(self, rom: io.BytesIO) -> None:
-        self.rom_reader = RomReader(rom)
+    def __init__(self, rom: io.BytesIO, allow_decoding_roms: bool=False) -> None:
+        try:
+            self.ProcessUnencodedRom(rom)
+            return
+        except IndexError:
+            pass
+        if allow_decoding_roms:
+            self.ProcessEncodedRom(rom)
+            return
+        raise Exception()
+
+    def ProcessEncodedRom(self, rom) -> None:
+        self.rom_reader = EncodedRomReader(rom)
         self.is_z1r = True
         self.level_info: List[List[int]] = []
+        self.data: Dict[int, Dict[int, Any]] = {}
+
         for level_num in range(0, 10):
             level_info = self.rom_reader.GetLevelInfo(level_num)
             self.level_info.append(level_info)
@@ -28,12 +42,32 @@ class DataExtractor(object):
         for level_num in [0,1,7]:
             self.level_blocks.append(self.rom_reader.GetLevelBlock(level_num))
         
-        self.data: Dict[int, Dict[int, Any]] = {}
-        
-        for level_num in range(1, 10):
-          self.ProcessLevel(level_num)
-          
         self.ProcessOverworld()
+        for level_num in range(1, 10):
+            self.ProcessLevel(level_num)        
+            
+      
+    def ProcessUnencodedRom(self, rom) -> None:
+        self.rom_reader = RomReader(rom)
+        self.is_z1r = True
+        self.level_info: List[List[int]] = []
+        self.data: Dict[int, Dict[int, Any]] = {}
+   
+        for level_num in range(0, 10):
+            level_info = self.rom_reader.GetLevelInfo(level_num)
+            self.level_info.append(level_info)
+            vals = level_info[0x34:0x3E]
+            if vals[-1] in range(0, 5):
+                continue
+            self.is_z1r = False
+
+        self.level_blocks: List[List[int]] = []
+        for level_num in [0,1,7]:
+            self.level_blocks.append(self.rom_reader.GetLevelBlock(level_num))
+        
+        self.ProcessOverworld()
+        for level_num in range(1, 10):
+            self.ProcessLevel(level_num)        
 
     def GetRoomData(self, level_num: int, byte_num: int) -> int:
         foo = -1
@@ -83,14 +117,10 @@ class DataExtractor(object):
     def ProcessOverworld(self) -> None:
         self.data[0] = {}
         for screen_num in range(0, 0x80):
-            print("Screen %x val is %x" % (screen_num, self.GetRoomData(0, screen_num + 5*0x80)))
             if (self.GetRoomData(0, screen_num + 5*0x80) & 0x80) > 0:
                 continue
-            print("Screen %x" % screen_num)
             foo = self.GetRoomData(0, screen_num + 1*0x80)
-            print("Found 0x%x" % foo)
             bar = foo >> 2
-            print("Now 0x%x" % bar)
             if bar == 0:
               continue
             x = screen_num % 0x10 
@@ -109,36 +139,27 @@ class DataExtractor(object):
               self.data[0][screen_num]['cave_name_short'] = CAVE_NAME_SHORT[bar]
  
     def ProcessLevel(self, level_num: int) -> None:
-        #room_level_nums = [0] * 0x80
         self.data[level_num] = {}
         self._VisitRoom(level_num,
                         self.GetLevelStartRoomNumber(level_num),
-                        # room_level_nums,
                         from_dir=self.GetLevelEntranceDirection(level_num))
         stairway_num = 1
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
-            print('Visiting level %d Stairway room 0x%x' % (level_num, stairway_room_num))
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
-            self._VisitRoom(level_num, left_exit) #, room_level_nums)
-            self._VisitRoom(level_num, right_exit) #, room_level_nums)
+            self._VisitRoom(level_num, left_exit)
+            self._VisitRoom(level_num, right_exit)
             if left_exit == right_exit:
-              print("Found an item!")
               item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
-              self.data[level_num][left_exit]['stairway_info'] = '%s' % ITEMS[item_type]
-              print("Found item %x" % item_type)       
+              self.data[level_num][left_exit]['stair_info'] = '%s' % ITEMS[item_type]
+              self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEMS[item_type]
             else:
-              self.data[level_num][left_exit]['stairway_info'] = 'Stairway #%d' % stairway_num
-              self.data[level_num][right_exit]['stairway_info'] = 'Stairway #%d' % stairway_num
-              print("Setting stairway for %x and %x" % (left_exit, right_exit))       
+              self.data[level_num][left_exit]['stair_info'] = 'Stair #%d' % stairway_num
+              self.data[level_num][right_exit]['stair_info'] = 'Stair #%d' % stairway_num
+              self.data[level_num][left_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
+              self.data[level_num][right_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
               stairway_num += 1
             
-        for i in range(0, 0x80):
-          if i % 0x10 == 0:
-            print('')
-          print('-' if i not in self.data[level_num] else '*', end='')
-        print('')
-
     def GetLevelDisplayOffset(self, level_num: int) -> int:
         return self.level_info[level_num][DISPLAY_OFFSET_OFFSET] - 3
 
@@ -146,14 +167,29 @@ class DataExtractor(object):
     def _VisitRoom(self,
                    level_num: int,
                    room_num: int,
-                   #room_level_nums: List[int],
                    from_dir: Optional[Direction] = None) -> None:
 
         if room_num in self.data[level_num]:
             return
         x = (room_num + self.GetLevelDisplayOffset(level_num)) % 0x10 
         y = 8 - (math.floor(room_num / 0x10))
-        self.data[level_num][room_num] = {'col': x, 'x_coord': x - .5, 'row': y, 'y_coord': y - .5, 'stairway_info': ''}
+        
+        enemy_num = self._GetEnemyNum(level_num, room_num)
+        enemy_type = self._GetEnemyType(level_num, room_num)
+        self.data[level_num][room_num] = {
+          'col': x,
+          'x_coord': x - .5,
+          'row': y,
+          'y_coord': y - .5,
+          'room_num': '%X' % room_num,
+          'stair_info': '',
+          'stair_tooltip': 'None',
+          'room_type': self._GetRoomType(level_num, room_num),
+          'enemy_num_tooltip': '%x' % enemy_num,
+          'enemy_type_tooltip': enemy_type,
+          'enemy_info': self._GetEnemyText(level_num, room_num),
+          'item_info': self._GetItemText(level_num, room_num),
+        }
         
         for direction in [Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST]:
           wall_type = self._GetWallType(level_num, room_num, direction)
@@ -200,11 +236,11 @@ class DataExtractor(object):
             }
             color = {
               WallType.BOMB_HOLE: 'blue',
-              WallType.LOCKED_DOOR_1: 'yellow',
-              WallType.LOCKED_DOOR_2: 'yellow',
+              WallType.LOCKED_DOOR_1: 'orange',
+              WallType.LOCKED_DOOR_2: 'orange',
               WallType.WALK_THROUGH_WALL_1: 'purple',
               WallType.WALK_THROUGH_WALL_2: 'purple',
-              WallType.SHUTTER_DOOR: 'orange',
+              WallType.SHUTTER_DOOR: 'brown',
               WallType.DOOR: 'black'
             }
             self.data[level_num][room_num]['%s.x' % direction_text[direction]] = x + direction_x[direction]
@@ -223,12 +259,64 @@ class DataExtractor(object):
 
     def _GetWallType(self, level_num: int, room_num: int, direction: Direction) -> int:
         offset = 0x80 if direction in [Direction.EAST, Direction.WEST] else 0x00
-        bits_to_shift = 32 if direction in [Direction.NORTH, Direction.WEST
-                                           ] else 4
+        bits_to_shift = 32 if direction in [Direction.NORTH, Direction.WEST] else 4
 
         wall_type = math.floor(
             self.GetRoomData(level_num, room_num + offset) / bits_to_shift) % 0x08
         return wall_type
+        
+    def _GetRoomType(self, level_num: int, room_num: int) -> str:
+        code = self.GetRoomData(level_num, room_num + 3*0x80)
+        while code >= 0x40:
+            code -= 0x40             
+        if code in ROOM_TYPES:
+            return ROOM_TYPES[code]
+        return 'ERROR CODE %X' % code
+
+    def _GetEnemyNum(self, level_num: int, room_num: int) -> int:
+        code = math.floor(self.GetRoomData(level_num, room_num + 2*0x80) / 64)
+        if code == 0:
+          return 3
+        elif code == 1:
+          return 5
+        elif code == 2:
+          return 6
+        elif code == 3:
+          return 8
+        return -1
+
+    def _GetEnemyText(self, level_num: int, room_num: int) -> str:
+      code = self.GetRoomData(level_num, room_num + 2*0x80)
+      while code >= 0x40:
+          code -= 0x40
+      if self.GetRoomData(level_num, room_num + 3*0x80) >= 0x80:
+          code += 0x40
+
+      num_text = ''
+      if (code <= 0x30 or code >= 0x62) and code != 0x00:
+          num_text = '%s ' % self._GetEnemyNum(level_num, room_num)
+      if code in ENEMY_TYPES:
+          return num_text + ENEMY_TYPES[code]
+      return 'ERROR CODE %X' % code
+
+    def _GetEnemyType(self, level_num: int, room_num: int) -> int:
+        code = self.GetRoomData(level_num, room_num + 2*0x80)
+        while code >= 0x40:
+            code -= 0x40
+        if self.GetRoomData(level_num, room_num + 3*0x80) >= 0x80:
+            code += 0x40
+        if code in ENEMY_TYPES:
+            return ENEMY_TYPES[code]
+        return 'E %X' % code
+
+    def _GetItemText(self, level_num: int, room_num: int) -> int:
+       code =  self.GetRoomData(level_num, room_num + 4*0x80)
+       while code >= 0x20:
+           code -= 0x20
+       if code == 0x03:
+           return ''
+       is_drop = math.floor(self.GetRoomData(level_num, room_num + 5*0x80) / 4) % 0x02 == 1
+       return "%s%s" % ('D ' if is_drop else '', ITEM_TYPES[code])
 
     def GetLevelColorPalette(self, level_num: int) -> List[str]:
         vals = self.level_info[level_num][PALETTE_OFFSET:PALETTE_OFFSET + 8]
@@ -237,17 +325,3 @@ class DataExtractor(object):
             #print("%02x " % val, end="")
             rgbs.append(PALETTE_COLORS[val])
         return rgbs
-
-if __name__ == '__main__':
-  f = open('z1.nes', 'rb')
-  de = DataExtractor(f)
-  print('is_z1r: %s' % de.is_z1r)
-
-  for i in range(0, 0xFC):
-    if i % 0x10 == 0:
-      print('')
-    if i % 0x80 == 0:
-      print('')
-    print('%02x ' % de.level_info[1][i], end='')
-  print('')
-  de.ProcessLevel(7)
