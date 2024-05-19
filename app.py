@@ -6,19 +6,6 @@ import streamlit as st
 from data_extractor import DataExtractor
 import requests
 
-def clear_to_decode_rom():
-    response = requests.get("https://racetime.gg/z1r/data")
-    if response.status_code != 200:
-        print('Error fetching data from the API.')
-        return False
-
-    data = response.json()
-    if 'current_races' in data and data['current_races']:
-        print('Race in progress!')
-        return False
-
-    print("No race detected! :)")
-    return True
 
 try:
     st.set_page_config(layout="wide")
@@ -33,23 +20,21 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-
-if not clear_to_decode_rom(): 
-    st.info("Note:  Visualizing \"Race ROMs\" is temporarily unsupported while there are current races at https://racetime.gg/z1r/")
-
-
 uploaded_file = st.file_uploader(
-    "Upload a Legend of Zelda ROM by dragging and dropping a file or clicking the \"Browse Files\" button below.",
+    "Upload a ROM by dragging and dropping a file or clicking the \"Browse Files\" button below.",
     key="1",
     help="Please upload a Legend of Zelda ROM",
 )
 if uploaded_file is None:
     st.info(
-        "Please upload a Legend of Zelda ROM using the file widget above.")
+        "Please upload a Legend of Zelda ROM using the file widget above. "
+        "Supported ROM types are vanilla Legend of Zelda ROMs and randomized "
+        "ROMs created by Zelda Randomizer without the ‘Race ROM’ flag checked.",
+        )
     st.stop()
 
 try:
-  de = DataExtractor(rom=uploaded_file, allow_decoding_roms=clear_to_decode_rom())
+  de = DataExtractor(rom=uploaded_file, allow_decoding_roms=False)
 except Exception as e:
   st.info("Sorry, this ROM doesn't seem to be supported. Please try a different ROM.")
   st.stop()

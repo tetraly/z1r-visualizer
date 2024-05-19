@@ -69,7 +69,6 @@ class DataExtractor(object):
         for level_num in range(1, 10):
             self.ProcessLevel(level_num)        
 
-
     def GetRoomData(self, level_num: int, byte_num: int) -> int:
         foo = -1
         if level_num == 0:
