@@ -147,13 +147,16 @@ class DataExtractor(object):
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
-            self._VisitRoom(level_num, left_exit)
-            self._VisitRoom(level_num, right_exit)
-            if left_exit == right_exit:
+
+            # Ignore any rooms in the stairway room list that don't connect to the current level.
+            if not left_exit in self.data[level_num] and not right_exit in self.data[level_num]:
+                continue
+
+            if left_exit == right_exit:  # Item stairway
               item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
               self.data[level_num][left_exit]['stair_info'] = '%s' % ITEMS[item_type]
               self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEMS[item_type]
-            else:
+            else:  # Transport stairway
               self.data[level_num][left_exit]['stair_info'] = 'Stair #%d' % stairway_num
               self.data[level_num][right_exit]['stair_info'] = 'Stair #%d' % stairway_num
               self.data[level_num][left_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
@@ -254,8 +257,22 @@ class DataExtractor(object):
                 continue
             self._VisitRoom(level_num,
                             room_num + direction,
-                            # room_level_nums,
                             from_dir=direction.inverse())
+  
+        # Check if this room has a transport stairway. If so, visit the other side.
+        for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
+                left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
+                right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
+            
+                if left_exit == room_num and right_exit != room_num:
+                    self._VisitRoom(level_num,
+                                    right_exit,
+                                    from_dir=direction.NO_DIRECTION)
+                elif right_exit == room_num and left_exit != room_num:
+                    self._VisitRoom(level_num,
+                                    left_exit,
+                                    from_dir=direction.NO_DIRECTION)
+        
 
     def _GetWallType(self, level_num: int, room_num: int, direction: Direction) -> int:
         offset = 0x80 if direction in [Direction.EAST, Direction.WEST] else 0x00
