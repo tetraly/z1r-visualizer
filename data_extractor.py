@@ -342,3 +342,9 @@ class DataExtractor(object):
             #print("%02x " % val, end="")
             rgbs.append(PALETTE_COLORS[val])
         return rgbs
+        
+    def GetOverworldItems(self) -> List[str]:
+         tbr = []
+         for item in self.rom_reader.GetOverworldItemData():
+             tbr.append(ITEM_TYPES[item])
+         return tbr

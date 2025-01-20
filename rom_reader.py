@@ -7,6 +7,9 @@ LEVEL_1_TO_6_DATA_LOCATION = 0x18700
 LEVEL_7_TO_9_DATA_LOCATION = 0x18A00
 VARIOUS_DATA_LOCATION = 0x19300
 NES_HEADER_OFFSET = 0x10
+ARMOS_ITEM_ADDRESS = 0x10CF5
+COAST_ITEM_ADDRESS = 0x1788A
+WS_ITEM_ADDRESS = 0x18607
 
 
 class RomReader:
@@ -34,3 +37,10 @@ class RomReader:
     def GetLevelInfo(self, level_num: int) -> List[int]:
         start = VARIOUS_DATA_LOCATION + level_num * 0xFC
         return self._ReadMemory(start, 0xFC)
+        
+    def GetOverworldItemData(self) -> List[int]:
+        return [
+            self._ReadMemory(ARMOS_ITEM_ADDRESS, 0x01)[0],
+            self._ReadMemory(COAST_ITEM_ADDRESS, 0x01)[0],
+            self._ReadMemory(WS_ITEM_ADDRESS, 0x01)[0],
+        ]

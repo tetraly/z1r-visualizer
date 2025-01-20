@@ -37,6 +37,11 @@ def main():
                 for room in data_extractor.data[level]:
                     print(GenerateCSVLine(file_path, level, data_extractor.data[level][room]))
 
+            # Print out Overworld items as "Level 0"
+            locations = ["Armos", "Coast", "WSCave"]
+            items = data_extractor.GetOverworldItems()
+            for i in range (0, 3):
+                print(','.join([file_path, '0', locations[i], items[i]]))
 
 if __name__ == "__main__":
     main()
