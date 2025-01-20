@@ -10,6 +10,7 @@ NES_HEADER_OFFSET = 0x10
 ARMOS_ITEM_ADDRESS = 0x10CF5
 COAST_ITEM_ADDRESS = 0x1788A
 WS_ITEM_ADDRESS = 0x18607
+TRIFORCE_COUNT_ADDRESS = 0x5F17
 
 
 class RomReader:
@@ -44,3 +45,6 @@ class RomReader:
             self._ReadMemory(COAST_ITEM_ADDRESS, 0x01)[0],
             self._ReadMemory(WS_ITEM_ADDRESS, 0x01)[0],
         ]
+
+    def GetTriforceRequirement(self) -> int:
+        return self._ReadMemory(TRIFORCE_COUNT_ADDRESS, 0x01)[0]

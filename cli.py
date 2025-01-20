@@ -42,6 +42,13 @@ def main():
             items = data_extractor.GetOverworldItems()
             for i in range (0, 3):
                 print(','.join([file_path, '0', locations[i], items[i]]))
+            
+            triforce_req = data_extractor.GetTriforceRequirement()
+            if triforce_req == 0xFF:
+                print ("%s Level 9 triforce requirement is: 8 (Vanilla)" % file_path)
+            else:
+                print ("%s Level 9 triforce requirement is %d" %
+                       (file_path, data_extractor.GetTriforceRequirement()))
 
 if __name__ == "__main__":
     main()

@@ -348,3 +348,6 @@ class DataExtractor(object):
          for item in self.rom_reader.GetOverworldItemData():
              tbr.append(ITEM_TYPES[item])
          return tbr
+         
+    def GetTriforceRequirement(self) -> int:
+      return self.rom_reader.GetTriforceRequirement()
