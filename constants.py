@@ -115,10 +115,9 @@ CAVE_NAME_SHORT = {
   0x23: '10R'
 }
 
-
-ITEMS = {
+ITEM_TYPES = {
     0x00: "Bombs",
-    0x01: "Wooden Sword",
+    0x01: "Wood Sword",
     0x02: "White Sword",
     0x03: "No Item",
     0x04: "Bait",
@@ -163,12 +162,12 @@ ROOM_TYPES = {
   0x08: "Reverse C",
   0x09: "Circle Wall",
   0x0A: "Double Block",
-  0x0B: "2Q Pushblock",
+  0x0B: "Vertical Rows?",
   0x0C: "Maze Room",
   0x0D: "Grid Room",
   0x0E: "Vert. Chute",
   0x0F: "Horiz. Chute",
-  0x10: "Please tell Tetra what this is",
+  0x10: "Lava Moat?",
   0x11: "Zigzag",
   0x12: "T Room",
   0x13: "Vert. Moat",
@@ -185,7 +184,7 @@ ROOM_TYPES = {
   0x1E: "Single Six",
   0x1F: "Five Pair",
   0x20: "Turnstile",
-  0x21: "Entrance",
+  0x21: "Entrance Room",
   0x22: "Single Block",
   0x23: "Two Fireball",
   0x24: "Four Fireball",
@@ -301,41 +300,6 @@ ENEMY_TYPES = {
     0x7F: "Enemy Mix DD",
 }
 
-ITEM_TYPES = {
-    0x00: "Bombs",
-    0x01: "Wood Sword",
-    0x02: "White Sword",
-    0x03: "",
-    0x04: "????????????????",
-    0x05: "Recorder",
-    0x06: "????????????????",
-    0x07: "Red Candle",
-    0x08: "Wood Arrow",
-    0x09: "Silver Arrow",
-    0x0A: "Bow",
-    0x0B: "Magical Key",
-    0x0C: "Raft",
-    0x0D: "Ladder",
-    0x0E: "Triforce",  # Big L9 triforce, not small tringle
-    0x0F: "5 Rupees",
-    0x10: "Wand",
-    0x11: "Book",
-    0x12: "Blue Ring",
-    0x13: "Red Ring",
-    0x14: "Bracelet",
-    0x15: "????????????",
-    0x16: "Compass",
-    0x17: "Map",
-    0x18: "????????????",
-    0x19: "Key",
-    0x1A: "Heart Container",
-    0x1B: "Triforce",
-    0x1C: "Shield",
-    0x1D: "Wood Boomerang",
-    0x1E: "Mag. Boomerang",
-    0x1F: "?????????????????????",
-}
-  
 PALETTE_COLORS = [
 "#7C7C7C",
 "#0000FC",

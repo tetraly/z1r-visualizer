@@ -5,7 +5,7 @@ from typing import IO, List
 import math
 from typing import Any, Dict, List, Optional
 from constants import Direction, WallType, ROOM_TYPES, ENEMY_TYPES, ITEM_TYPES
-from constants import ENTRANCE_DIRECTION_MAP, ITEMS, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
+from constants import ENTRANCE_DIRECTION_MAP, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
 
 PALETTE_OFFSET = 0xB
 START_ROOM_OFFSET = 0x2F
@@ -154,8 +154,8 @@ class DataExtractor(object):
 
             if left_exit == right_exit:  # Item stairway
               item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
-              self.data[level_num][left_exit]['stair_info'] = '%s' % ITEMS[item_type]
-              self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEMS[item_type]
+              self.data[level_num][left_exit]['stair_info'] = '%s' % ITEM_TYPES[item_type]
+              self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEM_TYPES[item_type]
             else:  # Transport stairway
               self.data[level_num][left_exit]['stair_info'] = 'Stair #%d' % stairway_num
               self.data[level_num][right_exit]['stair_info'] = 'Stair #%d' % stairway_num
