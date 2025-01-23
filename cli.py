@@ -9,13 +9,22 @@ import io
 import os
 from data_extractor import DataExtractor 
 
-def GenerateCSVLine(file_path, level_num, data):
+def GenerateLevelCSVLine(file_path, level_num, data):
    ret = [file_path, str(level_num)]
    ret.append(data['room_num'])
    ret.append(data['room_type'])
    ret.append(data['enemy_info'] or 'No Enemies')
    ret.append(data['item_info'] or 'No Item')
    ret.append(data['stair_info'] or 'No Stairway')
+   return ','.join(ret)
+
+def GenerateOverworldCSVLine(file_path, data):
+   if not data['screen_num']:
+       return
+   ret = [file_path, 'Overworld']
+   ret.append(data['screen_num'])
+   ret.append(data['cave_name'])
+   ret.append(data['block_type'])
    return ','.join(ret)
 
 def main():
@@ -33,9 +42,15 @@ def main():
         with open(file_path, 'rb') as f:
             rom = io.BytesIO(f.read())
             data_extractor = DataExtractor(rom=rom)
+
+            # Print out room data for each level
             for level in range(1, 10):
                 for room in data_extractor.data[level]:
-                    print(GenerateCSVLine(file_path, level, data_extractor.data[level][room]))
+                    print(GenerateLevelCSVLine(file_path, level, data_extractor.data[level][room]))
+
+            # Print out overworld screens
+            for screen_num in data_extractor.data[0]:
+                print(GenerateOverworldCSVLine(file_path, data_extractor.data[0][screen_num]))
 
             # Print out Overworld items as "Level 0"
             locations = ["Armos", "Coast", "WSCave"]

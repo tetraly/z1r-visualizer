@@ -6,6 +6,7 @@ import math
 from typing import Any, Dict, List, Optional
 from constants import Direction, WallType, ROOM_TYPES, ENEMY_TYPES, ITEM_TYPES
 from constants import ENTRANCE_DIRECTION_MAP, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
+from constants import OVERWORLD_BLOCK_TYPES
 
 PALETTE_OFFSET = 0xB
 START_ROOM_OFFSET = 0x2F
@@ -117,26 +118,34 @@ class DataExtractor(object):
     def ProcessOverworld(self) -> None:
         self.data[0] = {}
         for screen_num in range(0, 0x80):
+            # Skip any screens that aren't "Secret in 1st Quest"
             if (self.GetRoomData(0, screen_num + 5*0x80) & 0x80) > 0:
                 continue
-            foo = self.GetRoomData(0, screen_num + 1*0x80)
-            bar = foo >> 2
-            if bar == 0:
+            # Cave destination is upper 6 bits of table 1
+            destination = self.GetRoomData(0, screen_num + 1*0x80) >> 2
+            if destination == 0:
               continue
             x = screen_num % 0x10 
             y = 8 - (math.floor(screen_num / 0x10))
+            
+            block_type = 'Tell Tetra what block type this is'
+            try:
+                block_type = OVERWORLD_BLOCK_TYPES[screen_num]
+            except KeyError:
+                continue
             self.data[0][screen_num] = {
                 'screen_num': '%x' % screen_num,
                 'col': x,
                 'x_coord': x + .5,
                 'row': y,
                 'y_coord': y - .5,
-                'cave': '%x' % bar
+                'cave': '%x' % destination,
+                'block_type': block_type,
               }
-            if bar in CAVE_NAME:
-              self.data[0][screen_num]['cave_name'] = CAVE_NAME[bar]
-            if bar in CAVE_NAME_SHORT:
-              self.data[0][screen_num]['cave_name_short'] = CAVE_NAME_SHORT[bar]
+            if destination in CAVE_NAME:
+              self.data[0][screen_num]['cave_name'] = CAVE_NAME[destination]
+            if destination in CAVE_NAME_SHORT:
+              self.data[0][screen_num]['cave_name_short'] = CAVE_NAME_SHORT[destination]
  
     def ProcessLevel(self, level_num: int) -> None:
         self.data[level_num] = {}
