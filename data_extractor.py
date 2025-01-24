@@ -378,3 +378,7 @@ class DataExtractor(object):
          
     def GetTriforceRequirement(self) -> int:
       return self.rom_reader.GetTriforceRequirement()
+
+    def PrintQuotes(self) -> None:
+        for a in range (0, 38):
+            print(self.rom_reader.GetQuote(a))

@@ -1,6 +1,7 @@
 from enum import IntEnum
 import io
 from typing import IO, List
+from constants import CHAR_MAP
 
 OVERWORLD_DATA_LOCATION = 0x18400
 LEVEL_1_TO_6_DATA_LOCATION = 0x18700
@@ -48,3 +49,21 @@ class RomReader:
 
     def GetTriforceRequirement(self) -> int:
         return self._ReadMemory(TRIFORCE_COUNT_ADDRESS, 0x01)[0]
+        
+    def GetQuote(self, num: int) -> str:
+      assert num in range(0, 38)
+      low_byte = self._ReadMemory(0x4000 + 2*num, 0x01)[0]
+      high_byte =  self._ReadMemory(0x4000 + 2*num + 1, 0x01)[0] - 0x40
+      addr = high_byte * 0x100 + low_byte
+      print("high: %x, low: %x, addr: %x" % (high_byte, low_byte, addr))
+      raw_quote = self._ReadMemory(addr, 0x40)
+      out_quote = ""
+      for val in raw_quote:
+          char = val & 0x3F
+          out_quote += CHAR_MAP[char]
+          high_bits = (val >> 6) & 0x03
+          if high_bits in [1, 2]:
+              out_quote += " "
+          if high_bits == 3:
+              break
+      return out_quote
