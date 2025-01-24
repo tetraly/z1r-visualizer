@@ -280,9 +280,8 @@ class DataExtractor(object):
                             room_num + direction,
                             from_dir=direction.inverse())
   
-        # If this room has a push block, check if it has a transport stairway.
-        # If so, visit the other side.
-        if not self._HasPushBlock(level_num, room_num):
+        # Only check for stairways if this room is configured to have a stairway entrance
+        if not self._HasStairway(level_num, room_num):
             return
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
                 left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
@@ -306,8 +305,18 @@ class DataExtractor(object):
             self.GetRoomData(level_num, room_num + offset) / bits_to_shift) % 0x08
         return wall_type
 
-    def _HasPushBlock(self, level_num: int, room_num: int) -> str:
-        return ((self.GetRoomData(level_num, room_num + 3*0x80) >> 6) & 0x01) > 0
+    def _HasStairway(self, level_num: int, room_num: int) -> str:
+        room_type_code = self.GetRoomData(level_num, room_num + 3*0x80) & 0x3F
+
+        # Spiral Stair, Narrow Stair, and Diamond Stair rooms always have a stairway
+        if room_type_code in [0x1A, 0x1B, 0x1C]:
+            return True
+
+        # Check if "Movable block" bit is set in a room_type that has a middle row pushblock
+        if room_type_code in [0x01, 0x07, 0x08, 0x09, 0x10, 0x0A, 0x0C, 0x0D, 0x11, 0x1F, 0x22]:
+            if ((self.GetRoomData(level_num, room_num + 3*0x80) >> 6) & 0x01) > 0:
+                return True
+        return False
 
     def _GetRoomType(self, level_num: int, room_num: int) -> str:
         code = self.GetRoomData(level_num, room_num + 3*0x80)
