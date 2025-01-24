@@ -7,7 +7,8 @@ import argparse
 import glob
 import io
 import os
-from data_extractor import DataExtractor 
+from data_extractor import DataExtractor
+from constants import CAVE_NAME, ITEM_TYPES
 
 def GenerateLevelCSVLine(file_path, level_num, data):
    ret = [file_path, str(level_num)]
@@ -51,6 +52,19 @@ def main():
             # Print out overworld screens
             for screen_num in data_extractor.data[0]:
                 print(GenerateOverworldCSVLine(file_path, data_extractor.data[0][screen_num]))
+
+            # Caves
+            for cave_type in [0x10, 0x11, 0x12, 0x13, 0x18]:
+                for i in range (0,3):
+                  print(",".join([file_path, "cave", CAVE_NAME[cave_type],
+                        ITEM_TYPES[data_extractor.shop_data[cave_type][i]]]))
+
+            # Shops
+            for cave_type in [0x1D, 0x1E, 0x1F, 0x20, 0x1A]:
+                for i in range (0,3):
+                  print(",".join([file_path, "cave", CAVE_NAME[cave_type],
+                        ITEM_TYPES[data_extractor.shop_data[cave_type][i]],
+                        str(data_extractor.shop_data[cave_type][i+3])]))
 
             # Print out Overworld items as "Level 0"
             locations = ["Armos", "Coast", "WSCave"]

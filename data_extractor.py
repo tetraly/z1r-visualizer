@@ -30,6 +30,7 @@ class DataExtractor(object):
         self.is_z1r = True
         self.level_info: List[List[int]] = []
         self.data: Dict[int, Dict[int, Any]] = {}
+        self.shop_data = {}
 
         for level_num in range(0, 10):
             level_info = self.rom_reader.GetLevelInfo(level_num)
@@ -53,6 +54,7 @@ class DataExtractor(object):
         self.is_z1r = True
         self.level_info: List[List[int]] = []
         self.data: Dict[int, Dict[int, Any]] = {}
+        self.shop_data = {}
    
         for level_num in range(0, 10):
             level_info = self.rom_reader.GetLevelInfo(level_num)
@@ -116,6 +118,17 @@ class DataExtractor(object):
         return stairway_list
 
     def ProcessOverworld(self) -> None:
+        for shop_type in range (0x10, 0x24):
+            base_index = 4*0x80 + 3*(shop_type-0x10)
+            price_index = 4*0x80 + 3*(shop_type-0x10) + 0x14*3
+            self.shop_data[shop_type] = []
+            self.shop_data[shop_type].append(self.level_blocks[0][base_index] & 0x3F)
+            self.shop_data[shop_type].append(self.level_blocks[0][base_index + 1] & 0x3F)
+            self.shop_data[shop_type].append(self.level_blocks[0][base_index + 2] & 0x3F)
+            self.shop_data[shop_type].append(self.level_blocks[0][price_index])
+            self.shop_data[shop_type].append(self.level_blocks[0][price_index + 1])
+            self.shop_data[shop_type].append(self.level_blocks[0][price_index + 2])
+            
         self.data[0] = {}
         for screen_num in range(0, 0x80):
             # Skip any screens that aren't "Secret in 1st Quest"

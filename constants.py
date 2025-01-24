@@ -170,7 +170,10 @@ ITEM_TYPES = {
     0x1C: "Shield",
     0x1D: "Boomerang",
     0x1E: "Magical Boomerang",
-    0x1F: "Blue Potion"
+    0x1F: "Blue Potion",
+    0x20: "Red Potion",
+    0x22: "Heart",
+    0x3F: "Nothing",
 }
 
 ROOM_TYPES = {
