@@ -171,7 +171,7 @@ class DataExtractor(object):
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
 
             # Ignore any rooms in the stairway room list that don't connect to the current level.
-            if not left_exit in self.data[level_num] and not right_exit in self.data[level_num]:
+            if not (left_exit in self.data[level_num] and right_exit in self.data[level_num]):
                 continue
 
             if left_exit == right_exit:  # Item stairway
@@ -193,7 +193,6 @@ class DataExtractor(object):
                    level_num: int,
                    room_num: int,
                    from_dir: Optional[Direction] = None) -> None:
-
         if room_num in self.data[level_num]:
             return
         x = (room_num + self.GetLevelDisplayOffset(level_num)) % 0x10 
@@ -281,7 +280,10 @@ class DataExtractor(object):
                             room_num + direction,
                             from_dir=direction.inverse())
   
-        # Check if this room has a transport stairway. If so, visit the other side.
+        # If this room has a push block, check if it has a transport stairway.
+        # If so, visit the other side.
+        if not self._HasPushBlock(level_num, room_num):
+            return
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
                 left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
                 right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
@@ -303,7 +305,10 @@ class DataExtractor(object):
         wall_type = math.floor(
             self.GetRoomData(level_num, room_num + offset) / bits_to_shift) % 0x08
         return wall_type
-        
+
+    def _HasPushBlock(self, level_num: int, room_num: int) -> str:
+        return ((self.GetRoomData(level_num, room_num + 3*0x80) >> 6) & 0x01) > 0
+
     def _GetRoomType(self, level_num: int, room_num: int) -> str:
         code = self.GetRoomData(level_num, room_num + 3*0x80)
         while code >= 0x40:
