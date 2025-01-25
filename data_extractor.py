@@ -391,3 +391,7 @@ class DataExtractor(object):
     def PrintQuotes(self) -> None:
         for a in range (0, 38):
             print(self.rom_reader.GetQuote(a))
+
+    def PrintTextAtAddress(self, addr: int) -> None:
+        print(self.rom_reader.PrintTextAtAddress(addr))
+

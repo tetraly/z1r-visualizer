@@ -55,7 +55,6 @@ class RomReader:
       low_byte = self._ReadMemory(0x4000 + 2*num, 0x01)[0]
       high_byte =  self._ReadMemory(0x4000 + 2*num + 1, 0x01)[0] - 0x40
       addr = high_byte * 0x100 + low_byte
-      print("high: %x, low: %x, addr: %x" % (high_byte, low_byte, addr))
       raw_quote = self._ReadMemory(addr, 0x40)
       out_quote = ""
       for val in raw_quote:
@@ -67,3 +66,16 @@ class RomReader:
           if high_bits == 3:
               break
       return out_quote
+
+    def PrintTextAtAddress(self, addr: int) -> str:
+       raw_quote = self._ReadMemory(addr, 0x40)
+       out_quote = ""
+       for val in raw_quote:
+           char = val & 0x3F
+           out_quote += CHAR_MAP[char]
+           high_bits = (val >> 6) & 0x03
+           if high_bits in [1, 2]:
+               out_quote += " "
+           if high_bits == 3:
+               break
+       return out_quote
