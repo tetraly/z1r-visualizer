@@ -469,6 +469,7 @@ CHAR_MAP = {
   0x2E: "?",
   0x2F: "-",
   0x3F: " ",
+  0xFF: " ",
 }
 
 PALETTE_COLORS = [

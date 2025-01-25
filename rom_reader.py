@@ -67,15 +67,19 @@ class RomReader:
               break
       return out_quote
 
-    def PrintTextAtAddress(self, addr: int) -> str:
-       raw_quote = self._ReadMemory(addr, 0x40)
-       out_quote = ""
-       for val in raw_quote:
-           char = val & 0x3F
-           out_quote += CHAR_MAP[char]
-           high_bits = (val >> 6) & 0x03
-           if high_bits in [1, 2]:
-               out_quote += " "
-           if high_bits == 3:
-               break
-       return out_quote
+    def hex_to_text(self, hex):
+      tbr = ""
+      for val in hex:
+        tbr += CHAR_MAP[val]
+      return tbr
+
+    def GetRecorderText(self) -> str:
+       raw_quote = self._ReadMemory(0xB000, 0x40)
+       if raw_quote[0] != 8:
+         return ""
+       recorder_len = raw_quote[0]
+       name_len = raw_quote[3+recorder_len]
+       name_text = raw_quote[4+recorder_len:2+recorder_len + name_len]
+       from_len = raw_quote[5 +recorder_len + name_len]
+       from_text = raw_quote[4+recorder_len + name_len : 4+recorder_len + name_len + from_len]
+       return ' '.join([self.hex_to_text(name_text), self.hex_to_text(from_text)])

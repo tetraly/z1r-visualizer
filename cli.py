@@ -78,6 +78,13 @@ def main():
             else:
                 print ("%s Level 9 triforce requirement is %d" %
                        (file_path, data_extractor.GetTriforceRequirement()))
+            
+            for num in range (0, 38):
+                print("%s,quote,%d,%s" % (file_path, num, data_extractor.GetQuote(num)))
+            maybe_recorder_text = data_extractor.GetRecorderText()
+
+            if maybe_recorder_text:
+                print("%s,quote,recorder,%s" % (file_path, maybe_recorder_text))
 
 if __name__ == "__main__":
     main()

@@ -238,7 +238,7 @@ class DataExtractor(object):
             }
             if (room_num + int(direction)) in self.data[level_num]:
               self.data[level_num][room_num]['%s.color' % direction_text[direction]] = "red"
-              
+
             self.data[level_num][room_num]['%s.wall.x' % direction_text[direction]] = x + direction_x[direction]
             self.data[level_num][room_num]['%s.wall.y' % direction_text[direction]] = y + direction_y[direction]
           if wall_type != WallType.SOLID_WALL:
@@ -390,10 +390,9 @@ class DataExtractor(object):
     def GetTriforceRequirement(self) -> int:
       return self.rom_reader.GetTriforceRequirement()
 
-    def PrintQuotes(self) -> None:
-        for a in range (0, 38):
-            print(self.rom_reader.GetQuote(a))
+    def GetQuote(self, quote_num:int) -> str:
+        return self.rom_reader.GetQuote(quote_num)
 
-    def PrintTextAtAddress(self, addr: int) -> None:
-        print(self.rom_reader.PrintTextAtAddress(addr))
+    def GetRecorderText(self) -> str:
+        return self.rom_reader.GetRecorderText()
 
