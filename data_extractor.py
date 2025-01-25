@@ -237,8 +237,10 @@ class DataExtractor(object):
               Direction.EAST: -.5
             }
             if (room_num + int(direction)) in self.data[level_num]:
-               self.data[level_num][room_num]['%s.wall.x' % direction_text[direction]] = x + direction_x[direction]
-               self.data[level_num][room_num]['%s.wall.y' % direction_text[direction]] = y + direction_y[direction]
+              self.data[level_num][room_num]['%s.color' % direction_text[direction]] = "red"
+              
+            self.data[level_num][room_num]['%s.wall.x' % direction_text[direction]] = x + direction_x[direction]
+            self.data[level_num][room_num]['%s.wall.y' % direction_text[direction]] = y + direction_y[direction]
           if wall_type != WallType.SOLID_WALL:
             direction_text = {
               Direction.NORTH: "north",

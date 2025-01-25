@@ -121,13 +121,13 @@ else:
              fill_alpha=0.6, color="west.color")
 
   r6 = p.rect("north.wall.x", "north.wall.y", 1, 0.01, source=df,
-             fill_alpha=0.6, color="red")  #, legend_field="metal")
+             fill_alpha=0.6, color="north.color")  #, legend_field="metal")
   r7 = p.rect("south.wall.x", "south.wall.y", 1, 0.01, source=df,
-             fill_alpha=0.6, color="red")  #, legend_field="metal")
+             fill_alpha=0.6, color="south.color")  #, legend_field="metal")
   r8 = p.rect("east.wall.x", "east.wall.y", 0.02, 1, source=df,
-             fill_alpha=0.6, color="red")  #, legend_field="metal")
+             fill_alpha=0.6, color="east.color")  #, legend_field="metal")
   r9 = p.rect("west.wall.x", "west.wall.y", 0.02, 1, source=df,
-             fill_alpha=0.6, color="red")  #, legend_field="metal")
+             fill_alpha=0.6, color="west.color")  #, legend_field="metal")
 
   source = ColumnDataSource(data={'x': [-1], 'y': [-1], 'w': [.1], 'h': [.1]})   
   bomb_wall = p.add_glyph(
