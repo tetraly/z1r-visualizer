@@ -7,10 +7,13 @@ from data_extractor import DataExtractor
 import requests
 
 
-try:
-    st.set_page_config(layout="wide")
-except:
-    st.beta_set_page_config(layout="wide")
+st.set_page_config(page_title="Z1R Visualizer", layout="wide")
+# st.image("https://streamlit.io/images/brand/streamlit-mark-color.png", width=78)
+st.write(
+    """
+    # Z1R Visualizer
+    """
+)
     
 hide_streamlit_style = """
             <style>
