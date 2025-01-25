@@ -15,6 +15,8 @@ DISPLAY_OFFSET_OFFSET = 0x2D
 
 class DataExtractor(object):
     def __init__(self, rom: io.BytesIO, allow_decoding_roms: bool=False) -> None:
+        self.ProcessUnencodedRom(rom)
+        return
         try:
             self.ProcessUnencodedRom(rom)
             return
@@ -162,9 +164,15 @@ class DataExtractor(object):
  
     def ProcessLevel(self, level_num: int) -> None:
         self.data[level_num] = {}
-        self._VisitRoom(level_num,
-                        self.GetLevelStartRoomNumber(level_num),
-                        from_dir=self.GetLevelEntranceDirection(level_num))
+        rooms_to_visit = [(self.GetLevelStartRoomNumber(level_num), 
+                           self.GetLevelEntranceDirection(level_num))]
+        while True:
+            room_num, direction = rooms_to_visit.pop()
+            new_rooms = self._VisitRoom(level_num, room_num, direction)
+            if new_rooms:
+                rooms_to_visit.extend(new_rooms)
+            if not rooms_to_visit:
+                break
         stairway_num = 1
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
@@ -172,6 +180,8 @@ class DataExtractor(object):
 
             # Ignore any rooms in the stairway room list that don't connect to the current level.
             if not (left_exit in self.data[level_num] and right_exit in self.data[level_num]):
+                print("WARNING: This seed has a phantom stairway room %x in level %d" %
+                      (stairway_room_num, level_num))
                 continue
 
             if left_exit == right_exit:  # Item stairway
@@ -192,9 +202,10 @@ class DataExtractor(object):
     def _VisitRoom(self,
                    level_num: int,
                    room_num: int,
-                   from_dir: Optional[Direction] = None) -> None:
+                   from_dir: Direction) -> None:
         if room_num in self.data[level_num]:
             return
+        tbr = []
         x = (room_num + self.GetLevelDisplayOffset(level_num)) % 0x10 
         y = 8 - (math.floor(room_num / 0x10))
         
@@ -278,25 +289,20 @@ class DataExtractor(object):
                 continue
             if self._GetWallType(level_num, room_num, direction) == WallType.SOLID_WALL:
                 continue
-            self._VisitRoom(level_num,
-                            room_num + direction,
-                            from_dir=direction.inverse())
+            tbr.append((room_num + direction, direction.inverse()))
   
         # Only check for stairways if this room is configured to have a stairway entrance
         if not self._HasStairway(level_num, room_num):
-            return
+            return tbr
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
-                left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
-                right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
+            left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
+            right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
             
-                if left_exit == room_num and right_exit != room_num:
-                    self._VisitRoom(level_num,
-                                    right_exit,
-                                    from_dir=direction.NO_DIRECTION)
-                elif right_exit == room_num and left_exit != room_num:
-                    self._VisitRoom(level_num,
-                                    left_exit,
-                                    from_dir=direction.NO_DIRECTION)
+            if left_exit == room_num and right_exit != room_num:
+                tbr.append((right_exit, direction.NO_DIRECTION))
+            elif right_exit == room_num and left_exit != room_num:
+                tbr.append((left_exit, direction.NO_DIRECTION))
+        return tbr
         
 
     def _GetWallType(self, level_num: int, room_num: int, direction: Direction) -> int:
@@ -377,7 +383,6 @@ class DataExtractor(object):
         vals = self.level_info[level_num][PALETTE_OFFSET:PALETTE_OFFSET + 8]
         rgbs: List[str] = []
         for val in vals:
-            #print("%02x " % val, end="")
             rgbs.append(PALETTE_COLORS[val])
         return rgbs
         
