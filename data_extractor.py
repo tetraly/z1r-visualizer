@@ -1,5 +1,4 @@
 from rom_reader import RomReader
-from encoded_rom_reader import EncodedRomReader
 import io
 from typing import IO, List
 import math
@@ -15,43 +14,6 @@ DISPLAY_OFFSET_OFFSET = 0x2D
 
 class DataExtractor(object):
     def __init__(self, rom: io.BytesIO, allow_decoding_roms: bool=False) -> None:
-        self.ProcessUnencodedRom(rom)
-        return
-        try:
-            self.ProcessUnencodedRom(rom)
-            return
-        except IndexError:
-            pass
-        if allow_decoding_roms:
-            self.ProcessEncodedRom(rom)
-            return
-        raise Exception()
-
-    def ProcessEncodedRom(self, rom) -> None:
-        self.rom_reader = EncodedRomReader(rom)
-        self.is_z1r = True
-        self.level_info: List[List[int]] = []
-        self.data: Dict[int, Dict[int, Any]] = {}
-        self.shop_data = {}
-
-        for level_num in range(0, 10):
-            level_info = self.rom_reader.GetLevelInfo(level_num)
-            self.level_info.append(level_info)
-            vals = level_info[0x34:0x3E]
-            if vals[-1] in range(0, 5):
-                continue
-            self.is_z1r = False
-
-        self.level_blocks: List[List[int]] = []
-        for level_num in [0,1,7]:
-            self.level_blocks.append(self.rom_reader.GetLevelBlock(level_num))
-        
-        self.ProcessOverworld()
-        for level_num in range(1, 10):
-            self.ProcessLevel(level_num)        
-            
-      
-    def ProcessUnencodedRom(self, rom) -> None:
         self.rom_reader = RomReader(rom)
         self.is_z1r = True
         self.level_info: List[List[int]] = []
