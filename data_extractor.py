@@ -259,7 +259,7 @@ class DataExtractor(object):
         for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
-            
+
             if left_exit == room_num and right_exit != room_num:
                 tbr.append((right_exit, direction.NO_DIRECTION))
             elif right_exit == room_num and left_exit != room_num:
@@ -281,6 +281,12 @@ class DataExtractor(object):
         # Spiral Stair, Narrow Stair, and Diamond Stair rooms always have a stairway
         if room_type_code in [0x1A, 0x1B, 0x1C]:
             return True
+
+        # Check if there are any shutter doors in this room. If so, they'll open when a middle
+        # row pushblock is pushed instead of a stairway appearing
+        for direction in [Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST]:
+            if self._GetWallType(level_num, room_num, direction) == WallType.SHUTTER_DOOR:
+                return False
 
         # Check if "Movable block" bit is set in a room_type that has a middle row pushblock
         if room_type_code in [0x01, 0x07, 0x08, 0x09, 0x10, 0x0A, 0x0C, 0x0D, 0x11, 0x1F, 0x22]:
