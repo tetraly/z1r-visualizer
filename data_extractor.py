@@ -252,7 +252,7 @@ class DataExtractor(object):
             if self._GetWallType(level_num, room_num, direction) == WallType.SOLID_WALL:
                 continue
             tbr.append((room_num + direction, direction.inverse()))
-  
+
         # Only check for stairways if this room is configured to have a stairway entrance
         if not self._HasStairway(level_num, room_num):
             return tbr
@@ -260,10 +260,19 @@ class DataExtractor(object):
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
 
-            if left_exit == room_num and right_exit != room_num:
+            if left_exit == room_num and right_exit == room_num:
+                # This is an item staircase, not a transport staircase
+                break
+            elif left_exit == room_num and right_exit != room_num:
+                print("Transport. Left %x. Right %x" % (left_exit, right_exit))
                 tbr.append((right_exit, direction.NO_DIRECTION))
+                # Stop looking for additional staircases after finding one
+                break
             elif right_exit == room_num and left_exit != room_num:
+                print("Transport. Left %x. Right %x" % (left_exit, right_exit))
                 tbr.append((left_exit, direction.NO_DIRECTION))
+                # Stop looking for additional staircases after finding one
+                break
         return tbr
         
 
