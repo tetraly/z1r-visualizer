@@ -264,12 +264,10 @@ class DataExtractor(object):
                 # This is an item staircase, not a transport staircase
                 break
             elif left_exit == room_num and right_exit != room_num:
-                print("Transport. Left %x. Right %x" % (left_exit, right_exit))
                 tbr.append((right_exit, direction.NO_DIRECTION))
                 # Stop looking for additional staircases after finding one
                 break
             elif right_exit == room_num and left_exit != room_num:
-                print("Transport. Left %x. Right %x" % (left_exit, right_exit))
                 tbr.append((left_exit, direction.NO_DIRECTION))
                 # Stop looking for additional staircases after finding one
                 break
