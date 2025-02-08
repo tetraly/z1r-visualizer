@@ -4,8 +4,13 @@ from typing import IO, List
 from constants import CHAR_MAP
 
 OVERWORLD_DATA_LOCATION = 0x18400
-LEVEL_1_TO_6_DATA_LOCATION = 0x18700
-LEVEL_7_TO_9_DATA_LOCATION = 0x18A00
+LEVEL_1_TO_6_FIRST_QUEST_DATA_LOCATION = 0x18700
+LEVEL_7_TO_9_FIRST_QUEST_DATA_LOCATION = 0x18A00
+LEVEL_1_TO_6_SECOND_QUEST_DATA_LOCATION = 0x18D00
+LEVEL_7_TO_9_SECOND_QUEST_DATA_LOCATION = 0x19000
+LEVEL_1_TO_6_POINTER_LOCATION = 0x18003
+LEVEL_7_TO_9_POINTER_LOCATION = 0x1800F
+
 VARIOUS_DATA_LOCATION = 0x19300
 NES_HEADER_OFFSET = 0x10
 ARMOS_ITEM_ADDRESS = 0x10CF5
@@ -31,9 +36,26 @@ class RomReader:
         if level_num == 0:
             return self._ReadMemory(OVERWORLD_DATA_LOCATION, 0x300)
         if level_num in range(1, 7):
-            return self._ReadMemory(LEVEL_1_TO_6_DATA_LOCATION, 0x300)
+            loc = self._ReadMemory(LEVEL_1_TO_6_POINTER_LOCATION, 0x01)[0]
+            print("%x" % loc)
+            if loc == 0x87:
+              return self._ReadMemory(LEVEL_1_TO_6_FIRST_QUEST_DATA_LOCATION, 0x300)
+            elif loc == 0x8D:
+              return self._ReadMemory(LEVEL_1_TO_6_SECOND_QUEST_DATA_LOCATION, 0x300)
+            else:
+              print("Error Reading Level 1-6 data location")
+              exit()
+              
         if level_num in range(7, 10):
-            return self._ReadMemory(LEVEL_7_TO_9_DATA_LOCATION, 0x300)
+            loc = self._ReadMemory(LEVEL_7_TO_9_POINTER_LOCATION, 0x01)[0]
+            print("%x" % loc)
+            if loc == 0x8A:
+              return self._ReadMemory(LEVEL_7_TO_9_FIRST_QUEST_DATA_LOCATION, 0x300)
+            elif loc == 0x90:
+              return self._ReadMemory(LEVEL_7_TO_9_SECOND_QUEST_DATA_LOCATION, 0x300)
+            else:
+              print("Error Reading Level 7-9 data location")
+              exit()
         return []
 
     def GetLevelInfo(self, level_num: int) -> List[int]:
