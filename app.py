@@ -36,8 +36,9 @@ if uploaded_file is None:
         )
     st.stop()
 
+de = DataExtractor(rom=uploaded_file)
 try:
-  de = DataExtractor(rom=uploaded_file, allow_decoding_roms=False)
+  de.Parse()
 except Exception as e:
   st.info("Sorry, this ROM doesn't seem to be supported. Please try a different ROM.")
   st.stop()

@@ -32,19 +32,20 @@ class DataExtractor(object):
         for level_num in [0,1,7]:
             self.level_blocks.append(self.rom_reader.GetLevelBlock(level_num))
         
+    def Parse(self) -> None:
         self.ProcessOverworld()
         for level_num in range(1, 10):
-            self.ProcessLevel(level_num)        
+            self.ProcessLevel(level_num)
 
     def GetRoomData(self, level_num: int, byte_num: int) -> int:
         foo = -1
         if level_num == 0:
-            foo = 0
+            level_block_num = 0
         elif level_num in range(1, 7):
-            foo = 1
+            level_block_num = 1
         elif level_num in range(7, 10):
-            foo = 2
-        return self.level_blocks[foo][byte_num]
+            level_block_num = 2
+        return self.level_blocks[level_block_num][byte_num]
       
     def GetLevelEntranceDirection(self, level_num: int) -> Direction:
         if not self.is_z1r:
@@ -81,18 +82,7 @@ class DataExtractor(object):
             stairway_list.append(0x0F)
         return stairway_list
 
-    def ProcessOverworld(self) -> None:
-        for shop_type in range (0x10, 0x24):
-            base_index = 4*0x80 + 3*(shop_type-0x10)
-            price_index = 4*0x80 + 3*(shop_type-0x10) + 0x14*3
-            self.shop_data[shop_type] = []
-            self.shop_data[shop_type].append(self.level_blocks[0][base_index] & 0x3F)
-            self.shop_data[shop_type].append(self.level_blocks[0][base_index + 1] & 0x3F)
-            self.shop_data[shop_type].append(self.level_blocks[0][base_index + 2] & 0x3F)
-            self.shop_data[shop_type].append(self.level_blocks[0][price_index])
-            self.shop_data[shop_type].append(self.level_blocks[0][price_index + 1])
-            self.shop_data[shop_type].append(self.level_blocks[0][price_index + 2])
-            
+    def ProcessOverworld(self) -> None:  
         self.data[0] = {}
         for screen_num in range(0, 0x80):
             # Skip any screens that aren't "Secret in 1st Quest"
@@ -123,6 +113,17 @@ class DataExtractor(object):
               self.data[0][screen_num]['cave_name'] = CAVE_NAME[destination]
             if destination in CAVE_NAME_SHORT:
               self.data[0][screen_num]['cave_name_short'] = CAVE_NAME_SHORT[destination]
+
+        for shop_type in range (0x10, 0x24):
+            base_index = 4*0x80 + 3*(shop_type-0x10)
+            price_index = 4*0x80 + 3*(shop_type-0x10) + 0x14*3
+            self.shop_data[shop_type] = []
+            self.shop_data[shop_type].append(self.level_blocks[0][base_index] & 0x3F)
+            self.shop_data[shop_type].append(self.level_blocks[0][base_index + 1] & 0x3F)
+            self.shop_data[shop_type].append(self.level_blocks[0][base_index + 2] & 0x3F)
+            self.shop_data[shop_type].append(self.level_blocks[0][price_index])
+            self.shop_data[shop_type].append(self.level_blocks[0][price_index + 1])
+            self.shop_data[shop_type].append(self.level_blocks[0][price_index + 2])
  
     def ProcessLevel(self, level_num: int) -> None:
         self.data[level_num] = {}
@@ -142,8 +143,10 @@ class DataExtractor(object):
 
             # Ignore any rooms in the stairway room list that don't connect to the current level.
             if not (left_exit in self.data[level_num] and right_exit in self.data[level_num]):
-                print("WARNING: This seed has a phantom stairway room %x in level %d" %
-                      (stairway_room_num, level_num))
+                # For debugging stairway issues
+                # print("WARNING: This seed has a phantom stairway room %x in level %d" %
+                #       (stairway_room_num, level_num))
+                # print("Exits are %x and %x" % (left_exit, right_exit))
                 continue
 
             if left_exit == right_exit:  # Item stairway
@@ -166,7 +169,9 @@ class DataExtractor(object):
                    room_num: int,
                    from_dir: Direction) -> None:
         if room_num in self.data[level_num]:
-            return
+          return
+        if room_num not in range(0, 0x80):
+          return
         tbr = []
         x = (room_num + self.GetLevelDisplayOffset(level_num)) % 0x10 
         y = 8 - (math.floor(room_num / 0x10))

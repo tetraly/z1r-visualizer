@@ -43,33 +43,42 @@ def main():
         with open(file_path, 'rb') as f:
             rom = io.BytesIO(f.read())
             data_extractor = DataExtractor(rom=rom)
+            try:
+               data_extractor.Parse()
+            except IndexError:
+                print("Error parsing level data in %s." % file_path)
+                exit()
 
             # Print out room data for each level
             for level in range(1, 10):
-                for room in data_extractor.data[level]:
-                    print(GenerateLevelCSVLine(file_path, level, data_extractor.data[level][room]))
+                if level in data_extractor.data:
+                    for room in data_extractor.data[level]:
+                        print(GenerateLevelCSVLine(file_path, level, data_extractor.data[level][room]))
 
             # Print out overworld screens
-            for screen_num in data_extractor.data[0]:
-                print(GenerateOverworldCSVLine(file_path, data_extractor.data[0][screen_num]))
+            if data_extractor.data:
+                for screen_num in data_extractor.data[0]:
+                    print(GenerateOverworldCSVLine(file_path, data_extractor.data[0][screen_num]))
 
             # Caves
-            for cave_type in [0x10, 0x11, 0x12, 0x13, 0x18]:
-                for i in range (0,3):
-                  print(",".join([file_path, "cave", CAVE_NAME[cave_type],
-                        ITEM_TYPES[data_extractor.shop_data[cave_type][i]]]))
+            if data_extractor.shop_data:
+                for cave_type in [0x10, 0x11, 0x12, 0x13, 0x18]:
+                    for i in range (0,3):
+                        print(",".join([file_path, "cave", CAVE_NAME[cave_type],
+                            ITEM_TYPES[data_extractor.shop_data[cave_type][i]]]))
 
             # Shops
-            for cave_type in [0x1D, 0x1E, 0x1F, 0x20, 0x1A]:
-                for i in range (0,3):
-                  print(",".join([file_path, "cave", CAVE_NAME[cave_type],
-                        ITEM_TYPES[data_extractor.shop_data[cave_type][i]],
-                        str(data_extractor.shop_data[cave_type][i+3])]))
+            if data_extractor.shop_data:
+                for cave_type in [0x1D, 0x1E, 0x1F, 0x20, 0x1A]:
+                    for i in range (0,3):
+                        print(",".join([file_path, "cave", CAVE_NAME[cave_type],
+                            ITEM_TYPES[data_extractor.shop_data[cave_type][i]],
+                            str(data_extractor.shop_data[cave_type][i+3])]))
 
             # Print out Overworld items as "Level 0"
-            locations = ["Armos", "Coast", "WSCave"]
+            locations = ["Armos", "Coast"]
             items = data_extractor.GetOverworldItems()
-            for i in range (0, 3):
+            for i in range (0, 2):
                 print(','.join([file_path, '0', locations[i], items[i]]))
             
             triforce_req = data_extractor.GetTriforceRequirement()

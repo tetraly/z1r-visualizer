@@ -8,8 +8,9 @@ LEVEL_1_TO_6_FIRST_QUEST_DATA_LOCATION = 0x18700
 LEVEL_7_TO_9_FIRST_QUEST_DATA_LOCATION = 0x18A00
 LEVEL_1_TO_6_SECOND_QUEST_DATA_LOCATION = 0x18D00
 LEVEL_7_TO_9_SECOND_QUEST_DATA_LOCATION = 0x19000
-LEVEL_1_TO_6_POINTER_LOCATION = 0x18003
-LEVEL_7_TO_9_POINTER_LOCATION = 0x1800F
+OVERWORLD_POINTER_LOCATION = 0x18000
+LEVEL_1_TO_6_POINTER_LOCATION = 0x18002
+LEVEL_7_TO_9_POINTER_LOCATION = 0x1800E
 
 VARIOUS_DATA_LOCATION = 0x19300
 NES_HEADER_OFFSET = 0x10
@@ -31,31 +32,25 @@ class RomReader:
         for raw_byte in self.rom.read(num_bytes):
             data.append(int(raw_byte))
         return data
-    
+
+    def _GetLevelBlockPointer(self, addr: int) -> List[int]:
+       val = self._ReadMemory(addr, 0x02)
+       return val[1]*0x100 + val[0]
+
     def GetLevelBlock(self, level_num: int) -> List[int]:
         if level_num == 0:
-            return self._ReadMemory(OVERWORLD_DATA_LOCATION, 0x300)
+            if self._GetLevelBlockPointer(OVERWORLD_POINTER_LOCATION) == 0x8400:
+                return self._ReadMemory(OVERWORLD_DATA_LOCATION, 0x300)
         if level_num in range(1, 7):
-            loc = self._ReadMemory(LEVEL_1_TO_6_POINTER_LOCATION, 0x01)[0]
-            print("%x" % loc)
-            if loc == 0x87:
+            if self._GetLevelBlockPointer(LEVEL_1_TO_6_POINTER_LOCATION) == 0x8700:
               return self._ReadMemory(LEVEL_1_TO_6_FIRST_QUEST_DATA_LOCATION, 0x300)
-            elif loc == 0x8D:
+            elif self._GetLevelBlockPointer(LEVEL_1_TO_6_POINTER_LOCATION) == 0x8D00:
               return self._ReadMemory(LEVEL_1_TO_6_SECOND_QUEST_DATA_LOCATION, 0x300)
-            else:
-              print("Error Reading Level 1-6 data location")
-              exit()
-              
         if level_num in range(7, 10):
-            loc = self._ReadMemory(LEVEL_7_TO_9_POINTER_LOCATION, 0x01)[0]
-            print("%x" % loc)
-            if loc == 0x8A:
+            if self._GetLevelBlockPointer(LEVEL_7_TO_9_POINTER_LOCATION) == 0x8A00:
               return self._ReadMemory(LEVEL_7_TO_9_FIRST_QUEST_DATA_LOCATION, 0x300)
-            elif loc == 0x90:
+            elif self._GetLevelBlockPointer(LEVEL_7_TO_9_POINTER_LOCATION) == 0x9000:
               return self._ReadMemory(LEVEL_7_TO_9_SECOND_QUEST_DATA_LOCATION, 0x300)
-            else:
-              print("Error Reading Level 7-9 data location")
-              exit()
         return []
 
     def GetLevelInfo(self, level_num: int) -> List[int]:
@@ -66,7 +61,6 @@ class RomReader:
         return [
             self._ReadMemory(ARMOS_ITEM_ADDRESS, 0x01)[0],
             self._ReadMemory(COAST_ITEM_ADDRESS, 0x01)[0],
-            self._ReadMemory(WS_ITEM_ADDRESS, 0x01)[0],
         ]
 
     def GetTriforceRequirement(self) -> int:
