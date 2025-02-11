@@ -294,6 +294,7 @@ ENEMY_TYPES = {
     0x4F: "Bomb Upgrade",
     0x50: "Hint #6",
     0x51: "Mugger",
+    0x52: "Hint #5",
     0x62: "Enemy Mix A",
     0x63: "Enemy Mix B",
     0x64: "Enemy Mix C",
