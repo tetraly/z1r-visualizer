@@ -204,7 +204,7 @@ ROOM_TYPES = {
   0x18: "Horiz. Moat",
   0x19: "Double Moat",
   0x1A: "Diamond Stair",
-  0x1B: "Narrow Stair",
+  0x1B: "Corridor Stair",
   0x1C: "Spiral Stair",  
   0x1D: "Double Six",
   0x1E: "Single Six",
