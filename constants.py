@@ -188,7 +188,7 @@ ROOM_TYPES = {
   0x08: "Reverse C",
   0x09: "Circle Wall",
   0x0A: "Double Block",
-  0x0B: "Is this a lava moat room?",
+  0x0B: "Lava Moat",
   0x0C: "Maze Room",
   0x0D: "Grid Room",
   0x0E: "Vert. Chute",
