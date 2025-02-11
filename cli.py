@@ -17,6 +17,10 @@ def GenerateLevelCSVLine(file_path, level_num, data):
    ret.append(data['enemy_info'] or 'No Enemies')
    ret.append(data['item_info'] or 'No Item')
    ret.append(data['stair_info'] or 'No Stairway')
+   ret.append(data['north.wall_type'])
+   ret.append(data['west.wall_type'])
+   ret.append(data['east.wall_type'])
+   ret.append(data['south.wall_type'])
    return ','.join(ret)
 
 def GenerateOverworldCSVLine(file_path, data):

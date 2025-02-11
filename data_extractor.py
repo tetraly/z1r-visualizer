@@ -5,7 +5,7 @@ import math
 from typing import Any, Dict, List, Optional
 from constants import Direction, WallType, ROOM_TYPES, ENEMY_TYPES, ITEM_TYPES
 from constants import ENTRANCE_DIRECTION_MAP, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
-from constants import OVERWORLD_BLOCK_TYPES
+from constants import OVERWORLD_BLOCK_TYPES, DOOR_TYPES
 
 PALETTE_OFFSET = 0xB
 START_ROOM_OFFSET = 0x2F
@@ -219,6 +219,7 @@ class DataExtractor(object):
 
             self.data[level_num][room_num]['%s.wall.x' % direction_text[direction]] = x + direction_x[direction]
             self.data[level_num][room_num]['%s.wall.y' % direction_text[direction]] = y + direction_y[direction]
+            self.data[level_num][room_num]['%s.wall_type' % direction_text[direction]] = DOOR_TYPES[wall_type]  
           if wall_type != WallType.SOLID_WALL:
             direction_text = {
               Direction.NORTH: "north",
@@ -250,6 +251,7 @@ class DataExtractor(object):
             self.data[level_num][room_num]['%s.x' % direction_text[direction]] = x + direction_x[direction]
             self.data[level_num][room_num]['%s.y' % direction_text[direction]] = y + direction_y[direction]
             self.data[level_num][room_num]['%s.color' % direction_text[direction]] = color[wall_type]  
+          self.data[level_num][room_num]['%s.wall_type' % direction_text[direction]] = DOOR_TYPES[wall_type]  
         
         for direction in [Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST]:
             if from_dir and direction == from_dir:
