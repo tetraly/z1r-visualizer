@@ -149,6 +149,10 @@ class DataExtractor(object):
                 # print("Exits are %x and %x" % (left_exit, right_exit))
                 continue
 
+            # Needed to avoid certain phantom stairways involving Chevy Rooms
+            if not self._HasStairway(level_num, left_exit) or not self._HasStairway(level_num, right_exit):
+               continue
+
             if left_exit == right_exit:  # Item stairway
               item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
               self.data[level_num][left_exit]['stair_info'] = '%s' % ITEM_TYPES[item_type]
