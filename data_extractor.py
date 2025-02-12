@@ -150,7 +150,7 @@ class DataExtractor(object):
                 continue
 
             # Needed to avoid certain phantom stairways involving Chevy Rooms
-            if not self._HasStairway(level_num, left_exit) or not self._HasStairway(level_num, right_exit):
+            if not self._HasStairway(level_num, left_exit) and not self._HasStairway(level_num, right_exit):
                continue
 
             if left_exit == right_exit:  # Item stairway
@@ -307,7 +307,7 @@ class DataExtractor(object):
                 return False
 
         # Check if "Movable block" bit is set in a room_type that has a middle row pushblock
-        if room_type_code in [0x01, 0x07, 0x08, 0x09, 0x10, 0x0A, 0x0C, 0x0D, 0x11, 0x1F, 0x22]:
+        if room_type_code in [0x01, 0x06, 0x07, 0x08, 0x09, 0x10, 0x0A, 0x0C, 0x0D, 0x11, 0x1F, 0x22]:
             if ((self.GetRoomData(level_num, room_num + 3*0x80) >> 6) & 0x01) > 0:
                 return True
         return False
