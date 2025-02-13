@@ -85,13 +85,17 @@ def main():
             for i in range (0, 2):
                 print(','.join([file_path, '0', locations[i], items[i]]))
             
-            triforce_req = data_extractor.GetTriforceRequirement()
-            if triforce_req == 0xFF:
-                print ("%s Level 9 triforce requirement is: 8 (Vanilla)" % file_path)
+            requirements = data_extractor.GetRequirements()
+            if requirements["triforce"] == 0xFF:
+                print ("%s,misc,level_nine_triforce_requirement,8 (Vanilla)" % file_path)
             else:
-                print ("%s Level 9 triforce requirement is %d" %
-                       (file_path, data_extractor.GetTriforceRequirement()))
-            
+                print ("%s,misc,level_nine_triforce_requirement,%d" %
+                       (file_path, requirements["triforce"]))
+            print("%s,misc,white_sword_cave_requirement,%d" %
+                  (file_path, requirements["white_sword"]))
+            print("%s,misc,magical_sword_cave_requirement,%d" % 
+                  (file_path, requirements["magical_sword"]))
+
             for num in range (0, 38):
                 print("%s,quote,%d,%s" % (file_path, num, data_extractor.GetQuote(num)))
             maybe_recorder_text = data_extractor.GetRecorderText()

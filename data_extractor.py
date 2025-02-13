@@ -378,8 +378,8 @@ class DataExtractor(object):
              tbr.append(ITEM_TYPES[item])
          return tbr
          
-    def GetTriforceRequirement(self) -> int:
-      return self.rom_reader.GetTriforceRequirement()
+    def GetRequirements(self) -> int:
+      return self.rom_reader.GetRequirements()
 
     def GetQuote(self, quote_num:int) -> str:
         return self.rom_reader.GetQuote(quote_num)

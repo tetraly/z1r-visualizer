@@ -17,7 +17,9 @@ NES_HEADER_OFFSET = 0x10
 ARMOS_ITEM_ADDRESS = 0x10CF5
 COAST_ITEM_ADDRESS = 0x1788A
 WS_ITEM_ADDRESS = 0x18607
-TRIFORCE_COUNT_ADDRESS = 0x5F17
+TRIFORCE_REQUIREMENT_ADDRESS = 0x5F17
+WHITE_SWORD_REQUIREMENT_ADDRESS = 0x48FD
+MAGICAL_SWORD_REQUIREMENT_ADDRESS = 0x4906
 
 
 class RomReader:
@@ -63,8 +65,13 @@ class RomReader:
             self._ReadMemory(COAST_ITEM_ADDRESS, 0x01)[0],
         ]
 
-    def GetTriforceRequirement(self) -> int:
-        return self._ReadMemory(TRIFORCE_COUNT_ADDRESS, 0x01)[0]
+    def GetRequirements(self) -> int:
+        return {
+            "triforce": self._ReadMemory(TRIFORCE_REQUIREMENT_ADDRESS, 0x01)[0],
+            "white_sword": int(self._ReadMemory(WHITE_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1,
+            "magical_sword": int(self._ReadMemory(MAGICAL_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1
+        }
+          
         
     def GetQuote(self, num: int) -> str:
       assert num in range(0, 38)
