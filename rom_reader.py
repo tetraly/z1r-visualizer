@@ -20,6 +20,7 @@ WS_ITEM_ADDRESS = 0x18607
 TRIFORCE_REQUIREMENT_ADDRESS = 0x5F17
 WHITE_SWORD_REQUIREMENT_ADDRESS = 0x48FD
 MAGICAL_SWORD_REQUIREMENT_ADDRESS = 0x4906
+DOOR_REPAIR_CHARGE_ADDRESS = 0x4890
 
 
 class RomReader:
@@ -69,7 +70,8 @@ class RomReader:
         return {
             "triforce": self._ReadMemory(TRIFORCE_REQUIREMENT_ADDRESS, 0x01)[0],
             "white_sword": int(self._ReadMemory(WHITE_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1,
-            "magical_sword": int(self._ReadMemory(MAGICAL_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1
+            "magical_sword": int(self._ReadMemory(MAGICAL_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1,
+            "door_repair": self._ReadMemory(DOOR_REPAIR_CHARGE_ADDRESS, 0x01)[0],
         }
           
         

@@ -163,7 +163,7 @@ ITEM_TYPES = {
     0x15: "Letter",
     0x16: "Compass",
     0x17: "Map",
-    0x18: "1 Rupee",
+    0x18: "Rupee",
     0x19: "Key",
     0x1A: "Heart Container",
     0x1B: "Triforce",

@@ -68,16 +68,18 @@ def main():
             if data_extractor.shop_data:
                 for cave_type in [0x10, 0x11, 0x12, 0x13, 0x18]:
                     for i in range (0,3):
-                        print(",".join([file_path, "cave", CAVE_NAME[cave_type],
-                            ITEM_TYPES[data_extractor.shop_data[cave_type][i]]]))
+                        if data_extractor.shop_data[cave_type][i] != 0x3F:
+                            print(",".join([file_path, "cave", CAVE_NAME[cave_type],
+                                ITEM_TYPES[data_extractor.shop_data[cave_type][i]]]))
 
             # Shops
             if data_extractor.shop_data:
-                for cave_type in [0x1D, 0x1E, 0x1F, 0x20, 0x1A]:
+                for cave_type in [0x1D, 0x1E, 0x1F, 0x20, 0x1A, 0x23, 0x21, 0x22]:
                     for i in range (0,3):
-                        print(",".join([file_path, "cave", CAVE_NAME[cave_type],
-                            ITEM_TYPES[data_extractor.shop_data[cave_type][i]],
-                            str(data_extractor.shop_data[cave_type][i+3])]))
+                        if data_extractor.shop_data[cave_type][i] != 0x3F:
+                            print(",".join([file_path, "cave", CAVE_NAME[cave_type],
+                                ITEM_TYPES[data_extractor.shop_data[cave_type][i]],
+                                str(data_extractor.shop_data[cave_type][i+3])]))
 
             # Print out Overworld items as "Level 0"
             locations = ["Armos", "Coast"]
@@ -93,8 +95,10 @@ def main():
                        (file_path, requirements["triforce"]))
             print("%s,misc,white_sword_cave_requirement,%d" %
                   (file_path, requirements["white_sword"]))
-            print("%s,misc,magical_sword_cave_requirement,%d" % 
+            print("%s,misc,magical_sword_cave_requirement,%d" %
                   (file_path, requirements["magical_sword"]))
+            print("%s,misc,door_repair_charge,%d" %
+                  (file_path, requirements["door_repair"]))
 
             for num in range (0, 38):
                 print("%s,quote,%d,%s" % (file_path, num, data_extractor.GetQuote(num)))
