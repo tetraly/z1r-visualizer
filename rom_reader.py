@@ -110,4 +110,4 @@ class RomReader:
        return ' '.join([self.hex_to_text(name_text), self.hex_to_text(from_text)])
     
     def GetNothingCode(self):
-      return self._ReadMemory(0x1784F, 0x01)[0],      
+      return self._ReadMemory(0x1784F, 0x01)[0]   
