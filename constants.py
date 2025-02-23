@@ -153,7 +153,7 @@ ITEM_TYPES = {
     0x0B: "Magical Key",
     0x0C: "Raft",
     0x0D: "Ladder",
-    0x0E: "Triforce",  # Big L9 triforce, not small tringle
+    0x0E: "Triforce of Power",  # Big L9 triforce, not small tringle
     0x0F: "5 Rupees",
     0x10: "Wand",
     0x11: "Book",

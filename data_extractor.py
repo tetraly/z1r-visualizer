@@ -360,10 +360,12 @@ class DataExtractor(object):
        code =  self.GetRoomData(level_num, room_num + 4*0x80)
        while code >= 0x20:
            code -= 0x20
-       if code == 0x03:
-           return ''
+       if (code == self.rom_reader.GetNothingCode() and
+           self._GetEnemyType(level_num, room_num) != ENEMY_TYPES[0x3E]):
+         return ''
        is_drop = math.floor(self.GetRoomData(level_num, room_num + 5*0x80) / 4) % 0x02 == 1
-       return "%s%s" % ('D ' if is_drop else '', ITEM_TYPES[code])
+       item_name = ITEM_TYPES[code]
+       return "%s%s" % ('D ' if is_drop else '', item_name)
 
     def GetLevelColorPalette(self, level_num: int) -> List[str]:
         vals = self.level_info[level_num][PALETTE_OFFSET:PALETTE_OFFSET + 8]
@@ -386,4 +388,3 @@ class DataExtractor(object):
 
     def GetRecorderText(self) -> str:
         return self.rom_reader.GetRecorderText()
-

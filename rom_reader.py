@@ -108,3 +108,6 @@ class RomReader:
        from_len = raw_quote[5 +recorder_len + name_len]
        from_text = raw_quote[4+recorder_len + name_len : 4+recorder_len + name_len + from_len]
        return ' '.join([self.hex_to_text(name_text), self.hex_to_text(from_text)])
+    
+    def GetNothingCode(self):
+      return self._ReadMemory(0x1784F, 0x01)[0],      
