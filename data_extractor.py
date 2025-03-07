@@ -141,6 +141,9 @@ class DataExtractor(object):
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
 
+            if not (self._HasStairway(level_num, self.GetRoomData(level_num,(stairway_room_num + 0x80)))):
+                continue
+
             # Ignore any rooms in the stairway room list that don't connect to the current level.
             if not (left_exit in self.data[level_num] and right_exit in self.data[level_num]):
                 # For debugging stairway issues
