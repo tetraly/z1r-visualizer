@@ -7,49 +7,7 @@ from data_extractor import DataExtractor
 import requests
 
 
-st.set_page_config(page_title="Z1R Visualizer", layout="wide")
-# st.image("https://streamlit.io/images/brand/streamlit-mark-color.png", width=78)
-st.write(
-    """
-    # Z1R Visualizer
-    """
-)
-    
-hide_streamlit_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-uploaded_file = st.file_uploader(
-    "Upload a ROM by dragging and dropping a file or clicking the \"Browse Files\" button below.",
-    key="1",
-    help="Please upload a Legend of Zelda ROM",
-)
-if uploaded_file is None:
-    st.info(
-        "Please upload a Legend of Zelda ROM using the file widget above. "
-        "Supported ROM types are vanilla Legend of Zelda ROMs and randomized "
-        "ROMs created by Zelda Randomizer without the ‘Race ROM’ flag checked.",
-        )
-    st.stop()
-
-de = DataExtractor(rom=uploaded_file)
-try:
-  de.Parse()
-except Exception as e:
-  st.info("Sorry, this ROM doesn't seem to be supported. Please try a different ROM.")
-  st.stop()
-  
-level_number_selectbox = st.selectbox(
-    'Which level to display?',
-    ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0'))
-level_number = int(level_number_selectbox)
-assert level_number in range(0,10)
-
-if level_number == 0:
+def display_overworld():
   x_range = [str(x) for x in range(1, 17)]
   y_range = [str(y) for y in range(1, 9)]
   data = de.data[0]
@@ -62,10 +20,9 @@ if level_number == 0:
       ("Cave2", "@{cave_name}"),
       ("Cave3", "@{cave_name_short}"),
   ]
-  p = figure(title="Level %d" % level_number,
-        plot_width=800, plot_height=400,
-         #    width=700,
-        #     height=400,
+  p = figure(title="Overworld",
+             plot_width=800,
+            plot_height=400,
              x_range=x_range,
              y_range=list(reversed(y_range)),
              tools="hover",
@@ -87,9 +44,10 @@ if level_number == 0:
              
   st.bokeh_chart(p)
 
-else:
-  palette = de.GetLevelColorPalette(level_number)
-  data = de.data[level_number]
+
+def display_level(level_num):
+  palette = de.GetLevelColorPalette(level_num)
+  data = de.data[level_num]
   df = pd.DataFrame.from_dict(data, orient='index')
 
   TOOLTIPS = [
@@ -104,7 +62,7 @@ else:
   x_range = [str(x) for x in range(1, 9)]
   y_range = [str(y) for y in range(1, 9)]
 
-  p = figure(title="Level %d" % level_number,
+  p = figure(title="Level %d" % level_num,
              width=800,
              height=800,
              x_range=x_range,
@@ -199,3 +157,81 @@ else:
   p.axis.major_label_standoff = 0
   p.hover.renderers = [r]  # only hover element boxes
   st.bokeh_chart(p)
+
+
+def display_recorder_info():
+    recorder_data = de.GetRecorderData()
+    if not recorder_data or recorder_data[0] == 0xFF:
+        st.info("This ROM doesn't appear to have a custom recorder tune")
+        return
+    recorder_text = de.GetRecorderText().rstrip()
+    st.write("Recorder Text: %s" % recorder_text)
+    text_data = ""
+    for val in recorder_data:
+        text_data += "%02x " % val
+    st.write("Recorder Data: %s" % text_data)
+
+    recorder_patch_text = ""
+    for val in de.GetRecorderPatchData():
+        recorder_patch_text += "%02x " % val
+    st.write("Recorder Patch Data: %s" % recorder_patch_text)
+    output_filename = "%s.ips" % recorder_text.replace(" ", "_")
+    st.download_button(
+        label="Download recorder tune IPS patch (%s)" % output_filename,
+        data=bytes(de.GetRecorderPatchData()),
+        file_name=output_filename,
+        mime="application/octet-stream",
+    ) 
+    
+
+successfully_parsed_level_data = False
+st.set_page_config(page_title="Z1R Visualizer", layout="wide")
+st.write(
+    """
+    # Z1R Visualizer
+    """
+)
+    
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+uploaded_file = st.file_uploader(
+    "Upload a ROM by dragging and dropping a file or clicking the \"Browse Files\" button below.",
+    key="1",
+    help="Please upload a Legend of Zelda ROM",
+)
+if uploaded_file is None:
+    st.info(
+        "Please upload a Legend of Zelda ROM using the file widget above. "
+        "Supported ROM types are vanilla Legend of Zelda ROMs and randomized "
+        "ROMs created by Zelda Randomizer without the ‘Race ROM’ flag checked.",
+        )
+    st.stop()
+
+de = DataExtractor(rom=uploaded_file)
+try:
+  de.Parse()
+  successfully_parsed_level_data = True
+except Exception as e:
+  st.info("Sorry, this ROM doesn't seem to be supported. Features may not work correctly.")
+
+options = [f"Level %d" % i for i in range(1, 10)] + ["Overworld", "Recorder Info"]
+selected_option = st.selectbox('What information would you like to display?', options)
+if selected_option.startswith("Level"):
+    if not successfully_parsed_level_data:
+        st.info("Sorry, level maps aren't available for this ROM")
+    else: 
+        display_level(int(selected_option.split(" ")[1]))
+elif selected_option == "Overworld":
+    if not successfully_parsed_level_data:
+        st.info("Sorry, level maps aren't available for this ROM")
+    else: 
+        display_overworld()
+elif selected_option == "Recorder Info":
+    display_recorder_info()
+  

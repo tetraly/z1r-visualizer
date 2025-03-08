@@ -92,22 +92,32 @@ class RomReader:
               break
       return out_quote
 
-    def hex_to_text(self, hex):
-      tbr = ""
-      for val in hex:
-        tbr += CHAR_MAP[val]
-      return tbr
-
     def GetRecorderText(self) -> str:
-       raw_quote = self._ReadMemory(0xB000, 0x40)
-       if raw_quote[0] != 8:
-         return ""
-       recorder_len = raw_quote[0]
-       name_len = raw_quote[3+recorder_len]
-       name_text = raw_quote[4+recorder_len:2+recorder_len + name_len]
-       from_len = raw_quote[5 +recorder_len + name_len]
-       from_text = raw_quote[4+recorder_len + name_len : 4+recorder_len + name_len + from_len]
-       return ' '.join([self.hex_to_text(name_text), self.hex_to_text(from_text)])
-    
+        raw_data = self._ReadMemory(0xB000, 0x40)
+        if raw_data[0] == 0xFF:
+            return ""
+
+        words = []
+        index = 0    
+        while index < len(raw_data):
+            length = raw_data[index]
+            bytes_to_process = raw_data[index + 2 : index + 2 + length]
+            word = "".join([CHAR_MAP[val] for val in bytes_to_process])
+            if word != "RECORDER":
+                words.append(word)
+            index += 2 + length
+
+        return ' '.join(words)
+
+    def GetRecorderData(self) -> str:
+        raw_data = self._ReadMemory(0x2020, 0x40)
+        tbr = []
+
+        for val in raw_data:
+            tbr.append(val)
+            if val == 00 or val == 0xFF:
+                break
+        return tbr
+
     def GetNothingCode(self):
       return self._ReadMemory(0x1784F, 0x01)[0]   
