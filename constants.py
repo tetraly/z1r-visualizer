@@ -7,6 +7,7 @@ class Direction(IntEnum):
   NO_DIRECTION = 0
   EAST = 0x1
   SOUTH = 0x10
+  STAIRCASE = 0x100
   
   @classmethod
   def inverse(self) -> "Direction":

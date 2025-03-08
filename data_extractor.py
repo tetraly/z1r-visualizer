@@ -129,40 +129,27 @@ class DataExtractor(object):
         self.data[level_num] = {}
         rooms_to_visit = [(self.GetLevelStartRoomNumber(level_num), 
                            self.GetLevelEntranceDirection(level_num))]
+        transport_staircase_room_nums = set()
         while True:
             room_num, direction = rooms_to_visit.pop()
-            new_rooms = self._VisitRoom(level_num, room_num, direction)
-            if new_rooms:
-                rooms_to_visit.extend(new_rooms)
+            for new_room in self._VisitRoom(level_num, room_num, direction):
+                if new_room[1] == Direction.STAIRCASE:
+                    transport_staircase_room_nums.add(new_room[0])
+                else:
+                    rooms_to_visit.append(new_room)
             if not rooms_to_visit:
                 break
+
+        # Add stair info/tooltips for each room that leads to a transport stairway
         stairway_num = 1
-        for stairway_room_num in self.GetLevelStairwayRoomNumberList(level_num):
+        for stairway_room_num in transport_staircase_room_nums:
             left_exit = self.GetRoomData(level_num, stairway_room_num) % 0x80
             right_exit = self.GetRoomData(level_num, stairway_room_num + 0x80) % 0x80
-
-            # Ignore any rooms in the stairway room list that don't connect to the current level.
-            if not (left_exit in self.data[level_num] and right_exit in self.data[level_num]):
-                # For debugging stairway issues
-                # print("WARNING: This seed has a phantom stairway room %x in level %d" %
-                #       (stairway_room_num, level_num))
-                # print("Exits are %x and %x" % (left_exit, right_exit))
-                continue
-
-            # Needed to avoid certain phantom stairways involving Chevy Rooms
-            if not self._HasStairway(level_num, left_exit) and not self._HasStairway(level_num, right_exit):
-               continue
-
-            if left_exit == right_exit:  # Item stairway
-              item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
-              self.data[level_num][left_exit]['stair_info'] = '%s' % ITEM_TYPES[item_type]
-              self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEM_TYPES[item_type]
-            else:  # Transport stairway
-              self.data[level_num][left_exit]['stair_info'] = 'Stair #%d' % stairway_num
-              self.data[level_num][right_exit]['stair_info'] = 'Stair #%d' % stairway_num
-              self.data[level_num][left_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
-              self.data[level_num][right_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
-              stairway_num += 1
+            self.data[level_num][left_exit]['stair_info'] = 'Stair #%d' % stairway_num
+            self.data[level_num][right_exit]['stair_info'] = 'Stair #%d' % stairway_num
+            self.data[level_num][left_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
+            self.data[level_num][right_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
+            stairway_num += 1
             
     def GetLevelDisplayOffset(self, level_num: int) -> int:
         return self.level_info[level_num][DISPLAY_OFFSET_OFFSET] - 3
@@ -173,9 +160,9 @@ class DataExtractor(object):
                    room_num: int,
                    from_dir: Direction) -> None:
         if room_num in self.data[level_num]:
-          return
+          return []
         if room_num not in range(0, 0x80):
-          return
+          return []
         tbr = []
         x = (room_num + self.GetLevelDisplayOffset(level_num)) % 0x10 
         y = 8 - (math.floor(room_num / 0x10))
@@ -273,12 +260,17 @@ class DataExtractor(object):
 
             if left_exit == room_num and right_exit == room_num:
                 # This is an item staircase, not a transport staircase
+                item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
+                self.data[level_num][left_exit]['stair_info'] = '%s' % ITEM_TYPES[item_type]
+                self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEM_TYPES[item_type]
                 break
             elif left_exit == room_num and right_exit != room_num:
+                tbr.append((stairway_room_num, direction.STAIRCASE))
                 tbr.append((right_exit, direction.NO_DIRECTION))
                 # Stop looking for additional staircases after finding one
                 break
             elif right_exit == room_num and left_exit != room_num:
+                tbr.append((stairway_room_num, direction.STAIRCASE))
                 tbr.append((left_exit, direction.NO_DIRECTION))
                 # Stop looking for additional staircases after finding one
                 break
