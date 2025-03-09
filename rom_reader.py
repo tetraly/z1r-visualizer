@@ -24,7 +24,7 @@ DOOR_REPAIR_CHARGE_ADDRESS = 0x4890
 
 
 class RomReader:
-  
+
     def __init__(self, rom: io.BytesIO) -> None:
         self.rom = rom
 
@@ -37,8 +37,8 @@ class RomReader:
         return data
 
     def _GetLevelBlockPointer(self, addr: int) -> List[int]:
-       val = self._ReadMemory(addr, 0x02)
-       return val[1]*0x100 + val[0]
+        val = self._ReadMemory(addr, 0x02)
+        return val[1] * 0x100 + val[0]
 
     def GetLevelBlock(self, level_num: int) -> List[int]:
         if level_num == 0:
@@ -46,20 +46,20 @@ class RomReader:
                 return self._ReadMemory(OVERWORLD_DATA_LOCATION, 0x300)
         if level_num in range(1, 7):
             if self._GetLevelBlockPointer(LEVEL_1_TO_6_POINTER_LOCATION) == 0x8700:
-              return self._ReadMemory(LEVEL_1_TO_6_FIRST_QUEST_DATA_LOCATION, 0x300)
+                return self._ReadMemory(LEVEL_1_TO_6_FIRST_QUEST_DATA_LOCATION, 0x300)
             elif self._GetLevelBlockPointer(LEVEL_1_TO_6_POINTER_LOCATION) == 0x8D00:
-              return self._ReadMemory(LEVEL_1_TO_6_SECOND_QUEST_DATA_LOCATION, 0x300)
+                return self._ReadMemory(LEVEL_1_TO_6_SECOND_QUEST_DATA_LOCATION, 0x300)
         if level_num in range(7, 10):
             if self._GetLevelBlockPointer(LEVEL_7_TO_9_POINTER_LOCATION) == 0x8A00:
-              return self._ReadMemory(LEVEL_7_TO_9_FIRST_QUEST_DATA_LOCATION, 0x300)
+                return self._ReadMemory(LEVEL_7_TO_9_FIRST_QUEST_DATA_LOCATION, 0x300)
             elif self._GetLevelBlockPointer(LEVEL_7_TO_9_POINTER_LOCATION) == 0x9000:
-              return self._ReadMemory(LEVEL_7_TO_9_SECOND_QUEST_DATA_LOCATION, 0x300)
+                return self._ReadMemory(LEVEL_7_TO_9_SECOND_QUEST_DATA_LOCATION, 0x300)
         return []
 
     def GetLevelInfo(self, level_num: int) -> List[int]:
         start = VARIOUS_DATA_LOCATION + level_num * 0xFC
         return self._ReadMemory(start, 0xFC)
-        
+
     def GetOverworldItemData(self) -> List[int]:
         return [
             self._ReadMemory(ARMOS_ITEM_ADDRESS, 0x01)[0],
@@ -68,29 +68,32 @@ class RomReader:
 
     def GetRequirements(self) -> int:
         return {
-            "triforce": self._ReadMemory(TRIFORCE_REQUIREMENT_ADDRESS, 0x01)[0],
-            "white_sword": int(self._ReadMemory(WHITE_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1,
-            "magical_sword": int(self._ReadMemory(MAGICAL_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1,
-            "door_repair": self._ReadMemory(DOOR_REPAIR_CHARGE_ADDRESS, 0x01)[0],
+            "triforce":
+                self._ReadMemory(TRIFORCE_REQUIREMENT_ADDRESS, 0x01)[0],
+            "white_sword":
+                int(self._ReadMemory(WHITE_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1,
+            "magical_sword":
+                int(self._ReadMemory(MAGICAL_SWORD_REQUIREMENT_ADDRESS, 0x01)[0] / 0x10) + 1,
+            "door_repair":
+                self._ReadMemory(DOOR_REPAIR_CHARGE_ADDRESS, 0x01)[0],
         }
-          
-        
+
     def GetQuote(self, num: int) -> str:
-      assert num in range(0, 38)
-      low_byte = self._ReadMemory(0x4000 + 2*num, 0x01)[0]
-      high_byte =  self._ReadMemory(0x4000 + 2*num + 1, 0x01)[0] - 0x40
-      addr = high_byte * 0x100 + low_byte
-      raw_quote = self._ReadMemory(addr, 0x40)
-      out_quote = ""
-      for val in raw_quote:
-          char = val & 0x3F
-          out_quote += CHAR_MAP[char]
-          high_bits = (val >> 6) & 0x03
-          if high_bits in [1, 2]:
-              out_quote += " "
-          if high_bits == 3:
-              break
-      return out_quote
+        assert num in range(0, 38)
+        low_byte = self._ReadMemory(0x4000 + 2 * num, 0x01)[0]
+        high_byte = self._ReadMemory(0x4000 + 2 * num + 1, 0x01)[0] - 0x40
+        addr = high_byte * 0x100 + low_byte
+        raw_quote = self._ReadMemory(addr, 0x40)
+        out_quote = ""
+        for val in raw_quote:
+            char = val & 0x3F
+            out_quote += CHAR_MAP[char]
+            high_bits = (val >> 6) & 0x03
+            if high_bits in [1, 2]:
+                out_quote += " "
+            if high_bits == 3:
+                break
+        return out_quote
 
     def GetRecorderText(self) -> str:
         raw_data = self._ReadMemory(0xB000, 0x40)
@@ -98,10 +101,10 @@ class RomReader:
             return ""
 
         words = []
-        index = 0    
+        index = 0
         while index < len(raw_data):
             length = raw_data[index]
-            bytes_to_process = raw_data[index + 2 : index + 2 + length]
+            bytes_to_process = raw_data[index + 2:index + 2 + length]
             word = "".join([CHAR_MAP[val] for val in bytes_to_process])
             if word != "RECORDER":
                 words.append(word)
@@ -120,4 +123,4 @@ class RomReader:
         return tbr
 
     def GetNothingCode(self):
-      return self._ReadMemory(0x1784F, 0x01)[0]   
+        return self._ReadMemory(0x1784F, 0x01)[0]
