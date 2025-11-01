@@ -1,5 +1,6 @@
-bokeh==2.4.3
-numpy==1.23.5
+bokeh==3.8.0
+streamlit-bokeh==3.8.0
+numpy>=1.26,<3.0
 pandas
 streamlit
 requests
