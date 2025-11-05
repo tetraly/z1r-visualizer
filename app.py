@@ -1,61 +1,68 @@
-from bokeh.plotting import figure
-from bokeh.transform import dodge
-from bokeh.core.properties import field
-from bokeh.models import Legend, Line, ColumnDataSource, Rect
+import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
-from streamlit_bokeh import streamlit_bokeh
 from data_extractor import DataExtractor
 import requests
 
 
 def display_overworld():
-    x_range = [str(x) for x in range(1, 17)]
-    y_range = [str(y) for y in range(1, 9)]
     data = de.data[0]
     df = pd.DataFrame.from_dict(data, orient='index')
-    TOOLTIPS = [
-        ("Screen Number", "@{screen_num}"),
-        ("Col", "@{col}"),
-        ("Row", "@{row}"),
-        ("Cave", "@{cave}"),
-        ("Cave2", "@{cave_name}"),
-        ("Cave3", "@{cave_name_short}"),
-    ]
-    p = figure(title="Overworld",
-               width=800,
-               height=400,
-               x_range=x_range,
-               y_range=list(reversed(y_range)),
-               tools="hover",
-               toolbar_location=None,
-               tooltips=TOOLTIPS,
-               background_fill_color="white",
-               border_fill_color="white")
 
-    # Force white background on the plot area
-    p.background_fill_color = "white"
-    p.border_fill_color = "white"
-    p.outline_line_color = "black"
+    fig = go.Figure()
 
-    r = p.rect("x_coord", "y_coord", 0.95, 0.95, source=df, fill_alpha=0.6, color='#4CAF50')
+    # Add room rectangles as scatter markers
+    fig.add_trace(go.Scatter(
+        x=df['x_coord'],
+        y=df['y_coord'],
+        mode='markers+text',
+        marker=dict(
+            size=80,
+            color='#4CAF50',
+            opacity=0.6,
+            symbol='square',
+            line=dict(color='black', width=1)
+        ),
+        text=df['cave_name_short'],
+        textposition='middle right',
+        textfont=dict(size=14),
+        customdata=df[['screen_num', 'col', 'row', 'cave', 'cave_name', 'cave_name_short']],
+        hovertemplate='<br>'.join([
+            '<b>Screen Number:</b> %{customdata[0]}',
+            '<b>Col:</b> %{customdata[1]}',
+            '<b>Row:</b> %{customdata[2]}',
+            '<b>Cave:</b> %{customdata[3]}',
+            '<b>Cave2:</b> %{customdata[4]}',
+            '<b>Cave3:</b> %{customdata[5]}',
+            '<extra></extra>'
+        ]),
+        showlegend=False
+    ))
 
-    text_props = dict(source=df, text_align="left", text_baseline="middle")
-    x = dodge("col", .1, range=p.x_range)
-    p.text(x=x,
-           y=dodge("y_coord", 0, range=p.y_range),
-           text="cave_name_short",
-           text_font_size="14px",
-           **text_props)
-    p.outline_line_color = None
-    p.grid.grid_line_color = None
-    p.axis.visible = False
-    p.axis.axis_line_color = None
-    p.axis.major_tick_line_color = None
-    p.axis.major_label_standoff = 0
+    # Configure layout
+    fig.update_layout(
+        title="Overworld",
+        width=800,
+        height=400,
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        xaxis=dict(
+            range=[0.5, 16.5],
+            showgrid=False,
+            showticklabels=False,
+            zeroline=False
+        ),
+        yaxis=dict(
+            range=[0.5, 8.5],
+            showgrid=False,
+            showticklabels=False,
+            zeroline=False,
+            autorange='reversed'  # Reverse y-axis to match Bokeh
+        ),
+        hovermode='closest'
+    )
 
-    # Don't use theme parameter - let the explicit colors work
-    streamlit_bokeh(p, use_container_width=False, key="overworld")
+    st.plotly_chart(fig, use_container_width=False, key="overworld")
 
 
 def display_level(level_num):
@@ -68,158 +75,184 @@ def display_level(level_num):
         st.error(f"No data found for Level {level_num}")
         return
 
-    # Rename columns to remove dots (Bokeh 3.8 doesn't like dots in column names)
-    df.columns = df.columns.str.replace('.', '_', regex=False)
+    # Map color names for walls/doors
+    def map_color(x):
+        s = str(x)
+        if s == 'black':
+            return '#333333'  # Dark gray for open doors
+        elif s == '#000000':
+            return 'white'  # White for invisible solid walls
+        elif pd.notna(x):
+            return s
+        else:
+            return 'white'
 
-    # Ensure all color columns contain valid hex colors
+    # Map color columns if they exist
     for color_col in ['north_color', 'south_color', 'east_color', 'west_color']:
         if color_col in df.columns:
-            # Map color names to appropriate values:
-            # - 'black' -> dark gray (for open doors)
-            # - 'red' -> keep red (for solid walls that should be visible)
-            # - '#000000' -> white (for solid walls that should blend in)
-            # - everything else -> keep as-is
-            def map_color(x):
-                s = str(x)
-                if s == 'black':
-                    return '#333333'  # Dark gray for open doors
-                elif s == '#000000':
-                    return 'white'  # White for invisible solid walls
-                elif pd.notna(x):
-                    return s
-                else:
-                    return 'white'
-
             df[color_col] = df[color_col].apply(map_color)
 
-    TOOLTIPS = [
-        ("Room Number", "@{room_num}"),
-        ("Col", "@{col}"),
-        ("Row", "@{row}"),
-        ("Stair", "@{stair_tooltip}"),
-        ("Room Type", "@{room_type}"),
-        ("Enemy Type", "@{enemy_type_tooltip}"),
-        ("Num Enemies", "@{enemy_num_tooltip}"),
+    fig = go.Figure()
+
+    # Add main room rectangles
+    fig.add_trace(go.Scatter(
+        x=df['x_coord'],
+        y=df['y_coord'],
+        mode='markers',
+        marker=dict(
+            size=90,
+            color=palette[2],
+            opacity=0.6,
+            symbol='square',
+            line=dict(color='black', width=1)
+        ),
+        customdata=df[['room_num', 'col', 'row', 'stair_tooltip', 'room_type',
+                       'enemy_type_tooltip', 'enemy_num_tooltip']],
+        hovertemplate='<br>'.join([
+            '<b>Room Number:</b> %{customdata[0]}',
+            '<b>Col:</b> %{customdata[1]}',
+            '<b>Row:</b> %{customdata[2]}',
+            '<b>Stair:</b> %{customdata[3]}',
+            '<b>Room Type:</b> %{customdata[4]}',
+            '<b>Enemy Type:</b> %{customdata[5]}',
+            '<b>Num Enemies:</b> %{customdata[6]}',
+            '<extra></extra>'
+        ]),
+        showlegend=False
+    ))
+
+    # Add walls using shapes (much cleaner than separate glyphs!)
+    for _, room in df.iterrows():
+        # North wall
+        if 'north_wall_x' in df.columns and pd.notna(room.get('north_wall_x')):
+            fig.add_shape(
+                type="rect",
+                x0=room['north_wall_x'] - 0.5, y0=room['north_wall_y'] - 0.025,
+                x1=room['north_wall_x'] + 0.5, y1=room['north_wall_y'] + 0.025,
+                fillcolor=room.get('north_color', 'white'),
+                opacity=0.6,
+                line=dict(width=0)
+            )
+
+        # South wall
+        if 'south_wall_x' in df.columns and pd.notna(room.get('south_wall_x')):
+            fig.add_shape(
+                type="rect",
+                x0=room['south_wall_x'] - 0.5, y0=room['south_wall_y'] - 0.025,
+                x1=room['south_wall_x'] + 0.5, y1=room['south_wall_y'] + 0.025,
+                fillcolor=room.get('south_color', 'white'),
+                opacity=0.6,
+                line=dict(width=0)
+            )
+
+        # East wall
+        if 'east_wall_x' in df.columns and pd.notna(room.get('east_wall_x')):
+            fig.add_shape(
+                type="rect",
+                x0=room['east_wall_x'] - 0.025, y0=room['east_wall_y'] - 0.5,
+                x1=room['east_wall_x'] + 0.025, y1=room['east_wall_y'] + 0.5,
+                fillcolor=room.get('east_color', 'white'),
+                opacity=0.6,
+                line=dict(width=0)
+            )
+
+        # West wall
+        if 'west_wall_x' in df.columns and pd.notna(room.get('west_wall_x')):
+            fig.add_shape(
+                type="rect",
+                x0=room['west_wall_x'] - 0.025, y0=room['west_wall_y'] - 0.5,
+                x1=room['west_wall_x'] + 0.025, y1=room['west_wall_y'] + 0.5,
+                fillcolor=room.get('west_color', 'white'),
+                opacity=0.6,
+                line=dict(width=0)
+            )
+
+    # Add text annotations (no more dodge hacks!)
+    for _, room in df.iterrows():
+        # Stack 4 lines of text per room
+        texts = [
+            room.get('room_type', ''),
+            room.get('enemy_info', ''),
+            room.get('item_info', ''),
+            room.get('stair_info', '')
+        ]
+
+        # Combine into one annotation with line breaks
+        text_combined = '<br>'.join([t for t in texts if t])
+
+        if text_combined:
+            fig.add_annotation(
+                x=room['col'] - 0.36,
+                y=room['row'],
+                text=text_combined,
+                showarrow=False,
+                xanchor='left',
+                yanchor='middle',
+                font=dict(size=8),
+                align='left'
+            )
+
+    # Configure layout
+    fig.update_layout(
+        title=f"Level {level_num}",
+        width=800,
+        height=800,
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        xaxis=dict(
+            range=[0.5, 8.5],
+            showgrid=False,
+            showticklabels=False,
+            zeroline=False
+        ),
+        yaxis=dict(
+            range=[0.5, 8.5],
+            showgrid=False,
+            showticklabels=False,
+            zeroline=False,
+            autorange='reversed'
+        ),
+        hovermode='closest',
+        # Add legend with dummy traces
+        showlegend=True,
+        legend=dict(
+            title=dict(text='The Legend of Door & Wall Types'),
+            orientation='h',
+            yanchor='top',
+            y=-0.05,
+            xanchor='center',
+            x=0.5
+        )
+    )
+
+    # Add legend items (without dummy data sources!)
+    legend_items = [
+        ('Open Door', '#333333'),
+        ('Shutter Door', 'brown'),
+        ('Key-Locked Door', 'orange'),
+        ('Bombable Wall', 'blue'),
+        ('Walk-Through Wall', 'purple'),
     ]
-    x_range = [str(x) for x in range(1, 9)]
-    y_range = [str(y) for y in range(1, 9)]
 
-    p = figure(title="Level %d" % level_num,
-               width=800,
-               height=800,
-               x_range=x_range,
-               y_range=list(reversed(y_range)),
-               tools="hover",
-               toolbar_location=None,
-               tooltips=TOOLTIPS,
-               background_fill_color="white",
-               border_fill_color="white")
+    for name, color in legend_items:
+        fig.add_trace(go.Scatter(
+            x=[None], y=[None],
+            mode='markers',
+            marker=dict(size=10, color=color, opacity=0.6, symbol='square'),
+            name=name,
+            showlegend=True
+        ))
 
-    # Force white background on the plot area
-    p.background_fill_color = "white"
-    p.border_fill_color = "white"
-    p.outline_line_color = "black"
+    # Add solid wall to legend as a line
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='red', width=3),
+        name='Solid Wall',
+        showlegend=True
+    ))
 
-    r = p.rect("x_coord", "y_coord", 0.8, 0.8, source=df, fill_alpha=0.6, color=palette[2])
-    r2 = p.rect("north_x", "north_y", 0.1, 0.1, source=df, fill_alpha=0.6, color="north_color")
-    r3 = p.rect("south_x", "south_y", 0.1, 0.1, source=df, fill_alpha=0.6, color="south_color")
-    r4 = p.rect("east_x", "east_y", 0.1, 0.1, source=df, fill_alpha=0.6, color="east_color")
-    r5 = p.rect("west_x", "west_y", 0.1, 0.1, source=df, fill_alpha=0.6, color="west_color")
-
-    r6 = p.rect("north_wall_x",
-                "north_wall_y",
-                1,
-                0.05,
-                source=df,
-                fill_alpha=0.6,
-                color="north_color")  #, legend_field="metal")
-    r7 = p.rect("south_wall_x",
-                "south_wall_y",
-                1,
-                0.05,
-                source=df,
-                fill_alpha=0.6,
-                color="south_color")  #, legend_field="metal")
-    r8 = p.rect("east_wall_x",
-                "east_wall_y",
-                0.05,
-                1,
-                source=df,
-                fill_alpha=0.6,
-                color="east_color")  #, legend_field="metal")
-    r9 = p.rect("west_wall_x",
-                "west_wall_y",
-                0.05,
-                1,
-                source=df,
-                fill_alpha=0.6,
-                color="west_color")  #, legend_field="metal")
-
-    source = ColumnDataSource(data={'x': [-1], 'y': [-1], 'w': [.1], 'h': [.1]})
-    bomb_wall = p.add_glyph(
-        source, Rect(x="x", y="y", width="w", height="h", fill_color='blue', fill_alpha=0.6))
-    locked_door = p.add_glyph(
-        source, Rect(x="x", y="y", width="w", height="h", fill_color='orange', fill_alpha=0.6))
-    walk_through_wall = p.add_glyph(
-        source, Rect(x="x", y="y", width="w", height="h", fill_color='purple', fill_alpha=0.6))
-    shutter_door = p.add_glyph(
-        source, Rect(x="x", y="y", width="w", height="h", fill_color='brown', fill_alpha=0.6))
-    open_door = p.add_glyph(
-        source, Rect(x="x", y="y", width="w", height="h", fill_color='black', fill_alpha=0.6))
-    solid_wall = p.add_glyph(source,
-                             Line(x="x", y="y", line_color="red", line_width=3, line_dash="solid"))
-
-    legend = Legend(title='The Legend of Door & Wall Types',
-                    items=[("Open Door    ", [open_door]), ("Shutter Door    ", [shutter_door]),
-                           ("Key-Locked Door    ", [locked_door]),
-                           ("Bombable Wall    ", [bomb_wall]),
-                           ("Walk-Through Wall    ", [walk_through_wall]),
-                           ("Solid Wall", [solid_wall])],
-                    location='top_left',
-                    orientation='horizontal',
-                    label_text_color='black')
-    p.add_layout(legend, 'below')
-
-    text_props = dict(source=df, text_align="left", text_baseline="middle")
-
-    p.text(x=dodge("col", -0.86, range=p.x_range),
-           y=dodge("row", -0.2, range=p.y_range),
-           text="room_type",
-           text_font_style="normal",
-           text_font_size='8pt',
-           **text_props)
-
-    p.text(x=dodge("col", -0.86, range=p.x_range),
-           y=dodge("row", -0.4, range=p.y_range),
-           text="enemy_info",
-           text_font_style="normal",
-           text_font_size='8pt',
-           **text_props)
-
-    p.text(x=dodge("col", -0.86, range=p.x_range),
-           y=dodge("row", -0.6, range=p.y_range),
-           text="item_info",
-           text_font_style="normal",
-           text_font_size='8pt',
-           **text_props)
-
-    p.text(x=dodge("col", -0.86, range=p.x_range),
-           y=dodge("row", -0.8, range=p.y_range),
-           text="stair_info",
-           text_font_style="normal",
-           text_font_size='8pt',
-           **text_props)
-
-    p.outline_line_color = None
-    p.grid.grid_line_color = None
-    p.axis.visible = False
-    p.axis.axis_line_color = None
-    p.axis.major_tick_line_color = None
-    p.axis.major_label_standoff = 0
-    p.hover.renderers = [r]  # only hover element boxes
-
-    # Don't use theme parameter - let the explicit colors work
-    streamlit_bokeh(p, use_container_width=False, key=f"level_{level_num}")
+    st.plotly_chart(fig, use_container_width=False, key=f"level_{level_num}")
 
 
 def display_recorder_info():

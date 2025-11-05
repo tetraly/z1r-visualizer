@@ -1,5 +1,4 @@
-bokeh==3.8.0
-streamlit-bokeh==3.8.0
+plotly>=5.0.0
 numpy>=1.26,<3.0
 pandas
 streamlit
