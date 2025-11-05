@@ -263,7 +263,7 @@ class DataExtractor(object):
 
             if left_exit == room_num and right_exit == room_num:
                 # This is an item staircase, not a transport staircase
-                item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x1F)
+                item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x20)
                 self.data[level_num][left_exit]['stair_info'] = '%s' % ITEM_TYPES[item_type]
                 self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEM_TYPES[item_type]
                 break
