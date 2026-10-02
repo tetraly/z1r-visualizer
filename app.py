@@ -1,7 +1,7 @@
 from bokeh.plotting import figure
 from bokeh.transform import dodge
 from bokeh.core.properties import field
-from bokeh.models import Legend, Line, ColumnDataSource, Rect
+from bokeh.models import Legend, ColumnDataSource, Rect
 import pandas as pd
 import streamlit as st
 from streamlit_bokeh import streamlit_bokeh
@@ -76,15 +76,13 @@ def display_level(level_num):
         if color_col in df.columns:
             # Map color names to appropriate values:
             # - 'black' -> dark gray (for open doors)
-            # - 'red' -> keep red (for solid walls that should be visible)
-            # - '#000000' -> white (for solid walls that should blend in)
+            # - 'red' -> keep red (for solid walls between two rooms)
+            # - missing -> white (sides with nothing to draw)
             # - everything else -> keep as-is
             def map_color(x):
                 s = str(x)
                 if s == 'black':
                     return '#333333'  # Dark gray for open doors
-                elif s == '#000000':
-                    return 'white'  # White for invisible solid walls
                 elif pd.notna(x):
                     return s
                 else:
@@ -126,34 +124,26 @@ def display_level(level_num):
     r4 = p.rect("east_x", "east_y", 0.1, 0.1, source=df, fill_alpha=0.6, color="east_color")
     r5 = p.rect("west_x", "west_y", 0.1, 0.1, source=df, fill_alpha=0.6, color="west_color")
 
-    r6 = p.rect("north_wall_x",
-                "north_wall_y",
-                1,
-                0.05,
-                source=df,
-                fill_alpha=0.6,
-                color="north_color")  #, legend_field="metal")
-    r7 = p.rect("south_wall_x",
-                "south_wall_y",
-                1,
-                0.05,
-                source=df,
-                fill_alpha=0.6,
-                color="south_color")  #, legend_field="metal")
-    r8 = p.rect("east_wall_x",
-                "east_wall_y",
-                0.05,
-                1,
-                source=df,
-                fill_alpha=0.6,
-                color="east_color")  #, legend_field="metal")
-    r9 = p.rect("west_wall_x",
-                "west_wall_y",
-                0.05,
-                1,
-                source=df,
-                fill_alpha=0.6,
-                color="west_color")  #, legend_field="metal")
+    # Solid walls are drawn as opaque red bars.  Each wall between two rooms is recorded
+    # on both rooms' sides by the extractor, so dedupe by position and draw it once;
+    # walls on the outer edge of the map carry no color and are not drawn.
+    wall_shapes = {"north": (1, 0.05), "south": (1, 0.05), "east": (0.05, 1), "west": (0.05, 1)}
+    walls = set()
+    for direction, (w, h) in wall_shapes.items():
+        x_col, y_col, color_col = f"{direction}_wall_x", f"{direction}_wall_y", f"{direction}_color"
+        if x_col not in df.columns or color_col not in df.columns:
+            continue
+        visible = df[(df[color_col] == "red") & df[x_col].notna()]
+        for x, y in zip(visible[x_col], visible[y_col]):
+            walls.add((round(float(x), 3), round(float(y), 3), w, h))
+    walls = sorted(walls)
+    wall_source = ColumnDataSource(data={
+        "x": [wall[0] for wall in walls],
+        "y": [wall[1] for wall in walls],
+        "w": [wall[2] for wall in walls],
+        "h": [wall[3] for wall in walls],
+    })
+    p.rect("x", "y", "w", "h", source=wall_source, fill_color="red", line_color="red")
 
     source = ColumnDataSource(data={'x': [-1], 'y': [-1], 'w': [.1], 'h': [.1]})
     bomb_wall = p.add_glyph(
@@ -166,8 +156,10 @@ def display_level(level_num):
         source, Rect(x="x", y="y", width="w", height="h", fill_color='brown', fill_alpha=0.6))
     open_door = p.add_glyph(
         source, Rect(x="x", y="y", width="w", height="h", fill_color='black', fill_alpha=0.6))
-    solid_wall = p.add_glyph(source,
-                             Line(x="x", y="y", line_color="red", line_width=3, line_dash="solid"))
+    # Legend swatch only. The real walls are drawn from wall_source above, which is empty
+    # for levels with no interior walls, and an empty source gives the legend nothing to draw.
+    solid_wall = p.add_glyph(
+        source, Rect(x="x", y="y", width="w", height="h", fill_color='red', line_color='red'))
 
     legend = Legend(title='The Legend of Door & Wall Types',
                     items=[("Open Door    ", [open_door]), ("Shutter Door    ", [shutter_door]),

@@ -140,6 +140,8 @@ class DataExtractor(object):
             if not rooms_to_visit:
                 break
 
+        self._MarkVisibleSolidWalls(level_num)
+
         # Add stair info/tooltips for each room that leads to a transport stairway
         stairway_num = 1
         for stairway_room_num in transport_staircase_room_nums:
@@ -150,6 +152,33 @@ class DataExtractor(object):
             self.data[level_num][left_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
             self.data[level_num][right_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
             stairway_num += 1
+
+    def _MarkVisibleSolidWalls(self, level_num: int) -> None:
+        """Marks solid walls that sit between two rooms of the level so they get drawn.
+
+        Walls on the outer edge of the level (nothing on the other side) are left
+        unmarked so they don't clutter the map.  This runs after every room has been
+        visited so the result doesn't depend on the order rooms were discovered in.
+        """
+        rooms = self.data[level_num]
+        direction_text = {
+            Direction.NORTH: "north",
+            Direction.SOUTH: "south",
+            Direction.WEST: "west",
+            Direction.EAST: "east"
+        }
+        for room_num, room in rooms.items():
+            for direction, text in direction_text.items():
+                if room.get('%s.wall_type' % text) != DOOR_TYPES[WallType.SOLID_WALL]:
+                    continue
+                neighbor = room_num + int(direction)
+                if neighbor not in rooms:
+                    continue
+                # East/west neighbors must be on the same row; otherwise room 0x0F's
+                # "east" neighbor would be 0x10, the first room of the next row.
+                if direction in (Direction.EAST, Direction.WEST) and neighbor // 0x10 != room_num // 0x10:
+                    continue
+                room['%s.color' % text] = "red"
 
     def GetLevelDisplayOffset(self, level_num: int) -> int:
         return self.level_info[level_num][DISPLAY_OFFSET_OFFSET] - 3
@@ -201,9 +230,6 @@ class DataExtractor(object):
                     Direction.WEST: -.5,
                     Direction.EAST: -.5
                 }
-                if (room_num + int(direction)) in self.data[level_num]:
-                    self.data[level_num][room_num]['%s.color' % direction_text[direction]] = "red"
-
                 self.data[level_num][room_num][
                     '%s.wall.x' % direction_text[direction]] = x + direction_x[direction]
                 self.data[level_num][room_num][
