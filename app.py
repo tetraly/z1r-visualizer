@@ -5,7 +5,7 @@ from bokeh.models import Legend, ColumnDataSource, Rect
 import pandas as pd
 import streamlit as st
 from streamlit_bokeh import streamlit_bokeh
-from data_extractor import DataExtractor
+from data_extractor import DataExtractor, GarbledLevelDataError
 import requests
 
 
@@ -411,6 +411,9 @@ de = DataExtractor(rom=uploaded_file)
 try:
     de.Parse()
     successfully_parsed_level_data = True
+except GarbledLevelDataError as e:
+    st.error("This ROM's level data looks encoded, so it was probably generated with the "
+             "‘Race ROM’ flag checked. Please generate the ROM again without that flag. (%s)" % e)
 except Exception as e:
     st.info("Sorry, this ROM doesn't seem to be supported. Features may not work correctly.")
 

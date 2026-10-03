@@ -13,6 +13,10 @@ STAIRWAY_LIST_OFFSET = 0x34
 DISPLAY_OFFSET_OFFSET = 0x2D
 
 
+class GarbledLevelDataError(Exception):
+    """Raised when a level's room data can't be a real dungeon, e.g. a Race ROM with encoded data."""
+
+
 class DataExtractor(object):
 
     def __init__(self, rom: io.BytesIO, allow_decoding_roms: bool = False) -> None:
@@ -38,6 +42,33 @@ class DataExtractor(object):
         self.ProcessOverworld()
         for level_num in range(1, 10):
             self.ProcessLevel(level_num)
+        self._ValidateLevelData()
+
+    def _ValidateLevelData(self) -> None:
+        """Checks that the walked levels look like real dungeons.
+
+        Encoded (Race ROM) level data parses without errors but the room walk leaks across
+        the whole 128-room block. Two geometric facts hold for any playable dungeon and fail
+        on garbage: a level fits on the 8x8 map, and levels that share a data block (1-6 and
+        7-9) never claim the same room.
+        """
+        for level_num in range(1, 10):
+            rooms = self.data[level_num]
+            if len(rooms) > 64:
+                raise GarbledLevelDataError("Level %d has %d rooms; a level can't have more than 64" %
+                                            (level_num, len(rooms)))
+            for room_num, room in rooms.items():
+                if not 1 <= room['col'] <= 8:
+                    raise GarbledLevelDataError("Level %d room 0x%02X falls outside the 8-column map" %
+                                                (level_num, room_num))
+        for block_levels in (range(1, 7), range(7, 10)):
+            claimed = {}  # type: Dict[int, int]
+            for level_num in block_levels:
+                for room_num in self.data[level_num]:
+                    if room_num in claimed:
+                        raise GarbledLevelDataError("Room 0x%02X is claimed by both level %d and level %d" %
+                                                    (room_num, claimed[room_num], level_num))
+                    claimed[room_num] = level_num
 
     def GetRoomData(self, level_num: int, byte_num: int) -> int:
         foo = -1

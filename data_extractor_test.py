@@ -1,5 +1,6 @@
+import os
 import unittest
-from data_extractor import DataExtractor
+from data_extractor import DataExtractor, GarbledLevelDataError
 
 
 class Bar():
@@ -37,6 +38,21 @@ class DataExtractorTest(unittest.TestCase):
             level_1_test_room = de.data[1][12]
             self.assertEqual('black', level_1_test_room['south.color'])
             self.assertEqual('black', level_1_test_room['west.color'])
+
+    @unittest.skipUnless(os.path.exists('testdata/zora-playtest-seed42.nes'), 'playtest ROM not present')
+    def test_plain_rom_passes_validation(self):
+        with open('testdata/zora-playtest-seed42.nes', 'rb') as f:
+            de = DataExtractor(f)
+            de.Parse()
+            self.assertEqual(14, len(de.data[1]))
+            self.assertTrue(all(len(de.data[level]) <= 64 for level in range(1, 10)))
+
+    @unittest.skipUnless(os.path.exists('testdata/zora-playtest-seed42-encoded.nes'), 'playtest ROM not present')
+    def test_encoded_rom_is_rejected(self):
+        with open('testdata/zora-playtest-seed42-encoded.nes', 'rb') as f:
+            de = DataExtractor(f)
+            with self.assertRaises(GarbledLevelDataError):
+                de.Parse()
 
 
 if __name__ == '__main__':
