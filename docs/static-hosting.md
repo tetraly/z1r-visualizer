@@ -52,6 +52,11 @@ Hint Texts), the ZORA fixes, the messages and the encoded-ROM refusal.
 
 Differences:
 
+- **Map interactions beyond the app** (ideas 1-3 below): click, tap, Enter or Space pins a room (its
+  tooltip stays beside it, following it as the page scrolls; click it again, click beside the
+  rooms, or Escape unpins); rooms are buttons reachable with Tab, top row first, with a spoken
+  label; a transport staircase's other end is outlined and joined by a dashed line; the Item
+  Summary's room numbers open the level map with that room pinned and focused.
 - **Tooltips** are the page's own (hover, or tap on a phone), with the app's fields and labels,
   including the overworld's "Cave2" and "Cave3". Bokeh's hover box looked different.
 - **Upload**: a standard file input. Dropping a file on it works in most browsers, but there is no
@@ -71,7 +76,7 @@ check them strictly; nothing is compiled, and the build does not change. `script
 runs `tsc --noEmit` on both before opening the page (TypeScript 6.0.3 through npx, no
 `package.json`), and a type error fails the check.
 
-### Interaction ideas from the Plotly prototype (`plotly_proto.py`; not built)
+### Interaction ideas from the Plotly prototype (`plotly_proto.py`; 1-3 built, 4-8 for later)
 
 What the prototype does: the same room boxes, doors, walls and four labels; a hover tooltip with
 the app's fields, carried by invisible square markers; a horizontal legend below. It switches
@@ -83,9 +88,9 @@ Ideas for the SVG maps, roughly in order of value for a spoiler view:
 
 | # | Idea | Where it comes from | Value | Effort |
 |---|---|---|---|---|
-| 1 | **Pin a room**: click (or tap) keeps its tooltip and outlines it until another click; Escape clears. Rooms focusable with Tab, tooltip on focus | Plotly's hover label, which stays put on the point; the page's tooltip follows the cursor | High: readable on phones and with a keyboard | Small |
-| 2 | **Staircase pairs**: hovering or pinning a room with "Stair #n" outlines the room at the other end | not in the prototype; uses data the page has (`stair_info`) | High: transport stairs are the hardest thing to follow on the map | Small |
-| 3 | **Item Summary to map**: each row's Screen links to its level map with that room pinned | Plotly's linked selection, done simply | High | Small to medium |
+| 1 | **Built.** **Pin a room**: click (or tap) keeps its tooltip and outlines it until another click; Escape clears. Rooms focusable with Tab, tooltip on focus | Plotly's hover label, which stays put on the point; the page's tooltip follows the cursor | High: readable on phones and with a keyboard | Small |
+| 2 | **Built.** **Staircase pairs**: hovering or pinning a room with "Stair #n" outlines the room at the other end | not in the prototype; uses data the page has (`stair_info`) | High: transport stairs are the hardest thing to follow on the map | Small |
+| 3 | **Built.** **Item Summary to map**: each row's Screen links to its level map with that room pinned | Plotly's linked selection, done simply | High | Small to medium |
 | 4 | **Legend as a filter**: clicking a door type dims the others (for example, show only bombable walls) | Plotly's legend toggling, which the prototype's dummy traces can't actually do | Medium | Small |
 | 5 | **Item search**: a box that outlines every room whose item, drop or cellar matches (for example "Sword", "Heart Container") | Plotly's selection, aimed at what players look for | Medium | Small |
 | 6 | **Zoom and pan** with a reset button: wheel or pinch on the SVG's viewBox | Plotly's default zoom, which the prototype disabled | Medium, mostly on phones, instead of the sideways scroll | Medium |
