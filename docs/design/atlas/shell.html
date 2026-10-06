@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Z1R Visualizer · Atlas (mockup)</title>
+<!-- STYLE -->
+</head>
+<body data-state="empty">
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 24 21" aria-hidden="true"><path d="M12 0l6 10.5H6zM6 10.5L12 21H0zM18 10.5L24 21H12z"/></svg>
+    <span class="brand-name">Z1R Visualizer</span>
+    <span class="chip" id="version">{{VERSION}}</span>
+  </div>
+  <div class="file" data-loaded-only>
+    <span class="file-name" data-file-name></span>
+    <button class="btn btn-quiet" type="button" data-open-file>Open another file</button>
+  </div>
+  <button class="btn btn-quiet theme" type="button" data-theme-toggle>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+    <span data-theme-label>System</span>
+  </button>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Views" data-loaded-only>
+    <h2 class="nav-heading">Dungeons</h2>
+    <div class="level-grid">
+      <button type="button" class="level-tile" data-view="Level 1">1</button>
+      <button type="button" class="level-tile" data-view="Level 2">2</button>
+      <button type="button" class="level-tile" data-view="Level 3">3</button>
+      <button type="button" class="level-tile" data-view="Level 4">4</button>
+      <button type="button" class="level-tile" data-view="Level 5">5</button>
+      <button type="button" class="level-tile" data-view="Level 6">6</button>
+      <button type="button" class="level-tile" data-view="Level 7">7</button>
+      <button type="button" class="level-tile" data-view="Level 8">8</button>
+      <button type="button" class="level-tile" data-view="Level 9">9</button>
+    </div>
+    <h2 class="nav-heading">World</h2>
+    <button type="button" class="nav-item" data-view="Overworld">Overworld</button>
+    <h2 class="nav-heading">Lists</h2>
+    <button type="button" class="nav-item" data-view="Item Summary">Item Summary</button>
+    <button type="button" class="nav-item" data-view="Hint Texts">Hint Texts</button>
+    <button type="button" class="nav-item" data-view="Recorder Info">Recorder</button>
+    <button type="button" class="nav-item" data-view="Seed Info">Seed Info</button>
+  </nav>
+
+  <main id="main" class="main" data-drop>
+    <section class="empty" data-empty-only aria-labelledby="empty-title">
+      <div class="drop">
+        <svg class="drop-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg>
+        <h1 id="empty-title">Open a ROM or a seed file</h1>
+        <p>Drop a <code>.nes</code> ROM or a <code>.json</code> seed file anywhere on this page, or</p>
+        <label class="btn btn-primary" for="rom">Choose a file</label>
+        <input type="file" id="rom" class="visually-hidden" accept=".nes,.json">
+        <ul class="supports">
+          <li>Vanilla <i>The Legend of Zelda</i> (PRG0 or PRG1)</li>
+          <li>Zelda Randomizer seeds made without “Race ROM”</li>
+          <li>ZORA seeds made without “Encode level data”</li>
+        </ul>
+        <p class="privacy">Your ROM is read in this page only. It is never uploaded.</p>
+      </div>
+    </section>
+
+    <div class="view-head" data-loaded-only>
+      <h1 data-view-title>Level 4</h1>
+    </div>
+    <p id="status" class="status" role="status"></p>
+    <div id="messages"></div>
+    <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
+    <div id="output"></div>
+  </main>
+</div>
+<div id="tooltip" class="tooltip" hidden></div>
+<!-- SCRIPTS -->
+</body>
+</html>
