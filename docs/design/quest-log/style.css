@@ -1,7 +1,9 @@
 /* Quest Log: game-flavoured but restrained. Parchment and ink in light, a night palette in dark,
    serif headings from the system's serif fonts, a centred column with a sticky tab bar whose
    dungeons are round coins ringed in their colour. Colours are light-dark() pairs: the theme
-   follows the system, or data-theme on <html> (the toggle). */
+   follows the system, or data-theme on <html> (the toggle).
+   Iteration 2: an original map mark; rooms sized to fit their longest label; mode toggles that
+   show or hide what the maps carry; room details as a popup or in a side panel. */
 
 :root {
   color-scheme: light dark;
@@ -35,6 +37,7 @@
   --door-shutter: light-dark(#7a4314, #dca06a);
   --door-outline: light-dark(#21180f, #f3ecdb);
   --wall: light-dark(#c1121f, #ff6b6b);
+  --major: light-dark(#8a5a00, #f2c14e);
 
   /* Type: a 1.25 scale from 16px; serif display, sans text. Spacing: a 4px grid. */
   --fs-xs: 0.75rem;
@@ -82,14 +85,15 @@ body[data-state="loaded"] [data-empty-only] { display: none !important; }
 body[data-state="empty"] #messages .box.info { display: none; }
 #picker { display: none !important; }
 
-.page { max-width: 1120px; margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+.page { max-width: 1180px; margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+body.details-panel .page { max-width: 1480px; }
 
 /* Banner */
 .banner {
   display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-6) 0 var(--sp-5);
   border-bottom: 3px double var(--border-strong);
 }
-.mark { width: 40px; height: 35px; fill: var(--accent); flex: none; }
+.mark { width: 42px; height: 42px; color: var(--accent); fill: var(--accent); flex: none; }
 .title { display: flex; flex-direction: column; margin-right: auto; min-width: 0; }
 .name { font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; }
 .subtitle { color: var(--muted); font-size: var(--fs-sm); }
@@ -172,13 +176,24 @@ body[data-state="empty"] #messages .box.info { display: none; }
   fill: var(--map-text); font-family: var(--font); font-weight: 500;
   paint-order: stroke; stroke: var(--map-bg); stroke-width: 3px; stroke-linejoin: round;
 }
-.map rect[width="10"][height="10"] { stroke: var(--door-outline); stroke-width: 1; fill-opacity: 1; }
-.map rect[fill="#333333"] { fill: var(--door-open); }
-.map rect[fill="blue"] { fill: var(--door-bomb); }
-.map rect[fill="orange"] { fill: var(--door-key); }
-.map rect[fill="purple"] { fill: var(--door-walk); }
-.map rect[fill="brown"] { fill: var(--door-shutter); }
-.map rect[fill="red"] { fill: var(--wall); stroke: var(--wall); }
+.map .door { stroke: var(--door-outline); stroke-width: 1; fill-opacity: 1; }
+.map .door-open { fill: var(--door-open); }
+.map .door-bombable { fill: var(--door-bomb); }
+.map .door-locked { fill: var(--door-key); }
+.map .door-walk-through { fill: var(--door-walk); }
+.map .door-shutter { fill: var(--door-shutter); }
+.map .wall { fill: var(--wall); stroke: var(--wall); }
+
+/* The mode toggles: each layer of the maps can be hidden. */
+body.hide-types .label-type,
+body.hide-enemies .label-enemies,
+body.hide-items .label-item, body.hide-items .label-cellar,
+body.hide-minor .label-item.minor, body.hide-minor .label-cellar.minor,
+body.hide-stairs .label-transport,
+body.hide-doors .door { display: none; }
+body.show-highlight .map .room.has-major { stroke: var(--major); stroke-width: 3; }
+body.show-dim .map .room:not(.has-major):not(.pinned):not(:hover):not(:focus-visible) { fill-opacity: 0.1; }
+body:not(.show-advanced) [data-advanced] { display: none; }
 
 .legend { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-4); font-size: var(--fs-sm); }
 .legend-title { width: 100%; font-family: var(--serif); font-weight: 700; font-size: var(--fs-md); }
@@ -191,6 +206,60 @@ body[data-state="empty"] #messages .box.info { display: none; }
 .swatch[style*="brown"] { background: var(--door-shutter) !important; }
 .swatch[style*="red"] { background: var(--wall) !important; }
 .map-hint { color: var(--muted); font-size: var(--fs-sm); font-style: italic; margin: var(--sp-3) 0 0; }
+
+/* The options bar: what the maps show, and how room details appear */
+.options {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5);
+  padding: var(--sp-3) 0; border-bottom: 1px solid var(--border); font-size: var(--fs-sm);
+}
+body:not(.map-view) [data-map-only] { display: none !important; }
+.segmented { display: inline-flex; align-items: center; gap: 0; border: 0; padding: 0; margin: 0; }
+.segmented legend { float: left; margin-right: var(--sp-2); font-family: var(--serif); font-weight: 700; color: var(--muted); }
+.segmented label span {
+  display: inline-block; cursor: pointer; padding: 6px 12px; border: 1px solid var(--border-strong);
+  margin-left: -1px; background: var(--surface); color: var(--text); font-weight: 600;
+}
+.segmented label:first-of-type span { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.segmented label:last-of-type span { border-radius: 0 var(--radius) var(--radius) 0; }
+.segmented input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.segmented input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; position: relative; z-index: 1; }
+.custom-note { margin-left: var(--sp-2); color: var(--muted); font-style: italic; }
+.customise { position: relative; }
+.customise summary {
+  cursor: pointer; list-style: none; padding: 6px 12px; border: 1px solid var(--border-strong);
+  border-radius: var(--radius); background: var(--surface); font-weight: 600;
+}
+.customise summary::-webkit-details-marker { display: none; }
+.customise summary::after { content: " ▾"; color: var(--muted); }
+.customise[open] summary::after { content: " ▴"; }
+.customise-panel {
+  position: absolute; z-index: 20; left: 0; top: calc(100% + 4px); width: 340px;
+  display: grid; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4);
+  background: var(--surface); border: 1px solid var(--border-strong); box-shadow: 0 10px 30px var(--shadow-color);
+}
+.layers { border: 0; margin: 0; padding: 0; }
+.layers legend { font-family: var(--serif); font-weight: 700; padding: 0; margin-bottom: var(--sp-2); }
+.layers label { display: block; padding: 3px 0; cursor: pointer; }
+.layers small { color: var(--muted); }
+.layers input { accent-color: var(--accent); width: 16px; height: 16px; vertical-align: -3px; margin: 0 6px 0 0; }
+
+/* Room details in a side panel ("Room ledger"), when chosen */
+.workspace { display: block; }
+.ledger { display: none; }
+body.details-panel.map-view .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--sp-5); align-items: start; }
+body.details-panel.map-view .ledger {
+  display: block; position: sticky; top: 72px; margin-top: 64px; padding: var(--sp-4) var(--sp-5);
+  background: var(--surface); border: 1px solid var(--border-strong); outline: 1px solid var(--border-strong); outline-offset: 3px;
+}
+.ledger h2 { font-size: var(--fs-lg); margin-bottom: var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border); }
+.ledger .placeholder { color: var(--muted); font-size: var(--fs-sm); font-style: italic; margin: 0; }
+.ledger:has(.tooltip:not([hidden])) .placeholder { display: none; }
+.ledger .tooltip {
+  position: static !important; max-width: none; box-shadow: none; border: 0; padding: 0; background: none;
+  display: grid; grid-template-columns: auto 1fr; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-sm);
+}
+.ledger .tooltip[hidden] { display: none; }
+.ledger .tooltip > div { display: contents; }
 
 /* Lists: ledger-ruled tables */
 #output > h2 { font-size: var(--fs-xl); margin: var(--sp-6) 0 var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-strong); }
@@ -212,6 +281,10 @@ button.link { font: inherit; font-family: var(--mono); color: var(--link); backg
   box-shadow: 0 10px 30px var(--shadow-color); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); line-height: 1.6;
 }
 .tooltip .tip-label { color: var(--muted); font-family: var(--serif); font-weight: 700; }
+.tooltip:not(.ledger .tooltip) > div:first-child {
+  font-family: var(--serif); font-size: var(--fs-md); padding-bottom: var(--sp-2); margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--border);
+}
 
 @media (max-width: 760px) {
   .page { padding: 0 var(--sp-4) var(--sp-6); }
@@ -225,6 +298,17 @@ button.link { font: inherit; font-family: var(--mono); color: var(--link); backg
   .tab { flex: none; }
   .view-head h1 { font-size: var(--fs-xl); }
   .scroll-card { margin: var(--sp-5) 0; padding: var(--sp-6) var(--sp-4); }
+  .options { gap: var(--sp-2) var(--sp-3); }
+  .segmented legend { display: none; }
+  .segmented label span { padding: 6px 9px; }
+  .customise-panel { width: min(340px, calc(100vw - 32px)); }
+  .tooltip:not(.ledger .tooltip) > div:first-child { column-span: all; }
+  body.details-panel.map-view .workspace { display: block; }
+  body.details-panel.map-view .ledger {
+    position: fixed; left: var(--sp-2); right: var(--sp-2); bottom: var(--sp-2); top: auto; z-index: 15; margin: 0;
+    box-shadow: 0 -6px 24px var(--shadow-color);
+  }
+  body.details-panel.map-view .ledger:not(:has(.tooltip:not([hidden]))) { display: none; }
   /* On a phone the tooltip is a sheet along the bottom, so it never covers the rooms beside the
      pinned one (the renderer's left/top give way to these). */
   .tooltip {

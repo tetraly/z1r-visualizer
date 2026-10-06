@@ -3,6 +3,8 @@
 //   <direction>-desktop-dark.jpg   the Item Summary
 //   <direction>-phone-dark.jpg     Level 5 at 390 px wide
 //   <direction>-phone-light.jpg    the empty state at 390 px wide
+// Quest Log (iteration 2) has its own set, at 1440 px: details as a popup and in the side panel,
+// the Items and Route modes (the latter with Customise open), the Item Summary, and phones.
 //
 //   python3 docs/design/build_mockups.py
 //   node docs/design/screenshots.mjs
@@ -16,6 +18,15 @@ const DESIGN = dirname(fileURLToPath(import.meta.url));
 const CHROME = process.env.CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PORT = 9334;
 const DIRECTIONS = ["atlas", "quest-log", "tracker"];
+const QUEST_SHOTS = [
+  { name: "popup", width: 1440, height: 900, mobile: false, query: "theme=light&details=popup&preset=everything", view: "Level 5", pin: true },
+  { name: "panel", width: 1440, height: 900, mobile: false, query: "theme=light&details=panel&preset=everything", view: "Level 5", pin: true },
+  { name: "mode-items-dark", width: 1440, height: 900, mobile: false, query: "theme=dark&details=popup&preset=items", view: "Level 5" },
+  { name: "mode-route-customise", width: 1440, height: 900, mobile: false, query: "theme=light&details=popup&preset=route", view: "Level 8", customise: true },
+  { name: "items-dark", width: 1440, height: 900, mobile: false, query: "theme=dark&preset=everything", view: "Item Summary" },
+  { name: "phone-dark", width: 390, height: 844, mobile: true, query: "theme=dark&details=popup&preset=everything", view: "Level 5", pin: true },
+  { name: "phone-light", width: 390, height: 844, mobile: true, query: "theme=light&empty" },
+];
 const SHOTS = [
   { name: "desktop-light", width: 1280, height: 860, mobile: false, query: "theme=light", view: "Level 5", pin: true },
   { name: "desktop-dark", width: 1280, height: 860, mobile: false, query: "theme=dark", view: "Item Summary" },
@@ -50,7 +61,7 @@ try {
   const evaluate = async (expression) => (await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })).result.result.value;
 
   for (const direction of DIRECTIONS) {
-    for (const shot of SHOTS) {
+    for (const shot of direction === "quest-log" ? QUEST_SHOTS : SHOTS) {
       await send("Emulation.setDeviceMetricsOverride", { width: shot.width, height: shot.height, deviceScaleFactor: 1, mobile: shot.mobile });
       await send("Page.navigate", { url: `file://${join(DESIGN, `mockup-${direction}.html`)}?${shot.query}` });
       await sleep(600);
@@ -64,6 +75,7 @@ try {
             room.scrollIntoView({ block: "center", inline: "center" });
             room.dispatchEvent(new MouseEvent("click", { bubbles: true }));
           }
+          if (${!!shot.customise}) document.querySelector("details.customise").open = true;
         })()`);
         await sleep(300);
       }

@@ -11,7 +11,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <div class="page">
   <header class="banner">
-    <svg class="mark" viewBox="0 0 24 21" aria-hidden="true"><path d="M12 0l6 10.5H6zM6 10.5L12 21H0zM18 10.5L24 21H12z"/></svg>
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.5l6.5-2.5 7 2.5 6.5-2.5v15.5l-6.5 2.5-7-2.5-6.5 2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 3v15.5M15.5 5.5V21" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"/><path d="M5 16c2-3 4-1 6-4s3.5-3.5 6-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 2.2"/><circle cx="18" cy="7.6" r="1.8"/></svg>
     <div class="title">
       <span class="name">Z1R Visualizer</span>
       <span class="subtitle">A spoiler map for <i>The Legend of Zelda</i> seeds · <span id="version">{{VERSION}}</span></span>
@@ -35,9 +35,46 @@
     <button type="button" class="tab" data-view="Overworld">Overworld</button>
     <button type="button" class="tab" data-view="Item Summary">Items</button>
     <button type="button" class="tab" data-view="Hint Texts">Hints</button>
-    <button type="button" class="tab" data-view="Recorder Info">Recorder</button>
-    <button type="button" class="tab" data-view="Seed Info">Seed</button>
+    <button type="button" class="tab" data-view="Recorder Info" data-advanced>Recorder</button>
+    <button type="button" class="tab" data-view="Seed Info" data-advanced>Seed</button>
   </nav>
+
+  <!-- What the maps show (the mode toggles) and how room details appear. -->
+  <div class="options" data-loaded-only data-map-only>
+    <fieldset class="segmented" data-presets>
+      <legend>Show</legend>
+      <label><input type="radio" name="preset" value="everything" class="visually-hidden"><span>Everything</span></label>
+      <label><input type="radio" name="preset" value="route" class="visually-hidden"><span>Route</span></label>
+      <label><input type="radio" name="preset" value="items" class="visually-hidden"><span>Items</span></label>
+      <label><input type="radio" name="preset" value="layout" class="visually-hidden"><span>Layout only</span></label>
+      <span class="custom-note" data-custom-note hidden>Custom</span>
+    </fieldset>
+    <details class="customise">
+      <summary>Customise</summary>
+      <div class="customise-panel">
+      <fieldset class="layers">
+        <legend>On the maps</legend>
+        <label><input type="checkbox" data-layer="types"> Room types</label>
+        <label><input type="checkbox" data-layer="enemies"> Enemies</label>
+        <label><input type="checkbox" data-layer="items"> Items</label>
+        <label><input type="checkbox" data-layer="minor"> Minor items <small>(keys, bombs, rupees, maps, compasses, triforces)</small></label>
+        <label><input type="checkbox" data-layer="stairs"> Transport staircases</label>
+        <label><input type="checkbox" data-layer="doors"> Door markers</label>
+        <label><input type="checkbox" data-layer="highlight"> Outline rooms with a major item</label>
+        <label><input type="checkbox" data-layer="dim"> Fade rooms without one</label>
+      </fieldset>
+      <fieldset class="layers">
+        <legend>Views</legend>
+        <label><input type="checkbox" data-layer="advanced"> Recorder and Seed tabs</label>
+      </fieldset>
+      </div>
+    </details>
+    <fieldset class="segmented" data-details-mode>
+      <legend>Room details</legend>
+      <label><input type="radio" name="details" value="popup" class="visually-hidden"><span>Popup</span></label>
+      <label><input type="radio" name="details" value="panel" class="visually-hidden"><span>Side panel</span></label>
+    </fieldset>
+  </div>
 
   <main id="main" class="main" data-drop>
     <section class="scroll-card" data-empty-only aria-labelledby="empty-title">
@@ -53,14 +90,22 @@
       </dl>
     </section>
 
-    <div class="view-head" data-loaded-only>
-      <h1 data-view-title>Level 4</h1>
-      <span class="file"><span data-file-name></span> <button type="button" class="text-button" data-open-file>Open another</button></span>
+    <div class="workspace">
+      <div class="content">
+        <div class="view-head" data-loaded-only>
+          <h1 data-view-title>Level 4</h1>
+          <span class="file"><span data-file-name></span> <button type="button" class="text-button" data-open-file>Open another</button></span>
+        </div>
+        <p id="status" class="status" role="status"></p>
+        <div id="messages"></div>
+        <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
+        <div id="output"></div>
+      </div>
+      <aside class="ledger" aria-label="Room details" data-details-panel>
+        <h2>Room ledger</h2>
+        <p class="placeholder">Hover over a room, or focus it with Tab, to read it here. Click it, or press Enter, to keep it here; Escape lets go.</p>
+      </aside>
     </div>
-    <p id="status" class="status" role="status"></p>
-    <div id="messages"></div>
-    <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
-    <div id="output"></div>
   </main>
 </div>
 <div id="tooltip" class="tooltip" hidden></div>

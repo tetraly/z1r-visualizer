@@ -38,6 +38,7 @@ CHECKS = [
     ("stair", "map-bg", GRAPHIC, "staircase pair outline and line"),
     ("door-outline", "map-bg", GRAPHIC, "door marker outline"),
     ("wall", "map-bg", GRAPHIC, "solid wall"),
+    ("major", "map-bg", GRAPHIC, "major-item outline (Quest Log)"),
     ("door-open", "map-bg", GRAPHIC, "open door marker"),
     ("door-bomb", "map-bg", GRAPHIC, "bombable wall marker"),
     ("door-key", "map-bg", GRAPHIC, "key-locked door marker"),
@@ -88,6 +89,8 @@ def main():
         for theme, index in (("light", 0), ("dark", 1)):
             worst = []
             for fg, bg, minimum, what in CHECKS:
+                if fg not in values:
+                    continue  # a token only some directions have
                 ratio = contrast(values[fg][index], values[bg][index])
                 worst.append((ratio / minimum, ratio, minimum, what))
                 if ratio < minimum:

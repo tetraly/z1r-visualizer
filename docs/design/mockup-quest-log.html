@@ -9,7 +9,9 @@
 /* Quest Log: game-flavoured but restrained. Parchment and ink in light, a night palette in dark,
    serif headings from the system's serif fonts, a centred column with a sticky tab bar whose
    dungeons are round coins ringed in their colour. Colours are light-dark() pairs: the theme
-   follows the system, or data-theme on <html> (the toggle). */
+   follows the system, or data-theme on <html> (the toggle).
+   Iteration 2: an original map mark; rooms sized to fit their longest label; mode toggles that
+   show or hide what the maps carry; room details as a popup or in a side panel. */
 
 :root {
   color-scheme: light dark;
@@ -43,6 +45,7 @@
   --door-shutter: light-dark(#7a4314, #dca06a);
   --door-outline: light-dark(#21180f, #f3ecdb);
   --wall: light-dark(#c1121f, #ff6b6b);
+  --major: light-dark(#8a5a00, #f2c14e);
 
   /* Type: a 1.25 scale from 16px; serif display, sans text. Spacing: a 4px grid. */
   --fs-xs: 0.75rem;
@@ -90,14 +93,15 @@ body[data-state="loaded"] [data-empty-only] { display: none !important; }
 body[data-state="empty"] #messages .box.info { display: none; }
 #picker { display: none !important; }
 
-.page { max-width: 1120px; margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+.page { max-width: 1180px; margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+body.details-panel .page { max-width: 1480px; }
 
 /* Banner */
 .banner {
   display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-6) 0 var(--sp-5);
   border-bottom: 3px double var(--border-strong);
 }
-.mark { width: 40px; height: 35px; fill: var(--accent); flex: none; }
+.mark { width: 42px; height: 42px; color: var(--accent); fill: var(--accent); flex: none; }
 .title { display: flex; flex-direction: column; margin-right: auto; min-width: 0; }
 .name { font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; }
 .subtitle { color: var(--muted); font-size: var(--fs-sm); }
@@ -180,13 +184,24 @@ body[data-state="empty"] #messages .box.info { display: none; }
   fill: var(--map-text); font-family: var(--font); font-weight: 500;
   paint-order: stroke; stroke: var(--map-bg); stroke-width: 3px; stroke-linejoin: round;
 }
-.map rect[width="10"][height="10"] { stroke: var(--door-outline); stroke-width: 1; fill-opacity: 1; }
-.map rect[fill="#333333"] { fill: var(--door-open); }
-.map rect[fill="blue"] { fill: var(--door-bomb); }
-.map rect[fill="orange"] { fill: var(--door-key); }
-.map rect[fill="purple"] { fill: var(--door-walk); }
-.map rect[fill="brown"] { fill: var(--door-shutter); }
-.map rect[fill="red"] { fill: var(--wall); stroke: var(--wall); }
+.map .door { stroke: var(--door-outline); stroke-width: 1; fill-opacity: 1; }
+.map .door-open { fill: var(--door-open); }
+.map .door-bombable { fill: var(--door-bomb); }
+.map .door-locked { fill: var(--door-key); }
+.map .door-walk-through { fill: var(--door-walk); }
+.map .door-shutter { fill: var(--door-shutter); }
+.map .wall { fill: var(--wall); stroke: var(--wall); }
+
+/* The mode toggles: each layer of the maps can be hidden. */
+body.hide-types .label-type,
+body.hide-enemies .label-enemies,
+body.hide-items .label-item, body.hide-items .label-cellar,
+body.hide-minor .label-item.minor, body.hide-minor .label-cellar.minor,
+body.hide-stairs .label-transport,
+body.hide-doors .door { display: none; }
+body.show-highlight .map .room.has-major { stroke: var(--major); stroke-width: 3; }
+body.show-dim .map .room:not(.has-major):not(.pinned):not(:hover):not(:focus-visible) { fill-opacity: 0.1; }
+body:not(.show-advanced) [data-advanced] { display: none; }
 
 .legend { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-4); font-size: var(--fs-sm); }
 .legend-title { width: 100%; font-family: var(--serif); font-weight: 700; font-size: var(--fs-md); }
@@ -199,6 +214,60 @@ body[data-state="empty"] #messages .box.info { display: none; }
 .swatch[style*="brown"] { background: var(--door-shutter) !important; }
 .swatch[style*="red"] { background: var(--wall) !important; }
 .map-hint { color: var(--muted); font-size: var(--fs-sm); font-style: italic; margin: var(--sp-3) 0 0; }
+
+/* The options bar: what the maps show, and how room details appear */
+.options {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5);
+  padding: var(--sp-3) 0; border-bottom: 1px solid var(--border); font-size: var(--fs-sm);
+}
+body:not(.map-view) [data-map-only] { display: none !important; }
+.segmented { display: inline-flex; align-items: center; gap: 0; border: 0; padding: 0; margin: 0; }
+.segmented legend { float: left; margin-right: var(--sp-2); font-family: var(--serif); font-weight: 700; color: var(--muted); }
+.segmented label span {
+  display: inline-block; cursor: pointer; padding: 6px 12px; border: 1px solid var(--border-strong);
+  margin-left: -1px; background: var(--surface); color: var(--text); font-weight: 600;
+}
+.segmented label:first-of-type span { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.segmented label:last-of-type span { border-radius: 0 var(--radius) var(--radius) 0; }
+.segmented input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.segmented input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; position: relative; z-index: 1; }
+.custom-note { margin-left: var(--sp-2); color: var(--muted); font-style: italic; }
+.customise { position: relative; }
+.customise summary {
+  cursor: pointer; list-style: none; padding: 6px 12px; border: 1px solid var(--border-strong);
+  border-radius: var(--radius); background: var(--surface); font-weight: 600;
+}
+.customise summary::-webkit-details-marker { display: none; }
+.customise summary::after { content: " ▾"; color: var(--muted); }
+.customise[open] summary::after { content: " ▴"; }
+.customise-panel {
+  position: absolute; z-index: 20; left: 0; top: calc(100% + 4px); width: 340px;
+  display: grid; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4);
+  background: var(--surface); border: 1px solid var(--border-strong); box-shadow: 0 10px 30px var(--shadow-color);
+}
+.layers { border: 0; margin: 0; padding: 0; }
+.layers legend { font-family: var(--serif); font-weight: 700; padding: 0; margin-bottom: var(--sp-2); }
+.layers label { display: block; padding: 3px 0; cursor: pointer; }
+.layers small { color: var(--muted); }
+.layers input { accent-color: var(--accent); width: 16px; height: 16px; vertical-align: -3px; margin: 0 6px 0 0; }
+
+/* Room details in a side panel ("Room ledger"), when chosen */
+.workspace { display: block; }
+.ledger { display: none; }
+body.details-panel.map-view .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--sp-5); align-items: start; }
+body.details-panel.map-view .ledger {
+  display: block; position: sticky; top: 72px; margin-top: 64px; padding: var(--sp-4) var(--sp-5);
+  background: var(--surface); border: 1px solid var(--border-strong); outline: 1px solid var(--border-strong); outline-offset: 3px;
+}
+.ledger h2 { font-size: var(--fs-lg); margin-bottom: var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border); }
+.ledger .placeholder { color: var(--muted); font-size: var(--fs-sm); font-style: italic; margin: 0; }
+.ledger:has(.tooltip:not([hidden])) .placeholder { display: none; }
+.ledger .tooltip {
+  position: static !important; max-width: none; box-shadow: none; border: 0; padding: 0; background: none;
+  display: grid; grid-template-columns: auto 1fr; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-sm);
+}
+.ledger .tooltip[hidden] { display: none; }
+.ledger .tooltip > div { display: contents; }
 
 /* Lists: ledger-ruled tables */
 #output > h2 { font-size: var(--fs-xl); margin: var(--sp-6) 0 var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-strong); }
@@ -220,6 +289,10 @@ button.link { font: inherit; font-family: var(--mono); color: var(--link); backg
   box-shadow: 0 10px 30px var(--shadow-color); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); line-height: 1.6;
 }
 .tooltip .tip-label { color: var(--muted); font-family: var(--serif); font-weight: 700; }
+.tooltip:not(.ledger .tooltip) > div:first-child {
+  font-family: var(--serif); font-size: var(--fs-md); padding-bottom: var(--sp-2); margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--border);
+}
 
 @media (max-width: 760px) {
   .page { padding: 0 var(--sp-4) var(--sp-6); }
@@ -233,6 +306,17 @@ button.link { font: inherit; font-family: var(--mono); color: var(--link); backg
   .tab { flex: none; }
   .view-head h1 { font-size: var(--fs-xl); }
   .scroll-card { margin: var(--sp-5) 0; padding: var(--sp-6) var(--sp-4); }
+  .options { gap: var(--sp-2) var(--sp-3); }
+  .segmented legend { display: none; }
+  .segmented label span { padding: 6px 9px; }
+  .customise-panel { width: min(340px, calc(100vw - 32px)); }
+  .tooltip:not(.ledger .tooltip) > div:first-child { column-span: all; }
+  body.details-panel.map-view .workspace { display: block; }
+  body.details-panel.map-view .ledger {
+    position: fixed; left: var(--sp-2); right: var(--sp-2); bottom: var(--sp-2); top: auto; z-index: 15; margin: 0;
+    box-shadow: 0 -6px 24px var(--shadow-color);
+  }
+  body.details-panel.map-view .ledger:not(:has(.tooltip:not([hidden]))) { display: none; }
   /* On a phone the tooltip is a sheet along the bottom, so it never covers the rooms beside the
      pinned one (the renderer's left/top give way to these). */
   .tooltip {
@@ -246,10 +330,10 @@ button.link { font: inherit; font-family: var(--mono); color: var(--link); backg
 <a class="skip" href="#main">Skip to content</a>
 <div class="page">
   <header class="banner">
-    <svg class="mark" viewBox="0 0 24 21" aria-hidden="true"><path d="M12 0l6 10.5H6zM6 10.5L12 21H0zM18 10.5L24 21H12z"/></svg>
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.5l6.5-2.5 7 2.5 6.5-2.5v15.5l-6.5 2.5-7-2.5-6.5 2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 3v15.5M15.5 5.5V21" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"/><path d="M5 16c2-3 4-1 6-4s3.5-3.5 6-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 2.2"/><circle cx="18" cy="7.6" r="1.8"/></svg>
     <div class="title">
       <span class="name">Z1R Visualizer</span>
-      <span class="subtitle">A spoiler map for <i>The Legend of Zelda</i> seeds · <span id="version">2026-10-06 8b4c129 mockup</span></span>
+      <span class="subtitle">A spoiler map for <i>The Legend of Zelda</i> seeds · <span id="version">2026-10-06 c6f84b8 mockup</span></span>
     </div>
     <button class="toggle" type="button" data-theme-toggle><span class="toggle-dot" aria-hidden="true"></span><span data-theme-label>System</span></button>
   </header>
@@ -270,9 +354,46 @@ button.link { font: inherit; font-family: var(--mono); color: var(--link); backg
     <button type="button" class="tab" data-view="Overworld">Overworld</button>
     <button type="button" class="tab" data-view="Item Summary">Items</button>
     <button type="button" class="tab" data-view="Hint Texts">Hints</button>
-    <button type="button" class="tab" data-view="Recorder Info">Recorder</button>
-    <button type="button" class="tab" data-view="Seed Info">Seed</button>
+    <button type="button" class="tab" data-view="Recorder Info" data-advanced>Recorder</button>
+    <button type="button" class="tab" data-view="Seed Info" data-advanced>Seed</button>
   </nav>
+
+  <!-- What the maps show (the mode toggles) and how room details appear. -->
+  <div class="options" data-loaded-only data-map-only>
+    <fieldset class="segmented" data-presets>
+      <legend>Show</legend>
+      <label><input type="radio" name="preset" value="everything" class="visually-hidden"><span>Everything</span></label>
+      <label><input type="radio" name="preset" value="route" class="visually-hidden"><span>Route</span></label>
+      <label><input type="radio" name="preset" value="items" class="visually-hidden"><span>Items</span></label>
+      <label><input type="radio" name="preset" value="layout" class="visually-hidden"><span>Layout only</span></label>
+      <span class="custom-note" data-custom-note hidden>Custom</span>
+    </fieldset>
+    <details class="customise">
+      <summary>Customise</summary>
+      <div class="customise-panel">
+      <fieldset class="layers">
+        <legend>On the maps</legend>
+        <label><input type="checkbox" data-layer="types"> Room types</label>
+        <label><input type="checkbox" data-layer="enemies"> Enemies</label>
+        <label><input type="checkbox" data-layer="items"> Items</label>
+        <label><input type="checkbox" data-layer="minor"> Minor items <small>(keys, bombs, rupees, maps, compasses, triforces)</small></label>
+        <label><input type="checkbox" data-layer="stairs"> Transport staircases</label>
+        <label><input type="checkbox" data-layer="doors"> Door markers</label>
+        <label><input type="checkbox" data-layer="highlight"> Outline rooms with a major item</label>
+        <label><input type="checkbox" data-layer="dim"> Fade rooms without one</label>
+      </fieldset>
+      <fieldset class="layers">
+        <legend>Views</legend>
+        <label><input type="checkbox" data-layer="advanced"> Recorder and Seed tabs</label>
+      </fieldset>
+      </div>
+    </details>
+    <fieldset class="segmented" data-details-mode>
+      <legend>Room details</legend>
+      <label><input type="radio" name="details" value="popup" class="visually-hidden"><span>Popup</span></label>
+      <label><input type="radio" name="details" value="panel" class="visually-hidden"><span>Side panel</span></label>
+    </fieldset>
+  </div>
 
   <main id="main" class="main" data-drop>
     <section class="scroll-card" data-empty-only aria-labelledby="empty-title">
@@ -288,14 +409,22 @@ button.link { font: inherit; font-family: var(--mono); color: var(--link); backg
       </dl>
     </section>
 
-    <div class="view-head" data-loaded-only>
-      <h1 data-view-title>Level 4</h1>
-      <span class="file"><span data-file-name></span> <button type="button" class="text-button" data-open-file>Open another</button></span>
+    <div class="workspace">
+      <div class="content">
+        <div class="view-head" data-loaded-only>
+          <h1 data-view-title>Level 4</h1>
+          <span class="file"><span data-file-name></span> <button type="button" class="text-button" data-open-file>Open another</button></span>
+        </div>
+        <p id="status" class="status" role="status"></p>
+        <div id="messages"></div>
+        <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
+        <div id="output"></div>
+      </div>
+      <aside class="ledger" aria-label="Room details" data-details-panel>
+        <h2>Room ledger</h2>
+        <p class="placeholder">Hover over a room, or focus it with Tab, to read it here. Click it, or press Enter, to keep it here; Escape lets go.</p>
+      </aside>
     </div>
-    <p id="status" class="status" role="status"></p>
-    <div id="messages"></div>
-    <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
-    <div id="output"></div>
   </main>
 </div>
 <div id="tooltip" class="tooltip" hidden></div>
@@ -901,15 +1030,15 @@ const inMapOrder = (items) => [...items].sort((a, b) => a.row - b.row || a.colum
  * @param {number} unit  Pixels per map unit.
  * @param {string} title
  */
-function plot(widthUnits, heightUnits, unit, title) {
+function plot(widthUnits, heightUnits, unit, title, unitY = unit) {
   const svg = svgElement("svg", {
-    viewBox: `0 0 ${widthUnits * unit} ${heightUnits * unit}`,
-    width: widthUnits * unit, height: heightUnits * unit, class: "map", role: "group", "aria-label": title,
+    viewBox: `0 0 ${widthUnits * unit} ${heightUnits * unitY}`,
+    width: widthUnits * unit, height: heightUnits * unitY, class: "map", role: "group", "aria-label": title,
   });
   /** @param {number} x */
   const toX = (x) => x * unit;
   /** @param {number} y */
-  const toY = (y) => (heightUnits - y) * unit;
+  const toY = (y) => (heightUnits - y) * unitY;
   /**
    * A rectangle centred on (cx, cy).
    * @param {number} cx
@@ -919,7 +1048,7 @@ function plot(widthUnits, heightUnits, unit, title) {
    * @param {Record<string, string | number>} attrs
    */
   const rect = (cx, cy, w, h, attrs) => svgElement("rect", {
-    x: toX(cx - w / 2), y: toY(cy + h / 2), width: w * unit, height: h * unit, ...attrs,
+    x: toX(cx - w / 2), y: toY(cy + h / 2), width: w * unit, height: h * unitY, ...attrs,
   });
   /**
    * Left-aligned text, vertically centred on y.
@@ -946,7 +1075,7 @@ const DOOR_COLOURS = {
 // Relative to a room's top right corner, in map units: where a direction's door marker sits, and
 // where its solid wall's bar is centred; and the bar's size.
 /** @type {Record<Direction, [number, number]>} */
-const DOOR_OFFSET = { north: [-0.5, -0.05], south: [-0.5, -0.95], east: [-0.05, -0.5], west: [-0.95, -0.5] };
+const DOOR_OFFSET = { north: [-0.5, -0.05], south: [-0.5, -0.95], east: [-0.04, -0.5], west: [-0.96, -0.5] };
 /** @type {Record<Direction, [number, number]>} */
 const WALL_OFFSET = { north: [-0.5, 0], south: [-0.5, -1], east: [0, -0.5], west: [-1, -0.5] };
 /** @type {Record<Direction, [number, number]>} */
@@ -963,7 +1092,7 @@ const LEGEND = [["Open Door", "black"], ["Shutter Door", "brown"], ["Key-Locked 
  * @param {SeedLevel} level
  */
 function drawLevel(seed, level) {
-  const { svg, rect, text, toX, toY } = plot(8, 8, 100, `Level ${level.number} map`);
+  const { svg, rect, text, toX, toY } = plot(8, 8, 132, `Level ${level.number} map`, 96);
   const roomColour = level.color;
   // A room's top right corner in map units: x = column, y = rows above the bottom edge.
   const corner = (/** @type {SeedRoom} */ room) => [room.column, 9 - room.row];
@@ -973,7 +1102,7 @@ function drawLevel(seed, level) {
   const spots = [];
   for (const room of inMapOrder(level.rooms)) {
     const [x, y] = corner(room);
-    const node = rect(x - 0.5, y - 0.5, 0.8, 0.8, {
+    const node = rect(x - 0.5, y - 0.5, 0.92, 0.84, {
       fill: roomColour, "fill-opacity": 0.6, stroke: roomColour, class: "room",
     });
     svg.append(node);
@@ -984,11 +1113,14 @@ function drawLevel(seed, level) {
       key,
       label: [`Room ${key}`, ...roomLines(seed, room)].filter(Boolean).join(", "),
       fields: [
-        ["Room Number", key], ["Col", room.column], ["Row", room.row],
-        ["Stair", staircase ? (staircase.kind === "transport" ? `Stairway #${staircase.number}`
-          : staircase.item ? itemLabel(seed, staircase.item) : "No Item") : "None"],
-        ["Room Type", room.type], ["Enemy Type", enemies ? enemies.name : ""],
-        ["Num Enemies", enemies ? enemies.count : undefined],
+        ["Room", `${key} · ${room.type}`],
+        ["Enemies", enemies ? (enemies.count !== undefined ? `${enemies.count} ${enemies.name}` : enemies.name) : "None"],
+        ["Item", room.item ? `${itemLabel(seed, room.item.name)} (${room.item.drop ? "dropped by the enemies" : "on the floor"})` : "None"],
+        ["Stairs", staircase ? (staircase.kind === "transport"
+          ? `Stairway #${staircase.number}, to room ${roomNumber(staircase.to)}`
+          : `Item cellar: ${staircase.item ? itemLabel(seed, staircase.item) : "empty"}`) : "None"],
+        ["Doors", ["north", "east", "south", "west"].map((side) => `${side[0].toUpperCase()} ${room.doors[side]}`).join(" · ")],
+        ["Position", `column ${room.column}, row ${room.row}`],
       ],
       stair: staircase && staircase.kind === "transport" ? `Stair #${staircase.number}` : "",
       x: toX(x - 0.5),
@@ -1002,8 +1134,9 @@ function drawLevel(seed, level) {
       if (door === "solid") continue;
       const [dx, dy] = DOOR_OFFSET[direction];
       const colour = DOOR_COLOURS[door];
-      svg.append(rect(x + dx, y + dy, 0.1, 0.1, {
-        fill: colour, "fill-opacity": 0.6, stroke: colour, "pointer-events": "none",
+      svg.append(rect(x + dx, y + dy, direction === "east" || direction === "west" ? 0.05 : 0.1,
+        direction === "east" || direction === "west" ? 0.13 : 0.1, {
+        fill: colour, "fill-opacity": 0.6, stroke: colour, "pointer-events": "none", class: `door door-${door}`,
       }));
     }
   }
@@ -1023,14 +1156,16 @@ function drawLevel(seed, level) {
     }
   }
   for (const [x, y, w, h] of walls.values()) {
-    svg.append(rect(x, y, w, h, { fill: "red", stroke: "red", "pointer-events": "none" }));
+    svg.append(rect(x, y, w, h, { fill: "red", stroke: "red", "pointer-events": "none", class: "wall" }));
   }
   for (const room of level.rooms) {
     const [x, y] = corner(room);
     roomLines(seed, room).forEach((line, i) => {
       if (!line) return;
-      const label = text(x - 0.86, y - 0.2 * (i + 1), line, "8pt");
+      const label = text(x - 0.925, y - 0.2 * (i + 1), line, "10px");
       label.setAttribute("pointer-events", "none");
+      label.setAttribute("class", "label " + (i < 3 ? ["label-type", "label-enemies", "label-item"][i]
+        : room.staircase && room.staircase.kind === "transport" ? "label-transport" : "label-cellar"));
       svg.append(label);
     });
   }
@@ -1051,7 +1186,7 @@ function drawLevel(seed, level) {
 
 /** @param {SeedScreen[]} screens */
 function drawOverworld(screens) {
-  const { svg, rect, text, toX, toY } = plot(16, 8, 50, "Overworld map");
+  const { svg, rect, text, toX, toY } = plot(16, 8, 66, "Overworld map", 44);
   /** @type {MapSpot[]} */
   const spots = [];
   for (const screen of inMapOrder(screens)) {
@@ -1064,15 +1199,16 @@ function drawOverworld(screens) {
       node,
       key,
       label: `Screen ${key}, ${screen.cave.name}`,
-      fields: [["Screen Number", key], ["Col", screen.column], ["Row", screen.row], ["Cave", screen.cave.name],
-               ["Map Label", screen.cave.shortName]],
+      fields: [["Screen", `${key} · ${screen.cave.name}`], ["Map label", screen.cave.shortName],
+               ["Position", `column ${screen.column}, row ${screen.row}`]],
       stair: "",
       x: toX(x),
       y: toY(y),
     });
   }
   for (const screen of screens) {
-    const label = text(screen.column - 0.9, 8.5 - screen.row, screen.cave.shortName, "14px");
+    const label = text(screen.column - 0.95, 8.5 - screen.row, screen.cave.shortName, "13px");
+    label.setAttribute("class", "label label-cave");
     label.setAttribute("pointer-events", "none");
     svg.append(label);
   }
@@ -1603,6 +1739,162 @@ listenToOpener();
       syncNav();
     });
   }
+})();
+</script>
+<script>
+// Quest Log mockup glue, on top of mockup.js: the map modes, the popup / side-panel switch, and
+// labels that always fit their room.
+// - Modes: presets (Everything, Route, Items, Layout only) and the layers behind them (room types,
+//   enemies, items, minor items, transport staircases, door markers, major-item outline, fading),
+//   plus the advanced tabs. They set classes on <body>; the stylesheet hides or shows by them.
+// - Room details: as a popup by the room, or docked in the side panel ("Room ledger").
+// - Fit: a label wider than its room is narrowed to fit (SVG textLength), measured with the
+//   label's own font, so it never spills into the next room.
+// Choices are remembered per browser. Stage 2 would move this into the page's own script.
+"use strict";
+(() => {
+  const body = document.body;
+  const output = /** @type {HTMLElement} */ (document.getElementById("output"));
+  const tooltip = /** @type {HTMLElement} */ (document.getElementById("tooltip"));
+  const panel = document.querySelector("[data-details-panel]");
+  const params = new URLSearchParams(location.search);
+
+  // Minor items: the ones the Item Summary leaves out.
+  const MINOR = new Set(["Rupee", "5 Rupees", "Bombs", "Key", "Map", "Compass", "Triforce", "No Item"]);
+  const LAYERS = ["types", "enemies", "items", "minor", "stairs", "doors", "highlight", "dim", "advanced"];
+  const PRESETS = {
+    everything: { types: true, enemies: true, items: true, minor: true, stairs: true, doors: true, highlight: false, dim: false },
+    route: { types: false, enemies: false, items: true, minor: false, stairs: true, doors: true, highlight: true, dim: false },
+    items: { types: false, enemies: false, items: true, minor: false, stairs: false, doors: false, highlight: true, dim: true },
+    layout: { types: true, enemies: false, items: false, minor: false, stairs: true, doors: true, highlight: false, dim: false },
+  };
+
+  /** @type {{preset: string, layers: Record<string, boolean>, details: string}} */
+  let state = { preset: "everything", layers: { ...PRESETS.everything, advanced: false }, details: "popup" };
+  try {
+    const saved = JSON.parse(localStorage.getItem("z1r-quest-log") || "null");
+    if (saved && saved.layers) state = { ...state, ...saved, layers: { ...state.layers, ...saved.layers } };
+  } catch (err) {
+    // storage blocked or unreadable: the defaults
+  }
+  if (params.get("preset") && PRESETS[params.get("preset")]) {
+    state.preset = params.get("preset");
+    state.layers = { ...state.layers, ...PRESETS[state.preset] };
+  }
+  if (params.get("details")) state.details = params.get("details") === "panel" ? "panel" : "popup";
+  const save = () => {
+    try {
+      localStorage.setItem("z1r-quest-log", JSON.stringify(state));
+    } catch (err) {
+      // not remembered
+    }
+  };
+
+  const apply = () => {
+    for (const layer of LAYERS) {
+      const on = !!state.layers[layer];
+      if (layer === "highlight" || layer === "dim" || layer === "advanced") body.classList.toggle(`show-${layer}`, on);
+      else body.classList.toggle(`hide-${layer}`, !on);
+      const box = document.querySelector(`[data-layer="${layer}"]`);
+      if (box) box.checked = on;
+    }
+    for (const radio of document.querySelectorAll('input[name="preset"]')) radio.checked = radio.value === state.preset;
+    const note = document.querySelector("[data-custom-note]");
+    if (note) note.hidden = state.preset !== "custom";
+    for (const radio of document.querySelectorAll('input[name="details"]')) radio.checked = radio.value === state.details;
+    // Room details: docked in the panel, or a popup on the page.
+    const docked = state.details === "panel" && panel;
+    body.classList.toggle("details-panel", !!docked);
+    if (docked && tooltip.parentElement !== panel) panel.append(tooltip);
+    if (!docked && tooltip.parentElement !== body) body.append(tooltip);
+  };
+
+  for (const radio of document.querySelectorAll('input[name="preset"]')) {
+    radio.addEventListener("change", () => {
+      state.preset = radio.value;
+      state.layers = { ...state.layers, ...PRESETS[radio.value] };
+      apply();
+      save();
+    });
+  }
+  for (const box of document.querySelectorAll("[data-layer]")) {
+    box.addEventListener("change", () => {
+      state.layers[box.getAttribute("data-layer")] = box.checked;
+      if (box.getAttribute("data-layer") !== "advanced") {
+        const match = Object.entries(PRESETS).find(([, layers]) =>
+          Object.entries(layers).every(([layer, on]) => !!state.layers[layer] === on));
+        state.preset = match ? match[0] : "custom";
+      }
+      apply();
+      save();
+    });
+  }
+  for (const radio of document.querySelectorAll('input[name="details"]')) {
+    radio.addEventListener("change", () => {
+      state.details = radio.value;
+      apply();
+      save();
+    });
+  }
+  // Escape closes the Customise panel when focus is in it.
+  for (const details of document.querySelectorAll("details.customise")) {
+    details.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && details.open) {
+        details.open = false;
+        details.querySelector("summary").focus();
+        event.stopPropagation();
+      }
+    });
+  }
+
+  // After each render: mark minor items and rooms with a major item, and fit the labels.
+  const canvas = document.createElement("canvas").getContext("2d");
+  const seedRoom = (level, key) => {
+    const shown = window.z1rVisualizer.current();
+    const levelData = shown && shown.seed ? shown.seed.levels.find((candidate) => candidate.number === level) : null;
+    return levelData ? levelData.rooms.find((room) => room.number.toString(16).toUpperCase() === key) : null;
+  };
+  const tag = () => {
+    const svg = output.querySelector("svg.map");
+    if (!svg) return;
+    const view = document.getElementById("view").value;
+    const level = view.startsWith("Level ") ? Number(view.split(" ")[1]) : null;
+    const rooms = [...svg.querySelectorAll("rect.room")];
+    for (const room of rooms) {
+      const key = /^(?:Room|Screen) ([0-9A-Fa-f]+)/.exec(room.getAttribute("aria-label") || "");
+      const data = level && key ? seedRoom(level, key[1]) : null;
+      const items = data ? [data.item && data.item.name, data.staircase && data.staircase.kind === "item" && data.staircase.item] : [];
+      room.classList.toggle("has-major", items.some((name) => name && !MINOR.has(name)));
+    }
+    const boxes = rooms.map((room) => ({
+      left: Number(room.getAttribute("x")), top: Number(room.getAttribute("y")),
+      right: Number(room.getAttribute("x")) + Number(room.getAttribute("width")),
+      bottom: Number(room.getAttribute("y")) + Number(room.getAttribute("height")),
+    }));
+    for (const label of svg.querySelectorAll("text.label")) {
+      if (label.classList.contains("label-item") || label.classList.contains("label-cellar")) {
+        label.classList.toggle("minor", MINOR.has(label.textContent.replace(/^D /, "")));
+      }
+      const x = Number(label.getAttribute("x"));
+      const y = Number(label.getAttribute("y"));
+      const box = boxes.find((b) => x >= b.left - 12 && x <= b.right && y >= b.top && y <= b.bottom);
+      if (!box) continue;
+      const style = getComputedStyle(label);
+      canvas.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      const available = box.right - x - 3;
+      if (canvas.measureText(label.textContent).width > available) {
+        label.setAttribute("textLength", String(available));
+        label.setAttribute("lengthAdjust", "spacingAndGlyphs");
+      }
+    }
+  };
+  new MutationObserver(tag).observe(output, { childList: true });
+
+  // The options bar matters on the maps only.
+  const syncOptions = () => body.classList.toggle("map-view", /^(Level |Overworld)/.test(document.getElementById("view").value));
+  new MutationObserver(syncOptions).observe(output, { childList: true });
+
+  apply();
 })();
 </script>
 </body>
