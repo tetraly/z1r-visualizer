@@ -239,8 +239,23 @@ def display_recorder_info():
     )
 
 
+def display_hint_texts():
+    texts = [{'Text #': num, 'Text': de.GetQuote(num)} for num in range(de.GetQuoteCount())]
+    recorder_text = de.GetRecorderText()
+    if recorder_text:
+        texts.append({'Text #': 'Recorder', 'Text': recorder_text})
+    st.write("This ROM has %d texts. Which character says each one isn't stored in the ROM." %
+             de.GetQuoteCount())
+    st.markdown(pd.DataFrame(texts).to_html(index=False), unsafe_allow_html=True)
+
+
 def display_item_summary():
     from constants import CAVE_NAME, ITEM_TYPES
+
+    if de.has_progressive_items:
+        st.info("This ROM uses ZORA's Progressive Items: each sword, candle, arrow, ring and "
+                "boomerang found or bought gives the next level the player lacks, so they are "
+                "listed by their upgrade line.")
 
     # Define items to exclude
     excluded_items = ["Rupee", "5 Rupees", "Bombs", "Key", "Map", "Compass", "Triforce", "No Item", "Nothing"]
@@ -321,16 +336,10 @@ def display_item_summary():
                 cave_name = CAVE_NAME.get(cave_type, f"Cave {hex(cave_type)}")
                 for i in range(3):
                     item_code = de.shop_data[cave_type][i]
-                    # Special case: 0x03 in caves/shops is Magical Sword, not "No Item"
-                    if item_code == 0x03:
+                    if item_code != 0x3F and item_code in ITEM_TYPES:  # 0x3F is "Nothing"
                         cave_items.append({
                             'Cave': cave_name,
-                            'Item': 'Magical Sword'
-                        })
-                    elif item_code != 0x3F and item_code in ITEM_TYPES:  # 0x3F is "Nothing"
-                        cave_items.append({
-                            'Cave': cave_name,
-                            'Item': ITEM_TYPES[item_code]
+                            'Item': de.GetItemName(item_code)
                         })
 
         if cave_items:
@@ -348,19 +357,11 @@ def display_item_summary():
                 shop_name = CAVE_NAME.get(shop_type, f"Shop {hex(shop_type)}")
                 for i in range(3):
                     item_code = de.shop_data[shop_type][i]
-                    # Special case: 0x03 in caves/shops is Magical Sword, not "No Item"
-                    if item_code == 0x03:
+                    if item_code != 0x3F and item_code in ITEM_TYPES:  # 0x3F is "Nothing"
                         price = de.shop_data[shop_type][i + 3]
                         shop_items.append({
                             'Shop': shop_name,
-                            'Item': 'Magical Sword',
-                            'Price': price
-                        })
-                    elif item_code != 0x3F and item_code in ITEM_TYPES:  # 0x3F is "Nothing"
-                        price = de.shop_data[shop_type][i + 3]
-                        shop_items.append({
-                            'Shop': shop_name,
-                            'Item': ITEM_TYPES[item_code],
+                            'Item': de.GetItemName(item_code),
                             'Price': price
                         })
 
@@ -404,7 +405,8 @@ if uploaded_file is None:
     st.info(
         "Please upload a Legend of Zelda ROM using the file widget above. "
         "Supported ROM types are vanilla Legend of Zelda ROMs and randomized "
-        "ROMs created by Zelda Randomizer without the ‘Race ROM’ flag checked.",)
+        "ROMs created by Zelda Randomizer without the ‘Race ROM’ flag checked or by ZORA "
+        "without ‘Encode level data’.",)
     st.stop()
 
 de = DataExtractor(rom=uploaded_file)
@@ -412,12 +414,13 @@ try:
     de.Parse()
     successfully_parsed_level_data = True
 except GarbledLevelDataError as e:
-    st.error("This ROM's level data looks encoded, so it was probably generated with the "
-             "‘Race ROM’ flag checked. Please generate the ROM again without that flag. (%s)" % e)
+    st.error("This ROM's level data is encoded, so it was probably generated with Zelda "
+             "Randomizer's ‘Race ROM’ flag or ZORA's ‘Encode level data’ setting. Please generate "
+             "the ROM again with that turned off. (%s)" % e)
 except Exception as e:
     st.info("Sorry, this ROM doesn't seem to be supported. Features may not work correctly.")
 
-options = [f"Level %d" % i for i in range(1, 10)] + ["Overworld", "Recorder Info", "Item Summary"]
+options = [f"Level %d" % i for i in range(1, 10)] + ["Overworld", "Recorder Info", "Item Summary", "Hint Texts"]
 selected_option = st.selectbox('What information would you like to display?', options)
 if selected_option.startswith("Level"):
     if not successfully_parsed_level_data:
@@ -436,3 +439,8 @@ elif selected_option == "Item Summary":
         st.info("Sorry, item summary isn't available for this ROM")
     else:
         display_item_summary()
+elif selected_option == "Hint Texts":
+    if not successfully_parsed_level_data:
+        st.info("Sorry, hint texts aren't available for this ROM")
+    else:
+        display_hint_texts()

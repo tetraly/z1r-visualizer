@@ -12,6 +12,24 @@ START_ROOM_OFFSET = 0x2F
 STAIRWAY_LIST_OFFSET = 0x34
 DISPLAY_OFFSET_OFFSET = 0x2D
 
+MAGICAL_SWORD_CODE = 0x03
+
+# With ZORA's Progressive Items on, an item in one of these lines gives the next level of
+# that line the player lacks (zora-ng docs/progressive-patches.md).
+PROGRESSIVE_LINES = {
+    0x01: "Sword Upgrade",
+    0x02: "Sword Upgrade",
+    0x03: "Sword Upgrade",
+    0x06: "Candle Upgrade",
+    0x07: "Candle Upgrade",
+    0x08: "Arrow Upgrade",
+    0x09: "Arrow Upgrade",
+    0x12: "Ring Upgrade",
+    0x13: "Ring Upgrade",
+    0x1D: "Boomerang Upgrade",
+    0x1E: "Boomerang Upgrade",
+}
+
 
 class GarbledLevelDataError(Exception):
     """Raised when a level's room data can't be a real dungeon, e.g. a Race ROM with encoded data."""
@@ -25,6 +43,8 @@ class DataExtractor(object):
         self.level_info: List[List[int]] = []
         self.data: Dict[int, Dict[int, Any]] = {}
         self.shop_data = {}
+        self.nothing_code = self.rom_reader.GetNothingCode()
+        self.has_progressive_items = self.rom_reader.HasProgressiveItems()
 
         for level_num in range(0, 10):
             level_info = self.rom_reader.GetLevelInfo(level_num)
@@ -39,6 +59,8 @@ class DataExtractor(object):
             self.level_blocks.append(self.rom_reader.GetLevelBlock(level_num))
 
     def Parse(self) -> None:
+        if self.rom_reader.HasZoraEncodedLevelData():
+            raise GarbledLevelDataError("ZORA's level decoder is installed")
         self.ProcessOverworld()
         for level_num in range(1, 10):
             self.ProcessLevel(level_num)
@@ -69,6 +91,24 @@ class DataExtractor(object):
                         raise GarbledLevelDataError("Room 0x%02X is claimed by both level %d and level %d" %
                                                     (room_num, claimed[room_num], level_num))
                     claimed[room_num] = level_num
+
+    def GetItemName(self, code: int) -> str:
+        """Names an item code as the game hands it out: caves, shops, the Armos and the coast.
+
+        $03 is the Magical Sword here. Only level rooms and item cellars treat it as "no item",
+        and only in ROMs that keep $03 as their nothing code (see GetRoomItemName).
+        """
+        if self.has_progressive_items and code in PROGRESSIVE_LINES:
+            return PROGRESSIVE_LINES[code]
+        if code == MAGICAL_SWORD_CODE:
+            return "Magical Sword"
+        return ITEM_TYPES[code]
+
+    def GetRoomItemName(self, code: int) -> str:
+        """Names a level room's or item cellar's item code (the low five bits)."""
+        if code == self.nothing_code:
+            return ITEM_TYPES[MAGICAL_SWORD_CODE]  # "No Item"
+        return self.GetItemName(code)
 
     def GetRoomData(self, level_num: int, byte_num: int) -> int:
         foo = -1
@@ -321,8 +361,9 @@ class DataExtractor(object):
             if left_exit == room_num and right_exit == room_num:
                 # This is an item staircase, not a transport staircase
                 item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x20)
-                self.data[level_num][left_exit]['stair_info'] = '%s' % ITEM_TYPES[item_type]
-                self.data[level_num][left_exit]['stair_tooltip'] = '%s' % ITEM_TYPES[item_type]
+                item_name = self.GetRoomItemName(item_type)
+                self.data[level_num][left_exit]['stair_info'] = item_name
+                self.data[level_num][left_exit]['stair_tooltip'] = item_name
                 break
             elif left_exit == room_num and right_exit != room_num:
                 tbr.append((stairway_room_num, direction.STAIRCASE))
@@ -413,11 +454,14 @@ class DataExtractor(object):
         code = self.GetRoomData(level_num, room_num + 4 * 0x80)
         while code >= 0x20:
             code -= 0x20
-        if (code == self.rom_reader.GetNothingCode() and
-                self._GetEnemyType(level_num, room_num) != ENEMY_TYPES[0x3E]):
-            return ''
+        if code == self.nothing_code:
+            # Ganon's room holds the Triforce of Power ($0E), which is also ZORA's nothing code.
+            if self._GetEnemyType(level_num, room_num) != ENEMY_TYPES[0x3E]:
+                return ''
+            item_name = ITEM_TYPES[code]
+        else:
+            item_name = self.GetRoomItemName(code)
         is_drop = math.floor(self.GetRoomData(level_num, room_num + 5 * 0x80) / 4) % 0x02 == 1
-        item_name = ITEM_TYPES[code]
         return "%s%s" % ('D ' if is_drop else '', item_name)
 
     def GetLevelColorPalette(self, level_num: int) -> List[str]:
@@ -430,11 +474,14 @@ class DataExtractor(object):
     def GetOverworldItems(self) -> List[str]:
         tbr = []
         for item in self.rom_reader.GetOverworldItemData():
-            tbr.append(ITEM_TYPES[item])
+            tbr.append(self.GetItemName(item))
         return tbr
 
     def GetRequirements(self) -> int:
         return self.rom_reader.GetRequirements()
+
+    def GetQuoteCount(self) -> int:
+        return self.rom_reader.GetQuoteCount()
 
     def GetQuote(self, quote_num: int) -> str:
         return self.rom_reader.GetQuote(quote_num)

@@ -7,8 +7,8 @@ import argparse
 import glob
 import io
 import os
-from data_extractor import DataExtractor
-from constants import CAVE_NAME, ITEM_TYPES
+from data_extractor import DataExtractor, GarbledLevelDataError
+from constants import CAVE_NAME
 
 
 def GenerateLevelCSVLine(file_path, level_num, data):
@@ -55,6 +55,9 @@ def main():
             except IndexError:
                 print("Error parsing level data in %s." % file_path)
                 exit()
+            except GarbledLevelDataError as e:
+                print("%s: level data is encoded, skipping (%s)." % (file_path, e))
+                continue
 
             # Print out room data for each level
             for level in range(1, 10):
@@ -76,7 +79,7 @@ def main():
                         if data_extractor.shop_data[cave_type][i] != 0x3F:
                             print(",".join([
                                 file_path, "cave", CAVE_NAME[cave_type],
-                                ITEM_TYPES[data_extractor.shop_data[cave_type][i]]
+                                data_extractor.GetItemName(data_extractor.shop_data[cave_type][i])
                             ]))
 
             # Shops
@@ -86,7 +89,7 @@ def main():
                         if data_extractor.shop_data[cave_type][i] != 0x3F:
                             print(",".join([
                                 file_path, "cave", CAVE_NAME[cave_type],
-                                ITEM_TYPES[data_extractor.shop_data[cave_type][i]],
+                                data_extractor.GetItemName(data_extractor.shop_data[cave_type][i]),
                                 str(data_extractor.shop_data[cave_type][i + 3])
                             ]))
 
@@ -108,7 +111,7 @@ def main():
                   (file_path, requirements["magical_sword"]))
             print("%s,misc,door_repair_charge,%d" % (file_path, requirements["door_repair"]))
 
-            for num in range(0, 38):
+            for num in range(0, data_extractor.GetQuoteCount()):
                 print("%s,quote,%d,%s" % (file_path, num, data_extractor.GetQuote(num)))
             maybe_recorder_text = data_extractor.GetRecorderText()
 

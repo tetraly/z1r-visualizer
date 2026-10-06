@@ -21,6 +21,19 @@ TRIFORCE_REQUIREMENT_ADDRESS = 0x5F17
 WHITE_SWORD_REQUIREMENT_ADDRESS = 0x48FD
 MAGICAL_SWORD_REQUIREMENT_ADDRESS = 0x4906
 DOOR_REPAIR_CHARGE_ADDRESS = 0x4890
+NOTHING_CODE_ADDRESS = 0x1784F
+TEXT_POINTER_TABLE_ADDRESS = 0x4000
+MAX_QUOTES = 64
+
+# ZORA's per-seed Progressive Items byte (zora-ng docs/rom-map.md, ZORA_B1_ProgressiveItems at
+# CPU $BE40 in bank 1): $01 when Progressive Items is on. It is $00 when only Shop Items in the
+# Item Pool is on, and $FF (unused space) in vanilla and other randomizers' ROMs.
+ZORA_PROGRESSIVE_ITEMS_ADDRESS = 0x7E40
+
+# ZORA's "Encode level data" rewrites InitMode2_Sub0's JSR to call its level decoder at $9220
+# (zora-ng docs/rom-map.md). Unencoded ROMs keep PRG0's JSR $80D7 here.
+LEVEL_DECODER_JSR_ADDRESS = 0x1806C
+ZORA_LEVEL_DECODER_JSR = [0x20, 0x20, 0x92]
 
 
 class RomReader:
@@ -78,10 +91,32 @@ class RomReader:
                 self._ReadMemory(DOOR_REPAIR_CHARGE_ADDRESS, 0x01)[0],
         }
 
+    def _GetTextPointer(self, num: int) -> int:
+        low_byte, high_byte = self._ReadMemory(TEXT_POINTER_TABLE_ADDRESS + 2 * num, 0x02)
+        return high_byte * 0x100 + low_byte
+
+    def GetQuoteCount(self) -> int:
+        """Counts the entries in the text pointer table.
+
+        Vanilla has 38 texts, some Z1R seeds have 41 and ZORA has 45. The texts start right
+        after the table, so the table ends where an entry would overlap the first text, or at
+        the first entry that doesn't point into the text bank.
+        """
+        lowest_text = 0xC000
+        num = 0
+        while num < MAX_QUOTES and 0x8000 + 2 * num < lowest_text:
+            pointer = self._GetTextPointer(num)
+            if not 0x8000 <= pointer < 0xC000:
+                break
+            lowest_text = min(lowest_text, pointer)
+            num += 1
+        return num
+
     def GetQuote(self, num: int) -> str:
-        assert num in range(0, 38)
-        low_byte = self._ReadMemory(0x4000 + 2 * num, 0x01)[0]
-        high_byte = self._ReadMemory(0x4000 + 2 * num + 1, 0x01)[0] - 0x40
+        assert num in range(0, self.GetQuoteCount())
+        pointer = self._GetTextPointer(num)
+        low_byte = pointer & 0xFF
+        high_byte = (pointer >> 8) - 0x40
         addr = high_byte * 0x100 + low_byte
         raw_quote = self._ReadMemory(addr, 0x40)
         out_quote = ""
@@ -96,6 +131,9 @@ class RomReader:
         return out_quote
 
     def GetRecorderText(self) -> str:
+        # Without a custom recorder tune, $B000 isn't recorder text (ZORA puts code there).
+        if self.GetRecorderData()[0] == 0xFF:
+            return ""
         raw_data = self._ReadMemory(0xB000, 0x40)
         if raw_data[0] == 0xFF:
             return ""
@@ -105,6 +143,8 @@ class RomReader:
         while index < len(raw_data):
             length = raw_data[index]
             bytes_to_process = raw_data[index + 2:index + 2 + length]
+            if any(val not in CHAR_MAP for val in bytes_to_process):
+                return ""
             word = "".join([CHAR_MAP[val] for val in bytes_to_process])
             if word != "RECORDER":
                 words.append(word)
@@ -123,4 +163,10 @@ class RomReader:
         return tbr
 
     def GetNothingCode(self):
-        return self._ReadMemory(0x1784F, 0x01)[0]
+        return self._ReadMemory(NOTHING_CODE_ADDRESS, 0x01)[0]
+
+    def HasProgressiveItems(self) -> bool:
+        return self._ReadMemory(ZORA_PROGRESSIVE_ITEMS_ADDRESS, 0x01)[0] == 0x01
+
+    def HasZoraEncodedLevelData(self) -> bool:
+        return self._ReadMemory(LEVEL_DECODER_JSR_ADDRESS, 0x03) == ZORA_LEVEL_DECODER_JSR
