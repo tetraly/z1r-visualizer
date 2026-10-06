@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from constants import Direction, WallType, ROOM_TYPES, ENEMY_TYPES, ITEM_TYPES
 from constants import ENTRANCE_DIRECTION_MAP, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
 from constants import OVERWORLD_BLOCK_TYPES, DOOR_TYPES
+from constants import BOMB_UPGRADE_PERSON, TALKING_PERSON
 
 PALETTE_OFFSET = 0xB
 START_ROOM_OFFSET = 0x2F
@@ -458,6 +459,15 @@ class DataExtractor(object):
             return 8
         return -1
 
+    def _EnemyName(self, level_num: int, code: int) -> str:
+        """Names a room's enemy code. A $0F person ($4F here) sells the bomb upgrade only in the
+        two levels the ROM names (RomReader.GetBombUpgradeLevels); elsewhere it only talks."""
+        if code == BOMB_UPGRADE_PERSON:
+            levels = self.rom_reader.GetBombUpgradeLevels()
+            if levels is not None and level_num not in levels:
+                return TALKING_PERSON
+        return ENEMY_TYPES[code]
+
     def _GetEnemyText(self, level_num: int, room_num: int) -> str:
         code = self.GetRoomData(level_num, room_num + 2 * 0x80)
         while code >= 0x40:
@@ -469,7 +479,7 @@ class DataExtractor(object):
         if (code <= 0x30 or code >= 0x62) and code != 0x00:
             num_text = '%s ' % self._GetEnemyNum(level_num, room_num)
         if code in ENEMY_TYPES:
-            return num_text + ENEMY_TYPES[code]
+            return num_text + self._EnemyName(level_num, code)
         return 'ERROR CODE %X' % code
 
     def _GetEnemyType(self, level_num: int, room_num: int) -> int:
@@ -479,7 +489,7 @@ class DataExtractor(object):
         if self.GetRoomData(level_num, room_num + 3 * 0x80) >= 0x80:
             code += 0x40
         if code in ENEMY_TYPES:
-            return ENEMY_TYPES[code]
+            return self._EnemyName(level_num, code)
         return 'E %X' % code
 
     def _GetItemText(self, level_num: int, room_num: int) -> int:
