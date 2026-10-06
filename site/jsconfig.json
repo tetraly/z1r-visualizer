@@ -1,0 +1,15 @@
+{
+  // Type-checks the page script (tsc --noEmit -p site/jsconfig.json; scripts/check_site.mjs runs it).
+  // Nothing is compiled: the page ships as written. worker.js has its own config, for the
+  // WebWorker library.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": []
+  },
+  "files": ["app.js"]
+}

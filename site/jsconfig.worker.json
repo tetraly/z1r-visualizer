@@ -1,0 +1,14 @@
+{
+  // Type-checks the worker (tsc --noEmit -p site/jsconfig.worker.json), with the WebWorker
+  // library instead of the DOM's.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "WebWorker"],
+    "types": []
+  },
+  "files": ["worker.js"]
+}
