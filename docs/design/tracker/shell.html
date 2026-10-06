@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Z1R Visualizer · Tracker (mockup)</title>
+<!-- STYLE -->
+</head>
+<body data-state="empty">
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="brand"><span class="logo" aria-hidden="true">Z1R</span><span class="brand-name">Visualizer</span><span class="version" id="version">{{VERSION}}</span></div>
+  <nav class="segments" aria-label="Views" data-loaded-only>
+    <div class="segment-group" role="group" aria-label="Dungeons">
+      <button type="button" class="seg" data-view="Level 1">L1</button>
+      <button type="button" class="seg" data-view="Level 2">L2</button>
+      <button type="button" class="seg" data-view="Level 3">L3</button>
+      <button type="button" class="seg" data-view="Level 4">L4</button>
+      <button type="button" class="seg" data-view="Level 5">L5</button>
+      <button type="button" class="seg" data-view="Level 6">L6</button>
+      <button type="button" class="seg" data-view="Level 7">L7</button>
+      <button type="button" class="seg" data-view="Level 8">L8</button>
+      <button type="button" class="seg" data-view="Level 9">L9</button>
+    </div>
+    <div class="segment-group" role="group" aria-label="Other views">
+      <button type="button" class="seg" data-view="Overworld">World</button>
+      <button type="button" class="seg" data-view="Item Summary">Items</button>
+      <button type="button" class="seg" data-view="Hint Texts">Hints</button>
+      <button type="button" class="seg" data-view="Recorder Info">Recorder</button>
+      <button type="button" class="seg" data-view="Seed Info">Seed</button>
+    </div>
+  </nav>
+  <div class="tools">
+    <span class="file" data-loaded-only><span data-file-name></span></span>
+    <button type="button" class="tool" data-loaded-only data-open-file>Open…</button>
+    <button type="button" class="tool" data-theme-toggle><span data-theme-label>System</span></button>
+  </div>
+</header>
+
+<main id="main" class="main" data-drop>
+  <section class="empty" data-empty-only aria-labelledby="empty-title">
+    <div class="target">
+      <p class="kicker">No seed loaded</p>
+      <h1 id="empty-title">Drop a ROM or seed file</h1>
+      <p class="sub"><code>.nes</code> (PRG0/PRG1, Z1R without Race ROM, ZORA without Encode level data) or <code>.json</code> (seed format 1.x)</p>
+      <label class="primary" for="rom">Choose file</label>
+      <input type="file" id="rom" class="visually-hidden" accept=".nes,.json">
+      <p class="note">Read in this page only. Never uploaded.</p>
+    </div>
+  </section>
+
+  <div class="notices">
+    <p id="status" class="status" role="status"></p>
+    <div id="messages"></div>
+  </div>
+  <div class="workspace" data-loaded-only>
+    <div class="content">
+      <div class="view-head"><h1 data-view-title>Level 4</h1></div>
+      <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
+      <div id="output"></div>
+    </div>
+    <aside class="details" aria-label="Room details" data-tooltip-dock>
+      <h2>Details</h2>
+      <p class="placeholder">Hover, focus or pin a room to see it here. Click or Enter pins; Escape unpins.</p>
+    </aside>
+  </div>
+</main>
+<div id="tooltip" class="tooltip" hidden></div>
+<!-- SCRIPTS -->
+</body>
+</html>
