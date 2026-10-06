@@ -1,7 +1,9 @@
 # Visual refresh: three design directions (stage 1, proposals)
 
-Status (2026-10-06): proposals only. The real page (`site/`) is unchanged. Pick one direction,
-or mix parts of them, and stage 2 applies it to the real page.
+Status (2026-10-06): the owner chose **B, Quest Log**, and it has had a second iteration
+(below): an original mark in place of the triforce, rooms sized to fit every label, mode
+toggles, and room details as a popup or in a side panel. The real page (`site/`) is still
+unchanged; stage 2 applies the chosen design to it.
 
 Each mockup is a working page, not a picture:
 - the real renderer (`site/app.js`, `site/validate.js`), inside the direction's own shell and
@@ -20,7 +22,7 @@ Mockups have no Python, so they open seed files (`.json`), not ROMs.
 | Direction | Mockup | Single-file build, estimated |
 |---|---|---|
 | A. Atlas | [`mockup-atlas.html`](mockup-atlas.html) | about **137 KB** |
-| B. Quest Log | [`mockup-quest-log.html`](mockup-quest-log.html) | about **134 KB** |
+| B. Quest Log, iteration 2 | [`mockup-quest-log.html`](mockup-quest-log.html) | about **150 KB** |
 | C. Tracker | [`mockup-tracker.html`](mockup-tracker.html) | about **134 KB** |
 
 Today's single file is **119 KB**. Each direction adds 15-18 KB, almost all of it CSS. None
@@ -47,14 +49,14 @@ talking.
 
 ## B. Quest Log
 
-![Quest Log, desktop, light](quest-log-desktop-light.jpg)
+![Quest Log, desktop, light, room details as a popup](quest-log-popup.jpg)
 
 Game-flavoured but restrained: parchment and ink in light, a night palette in dark, and serif
 headings. One centred column with a banner, then a sticky tab bar. Its dungeons are round coins
 ringed in their colour, and its maps are framed like a sheet of the manual. It has the most
 character of the three, but uses no images or custom fonts.
 
-- Dark theme, Item Summary: [`quest-log-desktop-dark.jpg`](quest-log-desktop-dark.jpg).
+- Dark theme, Item Summary: [`quest-log-items-dark.jpg`](quest-log-items-dark.jpg).
 - Phone: [`quest-log-phone-dark.jpg`](quest-log-phone-dark.jpg), [`quest-log-phone-light.jpg`](quest-log-phone-light.jpg) (empty state).
 - **Layout:**
   - A banner with the name and version; the tabs scroll sideways on phones.
@@ -63,6 +65,83 @@ character of the three, but uses no images or custom fonts.
   - The system's serif (Iowan Old Style, Palatino, Georgia) for headings, system sans for text.
   - A 1.25 scale with a larger 39 px display size, and a 4 px spacing grid.
   - Ledger-ruled tables.
+
+### Quest Log, iteration 2
+
+Open [`mockup-quest-log.html`](mockup-quest-log.html). Besides `?empty` and `?theme=`, it takes
+`?details=popup` or `?details=panel`, and `?preset=everything`, `route`, `items` or `layout`.
+
+**The mark.** The triforce is gone, from Atlas too. The new mark is an original drawing: a
+folded map with a dashed route ending in a marker.
+
+**Rooms that fit their text.** Labels were measured in the page's font, for every room type,
+enemy, item and upgrade name the game can show.
+- At the old size, rooms had 76 px for a label. "D Heart Container" needs about 95 px, and the
+  widest, "D Boomerang Upgrade", 118 px.
+- Level cells are now 132 x 96 px (wider than tall, since four lines fit easily), rooms fill
+  more of them, and labels are 10 px. The longest label fits, and the map is 1056 px wide.
+- East and west door markers moved into the gap between rooms, so they never sit on a label.
+- The overworld's cells are 66 x 44 px with 13 px labels, so "Take Any" fits.
+- Checked on three seeds (the sample, a Progressive Items seed and a Zelda Randomizer seed): in
+  every level and the overworld, no label overflows its room or touches a door marker.
+- A safety net for fonts that run wider on other systems: a label still too wide for its room is
+  narrowed to fit, never spilling over (tested with an overlong label).
+
+**Room details: popup or side panel.** Both are built; the "Room details" switch changes between
+them, and the choice is remembered.
+- **Popup** ([`quest-log-popup.jpg`](quest-log-popup.jpg)). The card sits beside the pinned room,
+  or follows the cursor on hover. The map keeps the page's full width, so it fits without
+  scrolling at 1180 px and wider. It does cover the rooms on one side of the pinned room.
+- **Side panel** ([`quest-log-panel.jpg`](quest-log-panel.jpg)). A "Room ledger" panel to the
+  right holds the hovered or pinned room's details, and never covers the map. It is a steadier
+  place to read, but needs about 1400 px to show the full map beside it. In a 1280 px window the
+  map scrolls sideways by about 140 px.
+- On phones both become a sheet along the bottom, so nothing covers the map.
+- The details card is fuller in both:
+  - the room and its type, as a heading;
+  - its enemies;
+  - its item, and whether it lies on the floor or is dropped by the enemies;
+  - its staircase, and the room it leads to, or its item cellar;
+  - the door on each side;
+  - its position.
+- **Recommendation:** popup by default, with the side panel as the remembered option, as built.
+  An "Auto" choice could pick the panel in windows of 1400 px or more.
+
+**Mode toggles.** Above the maps: "Show: Everything · Route · Items · Layout only", a
+"Customise" panel with the layers behind them, and the Room details switch.
+
+| Preset | Shows |
+|---|---|
+| Everything | all of it, as today |
+| Route | doors, staircases and major items; major-item rooms outlined in gold; no enemies, room types or minor items |
+| Items | only the item labels, minor items left out; rooms without a major item faded ([`quest-log-mode-items-dark.jpg`](quest-log-mode-items-dark.jpg)) |
+| Layout only | room types, doors and staircases, no items or enemies: the dungeon's shape without its spoilers |
+
+- **Customise** ([`quest-log-mode-route-customise.jpg`](quest-log-mode-route-customise.jpg))
+  switches each layer on its own:
+  - room types, enemies, items, minor items (keys, bombs, rupees, maps, compasses, triforces);
+  - transport staircases, door markers;
+  - the gold outline and the fading.
+
+  Changing a layer shows "Custom".
+- Customise can also show the Recorder and Seed tabs, which are hidden by default since few
+  seeds need them.
+- Hidden layers leave their line empty, so the labels that remain keep their place in each
+  room. Closing the gaps up instead is an easy change, if preferred.
+- Everything is remembered per browser.
+- The controls are native radio buttons and checkboxes, so keyboards and screen readers handle
+  them, and Escape closes Customise.
+- The gold outline passes the 3:1 contrast check in both themes, as do all of B's other colours.
+
+**What stage 2 changes in the renderer** (the mockup patches it; `build_mockups.py` lists each
+change):
+- map cells that can be wider than tall;
+- the room, label and door-marker geometry;
+- classes on door markers, walls and the four kinds of label;
+- the fuller details card.
+
+The data each view shows stays byte-identical, so `check_site.mjs` and the ZORA hand-off are
+unaffected.
 
 ## C. Tracker
 
