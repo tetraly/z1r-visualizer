@@ -97,7 +97,7 @@ body[data-state="empty"] #messages .box.info { display: none; }  /* the drop are
   border-bottom: 1px solid var(--border);
 }
 .brand { display: flex; align-items: center; gap: var(--sp-2); margin-right: auto; min-width: 0; }
-.mark { width: 22px; height: 20px; fill: var(--accent); flex: none; }
+.mark { width: 24px; height: 24px; color: var(--accent); fill: var(--accent); flex: none; }
 .brand-name { font-weight: 700; font-size: var(--fs-lg); letter-spacing: -0.01em; white-space: nowrap; }
 .chip {
   font-size: var(--fs-xs); color: var(--muted); background: var(--surface-2);
