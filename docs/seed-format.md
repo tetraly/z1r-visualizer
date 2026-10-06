@@ -80,6 +80,11 @@ and this page is wrong.
   - `column` (1-8, from the left) and `row` (1-8, **from the top**): the room's place on the level's map.
   - `type`: the room's layout, e.g. "Entrance Room", "Spiral Stair".
   - `enemies`: `null` for none, or `name`, plus `count` when the game's group size applies. Bosses and other single foes have no count; their name may say how many, e.g. "Digdogger (3)".
+    The dungeon's people are named by what they do. A reader shows these names as they are, so producers should use them:
+    - "Bomb Upgrade": the person who sells more bomb capacity. The game sells it only in two levels (5 and 7 in vanilla).
+    - "Talking Person": a person of the same kind in any other level, who only talks (vanilla has one in level 8).
+    - "Mugger": the room that takes life or money.
+    - "Hint #1" to "Hint #6": people who give a hint.
   - `item`: `null` for none, or the item's `name` (section 3.6) and `drop`. `drop` is `true` when the item appears once the room's enemies are beaten, `false` when it lies on the floor.
   - `staircase`: `null`, or one of:
     - `{"kind": "item", "item": <name or null>}`: a stairway down to an item cellar, with `null` for an empty cellar;
