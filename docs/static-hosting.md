@@ -1,6 +1,76 @@
 # A static visualizer on GitHub Pages
 
-Status: design only (2026-10-06). Nothing is built.
+Status (2026-10-06): **built** as recommended (approach C), on `main`. GitHub Pages is **not**
+enabled; publishing is the owner's step (below). The Streamlit app is unchanged and still
+deploys from the `streamlit` branch. Sections 1-5 are the design record.
+
+## Built: what there is
+
+| File | What |
+|---|---|
+| `spoiler.py` | `Export(rom_bytes)`: every view's data as plain JSON, from the shared parser. Encoded or unsupported ROMs give only a status, the app's message and the recorder info |
+| `cli.py --json` | the same data from the command line; the CLI stays Python |
+| `site/` | the page: `index.html`, `style.css`, `app.js` (views drawn in SVG and HTML), `worker.js` (Pyodide 0.28.3 from jsDelivr, a classic worker) |
+| `scripts/build_site.py` | `build/site/` (the page plus the parser in `py/`) and, with `--single-file`, `build/z1r-visualizer.html` (about 70 KB) |
+| `scripts/check_site.mjs` | opens the single file from `file://` in headless Chrome, chooses each ROM through the file input, compares the page's data with `cli.py --json` byte for byte, checks every view renders and encoded ROMs are refused |
+| `.github/workflows/pages.yml` | builds `build/site/` and deploys it to Pages; manual trigger only |
+
+```bash
+python3 scripts/build_site.py --single-file
+```
+
+```bash
+python3 -m http.server 8000 --bind 127.0.0.1 --directory build/site
+```
+
+```bash
+node scripts/check_site.mjs testdata/*.nes
+```
+
+The ROM is read with `File.arrayBuffer()` and posted only to the worker. The page fetches nothing
+but Pyodide's files; the single file fetches nothing else at all.
+
+### Checked (2026-10-06)
+
+- 48 ROMs: vanilla PRG0 and PRG1, 14 Zelda Randomizer seeds (two unsupported, as in the app),
+  ZORA plain and with each ZORA option (sword, letter, both, Shop Items in the Item Pool,
+  Progressive Items, both of those), three encoded ROMs, the playtest ROMs. The page's data equals
+  `cli.py --json` on all 48, served (in the desktop app's browser) and as the single file from
+  `file://` (headless Chrome). A deliberately altered page fails the check.
+- The rendered shop tables and hint texts equal `cli.py`'s CSV lines on all 43 ROMs that parse.
+- Item summary: `spoiler.ItemSummary` gives exactly the app's tables (the app run headlessly) on
+  all 48 ROMs.
+- Level and overworld maps compared by eye with the app's Bokeh figures for the same ROM: same
+  rooms, doors, walls, labels and colours.
+- Phone width (375 px): no sideways page scroll; maps scroll inside their own box.
+- Not checked: Safari, Firefox and Edge, Windows, and `file://` outside Chrome.
+
+### Parity with the Streamlit app
+
+Matched: every view (Level 1-9, Overworld, Recorder Info with the IPS download, Item Summary,
+Hint Texts), the ZORA fixes, the messages and the encoded-ROM refusal.
+
+Differences:
+
+- **Tooltips** are the page's own (hover, or tap on a phone), with the app's fields and labels,
+  including the overworld's "Cave2" and "Cave3". Bokeh's hover box looked different.
+- **Upload**: a standard file input. Dropping a file on it works in most browsers, but there is no
+  large drop zone as in Streamlit.
+- **A ROM the parser can't even open** (not a Zelda ROM, a truncated file) shows the app's
+  "doesn't seem to be supported" message. The app showed a Python error there.
+- **Additions**: a version label (build commit), a status line, and the page follows the system's
+  dark mode. The maps stay white, as the app forces.
+- **Speed**: the first visit downloads Pyodide (about 5.5 MB), about 3-5 s to "Ready". Later
+  visits use the browser cache. Each ROM then takes about 20 ms.
+
+### Publishing (the owner's step; nothing is enabled)
+
+1. Settings -> Pages -> Build and deployment -> Source: **GitHub Actions**.
+2. Actions -> "Publish static visualizer" -> Run workflow (branch `main`).
+3. The site appears at `https://tetraly.github.io/z1r-visualizer/`.
+
+Until step 1 the deploy job fails and nothing is published. The single file is built locally and
+shared by hand; the workflow does not upload it anywhere.
 
 **Goal.** Serve the visualizer as a static page on GitHub Pages
 (`tetraly.github.io/z1r-visualizer`), so the ROM is read in the player's
