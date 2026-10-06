@@ -2,16 +2,19 @@
 #   For a single file:  python cli.py --files=rom.nes
 #   For a set of files:  python cli.py --files="rom1.nes rom2.nes"
 #   For a glob of files:  python cli.py --files="*.nes"
-#   The static page's data, one JSON line per file:  python cli.py --json --files=rom.nes
+#   What the static page reads, one JSON line per file:  python cli.py --json --files=rom.nes
+#   The seed in the seed format (docs/seed-format.md):  python cli.py --seed --files=rom.nes
+#   The item summary's tables, as JSON:  python cli.py --item-summary --files=rom.nes
 
 import argparse
 import glob
 import io
 import json
 import os
+import sys
 from data_extractor import DataExtractor, GarbledLevelDataError
 from constants import CAVE_NAME
-from spoiler import Export
+from spoiler import DefaultProducerVersion, ItemSummary, Read
 
 
 def GenerateLevelCSVLine(file_path, level_num, data):
@@ -41,8 +44,14 @@ def GenerateOverworldCSVLine(file_path, data):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--files', type=str, required=True, help='Roms to process and print')
-    parser.add_argument('--json', action='store_true', help="Print the static page's data instead")
+    parser.add_argument('--json', action='store_true', help="Print what the static page reads instead")
+    parser.add_argument('--seed', action='store_true', help='Print the seed in the seed format instead')
+    parser.add_argument('--item-summary', action='store_true', help="Print the item summary's tables instead")
+    parser.add_argument('--producer-version', help="The version written as the seed's producer "
+                        "(default: this checkout's commit)")
     args = parser.parse_args()
+    producer_version = args.producer_version or DefaultProducerVersion()
+    failed = False
     files_to_process = []
     for pattern in args.files.split(' '):
         if '*' in pattern:
@@ -51,9 +60,27 @@ def main():
             files_to_process.append(pattern)
 
     for file_path in files_to_process:
-        if args.json:
+        if args.json or args.seed:
             with open(file_path, 'rb') as f:
-                print(json.dumps(dict(Export(f.read()), file=file_path)))
+                result = Read(f.read(), producer_version)
+            if args.json:
+                print(json.dumps(dict(result, file=file_path)))
+            elif result['status'] == 'ok':
+                print(json.dumps(result['seed']))
+            else:
+                print("%s: %s" % (file_path, result['message']), file=sys.stderr)
+                failed = True
+            continue
+        if args.item_summary:
+            with open(file_path, 'rb') as f:
+                data_extractor = DataExtractor(rom=io.BytesIO(f.read()))
+            try:
+                data_extractor.Parse()
+            except Exception as e:
+                print("%s: %s" % (file_path, e), file=sys.stderr)
+                failed = True
+                continue
+            print(json.dumps(dict(ItemSummary(data_extractor), file=file_path)))
             continue
         with open(file_path, 'rb') as f:
             rom = io.BytesIO(f.read())
@@ -125,7 +152,8 @@ def main():
 
             if maybe_recorder_text:
                 print("%s,quote,recorder,%s" % (file_path, maybe_recorder_text))
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
