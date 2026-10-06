@@ -1,6 +1,8 @@
 # A static visualizer on GitHub Pages
 
-Status (2026-10-06): **built** as recommended (approach C), on `main`. GitHub Pages is **not**
+Status (2026-10-06): **built** as recommended (approach C), on `main`. Since then the page
+draws everything from the seed format (docs/seed-format.md): seeds come from a ROM (Python in
+Pyodide), a seed file (.json) or ZORA's hand-off, and the last two need no Pyodide. GitHub Pages is **not**
 enabled; publishing is the owner's step (below). The Streamlit app is unchanged and still
 deploys from the `streamlit` branch. Sections 1-5 are the design record.
 
@@ -51,6 +53,17 @@ Matched: every view (Level 1-9, Overworld, Recorder Info with the IPS download, 
 Hint Texts), the ZORA fixes, the messages and the encoded-ROM refusal.
 
 Differences:
+
+- **Since the seed format** (docs/seed-format.md), a few things show differently:
+  - the room tooltip's Row counts from 1 at the top (it counted from the bottom);
+  - Num Enemies is "???" for bosses and empty rooms, where the game's group size doesn't apply
+    (it showed the meaningless byte);
+  - the overworld tooltip shows Col from 1, Row from the top, the cave's name and its "Map Label"
+    (it showed the cave's code and two unnamed name fields);
+  - Hint Texts says "This seed has N texts";
+  - a new **Seed Info** view shows where the seed came from, its producer and version, how it was
+    made and what it needs (and ZORA's resolved settings), and offers the seed as a file. When a
+    seed carries them, Hint Texts gains a "Said By" column and the shops a "Once" column.
 
 - **Map interactions beyond the app** (ideas 1-3 below): click, tap, Enter or Space pins a room (its
   tooltip stays beside it, following it as the page scrolls; click it again, click beside the
