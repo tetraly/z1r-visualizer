@@ -2,8 +2,10 @@
 // (docs/seed-format.md), which arrives one of three ways:
 // - from a ROM the player chooses: the Python parser (spoiler.py, run in worker.js with Pyodide)
 //   reads it; the ROM's bytes go only to the worker, and nothing is uploaded;
-// - from a seed file (.json) the player chooses.
-// Seeds from a file need no Pyodide. Every seed is checked against the format's
+// - from a seed file (.json) the player chooses;
+// - from the tab that opened this one, by window messaging ("View in Visualizer" in ZORA;
+//   docs/seed-format.md section 5).
+// Seeds from a file or another tab need no Pyodide. Every seed is checked against the format's
 // schema (validate.js) before it is drawn.
 //
 // Served as a site, the page fetches worker.js, the schema and the parser (py/). The single-file
@@ -51,6 +53,7 @@
 const PYTHON_FILES = ["constants.py", "rom_reader.py", "data_extractor.py", "spoiler.py"];
 const SCHEMA_FILE = "seed-format.schema.json";
 const FORMAT_MAJOR = 1;  // the seed format's major version this page reads
+const HANDOFF_PROTOCOL = 1;
 const MAX_SEED_JSON = 4 * 1024 * 1024;  // characters
 const SVG_NS = "http://www.w3.org/2000/svg";
 const VIEWS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => `Level ${level}`)
@@ -99,7 +102,8 @@ function svgElement(tag, attrs = {}) {
 const errorMessage = (err) => (err instanceof Error ? err.message : String(err));
 
 // ---------------------------------------------------------------------------------------------
-// The Python worker, started when the page loads; a seed file does not wait for it.
+// The Python worker, started on first need: at once for a normal visit, but only when a ROM is
+// chosen if another tab opened this one to hand it a seed.
 
 /** @returns {Worker} */
 function startWorker() {
@@ -1009,6 +1013,50 @@ document.addEventListener("keydown", (event) => {
 });
 showNothing();
 
+// ---------------------------------------------------------------------------------------------
+// The hand-off (docs/seed-format.md section 5): tell the opener this page is ready, and show the
+// seed it posts back. Only the opener is listened to; any origin may be the opener.
+
+/**
+ * @param {MessageEventSource} target
+ * @param {string} origin  The origin the message came from; "null" for a page opened from disk.
+ * @param {string | null} error
+ */
+function replyToOpener(target, origin, error) {
+  const reply = error ? { type: "z1r-seed-received", protocol: HANDOFF_PROTOCOL, ok: false, error }
+    : { type: "z1r-seed-received", protocol: HANDOFF_PROTOCOL, ok: true };
+  /** @type {Window} */ (target).postMessage(reply, origin === "null" ? "*" : origin);
+}
+
+function listenToOpener() {
+  const opener = window.opener;
+  if (!opener) return;
+  let received = false;
+  let tries = 0;
+  const sayReady = () => opener.postMessage({ type: "z1r-seed-ready", protocol: HANDOFF_PROTOCOL }, "*");
+  sayReady();
+  const timer = window.setInterval(() => {
+    if (received || ++tries >= 30) window.clearInterval(timer);
+    else sayReady();
+  }, 1000);
+  statusLine.textContent = "Waiting for a seed from the page that opened this one…";
+
+  window.addEventListener("message", async (event) => {
+    if (event.source !== window.opener || !event.source) return;
+    const data = event.data;
+    if (!data || typeof data !== "object" || data.type !== "z1r-seed") return;
+    received = true;
+    /** @type {string | null} */
+    let error = null;
+    if (data.protocol !== HANDOFF_PROTOCOL) error = `unknown hand-off protocol ${JSON.stringify(data.protocol)}`;
+    else if (typeof data.json !== "string") error = "the message has no seed JSON text";
+    else if (data.json.length > MAX_SEED_JSON) error = "the seed JSON text is too large";
+    if (error) showNothing(`The page that opened this one sent a seed that can't be shown: ${error}.`);
+    else error = await showSeedJson(data.json, "the seed from the page that opened this one");
+    replyToOpener(event.source, event.origin, error);
+  });
+}
+
 Object.assign(window, {
   z1rVisualizer: {
     exportRomJson, current: () => current, showSeedJson,
@@ -1017,7 +1065,10 @@ Object.assign(window, {
   },
 });
 
-ensurePython().catch((err) => {
-  statusLine.textContent = `Could not load Python: ${errorMessage(err)}. The first visit needs an internet ` +
-                           "connection to download Pyodide. Seed files (.json) still open.";
-});
+listenToOpener();
+if (!window.opener) {
+  ensurePython().catch((err) => {
+    statusLine.textContent = `Could not load Python: ${errorMessage(err)}. The first visit needs an internet ` +
+                             "connection to download Pyodide. Seed files (.json) still open.";
+  });
+}
