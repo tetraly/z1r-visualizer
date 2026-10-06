@@ -176,7 +176,9 @@ ITEM_TYPES = {
     0x1E: "Magical Boomerang",
     0x1F: "Blue Potion",
     0x20: "Red Potion",
+    0x21: "Clock",
     0x22: "Heart",
+    0x23: "Fairy",
     0x3F: "Nothing",
 }
 

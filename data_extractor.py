@@ -102,7 +102,7 @@ class DataExtractor(object):
             return PROGRESSIVE_LINES[code]
         if code == MAGICAL_SWORD_CODE:
             return "Magical Sword"
-        return ITEM_TYPES[code]
+        return ITEM_TYPES.get(code, "Unknown Item %02X" % code)
 
     def GetRoomItemName(self, code: int) -> str:
         """Names a level room's or item cellar's item code (the low five bits)."""

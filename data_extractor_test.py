@@ -135,5 +135,21 @@ class ZoraRomTest(unittest.TestCase):
         self.assertFalse(_ParsedZoraRom('zora-sword-seed1.nes').rom_reader.HasZoraEncodedLevelData())
 
 
+class ShopItemTest(unittest.TestCase):
+
+    # A Zelda Randomizer seed whose Shop 2 sells a fairy ($23) for 50 rupees.
+    @unittest.skipUnless(_HasTestRom('z1r-fairy-shop.nes'), 'Z1R ROM not present')
+    def test_fairy_in_shop(self):
+        de = _ParsedZoraRom('z1r-fairy-shop.nes')
+        self.assertEqual(0x23, de.shop_data[0x1E][0])
+        self.assertEqual('Fairy', de.GetItemName(de.shop_data[0x1E][0]))
+
+    @unittest.skipUnless(_HasTestRom('zora-sword-seed1.nes'), 'ZORA ROM not present')
+    def test_item_names_never_raise(self):
+        de = _ParsedZoraRom('zora-sword-seed1.nes')
+        self.assertEqual('Clock', de.GetItemName(0x21))
+        self.assertEqual('Unknown Item 30', de.GetItemName(0x30))
+
+
 if __name__ == '__main__':
     unittest.main()
