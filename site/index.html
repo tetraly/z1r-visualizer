@@ -15,8 +15,8 @@
   <p class="privacy">Your ROM is read in this page only. It is never uploaded.</p>
 
   <div class="upload">
-    <label for="rom">Upload a ROM by choosing a file below.</label>
-    <input type="file" id="rom" accept=".nes" disabled>
+    <label for="rom">Upload a ROM, or a seed file (.json), by choosing a file below.</label>
+    <input type="file" id="rom" accept=".nes,.json">
     <p id="status" class="status" role="status">Loading Python…</p>
   </div>
 
@@ -31,11 +31,14 @@
 
   <footer>
     Reads vanilla Legend of Zelda ROMs, Zelda Randomizer ROMs made without the ‘Race ROM’
-    flag, and ZORA ROMs made without ‘Encode level data’. Python runs in your browser through
-    <a href="https://pyodide.org/">Pyodide</a>, downloaded once from jsDelivr.
+    flag, and ZORA ROMs made without ‘Encode level data’, and seeds in the
+    <a href="https://github.com/tetraly/z1r-visualizer/blob/main/docs/seed-format.md">seed format</a>.
+    ROMs are read by Python running in your browser through <a href="https://pyodide.org/">Pyodide</a>,
+    downloaded once from jsDelivr.
   </footer>
 </main>
 <div id="tooltip" class="tooltip" hidden></div>
+<script src="validate.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

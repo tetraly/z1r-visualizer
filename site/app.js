@@ -1,50 +1,64 @@
-// The Z1R Visualizer page: reads a ROM in the browser, has the Python parser (spoiler.py, run in
-// worker.js) turn it into JSON, and draws the views the Streamlit app (app.py) shows. Nothing is
-// uploaded: the ROM's bytes go only to the worker.
+// The Z1R Visualizer page. It draws every view from a seed in the seed format
+// (docs/seed-format.md), which arrives one of three ways:
+// - from a ROM the player chooses: the Python parser (spoiler.py, run in worker.js with Pyodide)
+//   reads it; the ROM's bytes go only to the worker, and nothing is uploaded;
+// - from a seed file (.json) the player chooses.
+// Seeds from a file need no Pyodide. Every seed is checked against the format's
+// schema (validate.js) before it is drawn.
 //
-// Served as a site, the page fetches worker.js and the parser from py/. The single-file build
-// (scripts/build_site.py --single-file) inlines both, in the script elements read below.
+// Served as a site, the page fetches worker.js, the schema and the parser (py/). The single-file
+// build (scripts/build_site.py --single-file) inlines them, in the script elements read below.
 //
 // Type-checked with JSDoc (tsc --noEmit -p site/jsconfig.json, run by scripts/check_site.mjs).
 // @ts-check
 "use strict";
 
-// The parser's data (spoiler.Export in spoiler.py), as the page reads it.
+// The seed format, as the page reads it (docs/seed-format.schema.json has the full definition).
 /**
- * @typedef {{num: number, col: number, row: number, x_coord: number, y_coord: number,
- *   room_num: string, room_type: string, enemy_info: string, item_info: string, stair_info: string,
- *   stair_tooltip: string, enemy_type_tooltip: string, enemy_num_tooltip: string,
- *   [key: string]: string | number}} Room
- *   Besides these, "<direction>.x"/".y" (a door marker), ".color", ".wall.x"/".wall.y" (a solid
- *   wall) and ".wall_type", for each direction that has one.
- * @typedef {{palette: string[], rooms: Room[]}} Level
- * @typedef {{screen_num: string, col: number, row: number, x_coord: number, y_coord: number,
- *   cave: string, block_type: string, cave_name?: string, cave_name_short?: string}} OverworldScreen
+ * @typedef {"north" | "east" | "south" | "west"} Direction
+ * @typedef {"open" | "solid" | "bombable" | "locked" | "walk-through" | "shutter"} Door
+ * @typedef {{kind: "item", item: string | null} | {kind: "transport", number: number, to: number}} Staircase
+ * @typedef {{number: number, column: number, row: number, type: string,
+ *   enemies: {name: string, count?: number} | null, item: {name: string, drop: boolean} | null,
+ *   staircase: Staircase | null, doors: Record<Direction, Door>}} SeedRoom
+ * @typedef {{number: number, color: string, rooms: SeedRoom[]}} SeedLevel
+ * @typedef {{number: number, column: number, row: number, cave: {name: string, shortName: string}}} SeedScreen
+ * @typedef {{item: string, price?: number, sellsOnce?: boolean}} Ware
+ * @typedef {{name: string, kind: "item" | "take-any" | "shop" | "potion-shop", wares: Ware[]}} Cave
+ * @typedef {{text: string, notes: number[]}} RecorderTune
+ * @typedef {{format: "z1r-seed", formatVersion: string, producer: {name: string, version: string},
+ *   seed?: {number?: string, flags?: string, zoraFlags?: string, code?: string[]},
+ *   progressiveItems?: boolean, levels: SeedLevel[],
+ *   overworld: {screens: SeedScreen[], armos: string | null, coast: string | null},
+ *   caves: Cave[], hints: Array<{text: string, speaker?: string}>, recorder?: RecorderTune,
+ *   requirements?: {whiteSwordHearts?: number, magicalSwordHearts?: number, level9Triforces?: number,
+ *     doorRepairCost?: number},
+ *   settings?: Array<{id?: string, name: string, chosen: string, resolved: string}>}} Seed
+ *
+ * What the page shows: a seed, or a ROM it refused (which still has its recorder tune).
+ * @typedef {{seed: Seed, source: string} | {seed: null, status: "encoded" | "unsupported", message: string,
+ *   recorder: RecorderTune | null}} Shown
+ *
  * @typedef {Record<string, string | number>} Row  A table row: column name to cell.
- * @typedef {{levels: Record<string, Row[]>, caves: Row[], shops: Row[], overworld: Row[]}} ItemSummary
- * @typedef {{text: string, data: number[], patch: number[], filename: string}} RecorderTune
- * @typedef {Partial<RecorderTune>} Recorder  Empty without a custom recorder tune.
- * @typedef {{status: "ok", message: string, recorder: Recorder, progressiveItems: boolean,
- *   levels: Record<string, Level>, overworld: OverworldScreen[], itemSummary: ItemSummary, texts: string[],
- *   recorderText: string}} ParsedRom
- * @typedef {{status: "encoded" | "unsupported", message: string, recorder: Recorder}} RefusedRom
- * @typedef {ParsedRom | RefusedRom} RomData
  * @typedef {Array<[string, string | number | undefined]>} TooltipFields
  * @typedef {{node: SVGElement, key: string, label: string, fields: TooltipFields, stair: string,
  *   x: number, y: number}} MapSpot
  *   A room or overworld screen on a map. key: its room or screen number; label: what a screen
  *   reader announces for it; stair: its transport staircase ("Stair #2"), or ""; x, y: its centre
  *   in the SVG's pixels.
- * @typedef {"north" | "south" | "east" | "west"} Direction
  */
 
 const PYTHON_FILES = ["constants.py", "rom_reader.py", "data_extractor.py", "spoiler.py"];
+const SCHEMA_FILE = "seed-format.schema.json";
+const FORMAT_MAJOR = 1;  // the seed format's major version this page reads
+const MAX_SEED_JSON = 4 * 1024 * 1024;  // characters
 const SVG_NS = "http://www.w3.org/2000/svg";
 const VIEWS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => `Level ${level}`)
-  .concat(["Overworld", "Recorder Info", "Item Summary", "Hint Texts"]);
+  .concat(["Overworld", "Recorder Info", "Item Summary", "Hint Texts", "Seed Info"]);
 const NO_ROM_TEXT = "Please upload a Legend of Zelda ROM using the file widget above. Supported ROM " +
   "types are vanilla Legend of Zelda ROMs and randomized ROMs created by Zelda Randomizer without " +
-  "the ‘Race ROM’ flag checked or by ZORA without ‘Encode level data’.";
+  "the ‘Race ROM’ flag checked or by ZORA without ‘Encode level data’. A seed file (.json) in the " +
+  "seed format works too.";
 
 // The page's fixed elements (index.html; this script runs after them).
 const romInput = /** @type {HTMLInputElement} */ (document.getElementById("rom"));
@@ -54,6 +68,7 @@ const messageArea = /** @type {HTMLElement} */ (document.getElementById("message
 const picker = /** @type {HTMLElement} */ (document.getElementById("picker"));
 const output = /** @type {HTMLElement} */ (document.getElementById("output"));
 const tooltip = /** @type {HTMLElement} */ (document.getElementById("tooltip"));
+const pageVersion = /** @type {string} */ (/** @type {HTMLElement} */ (document.getElementById("version")).textContent);
 
 /**
  * @template {keyof HTMLElementTagNameMap} K
@@ -80,8 +95,11 @@ function svgElement(tag, attrs = {}) {
   return node;
 }
 
+/** @param {unknown} err */
+const errorMessage = (err) => (err instanceof Error ? err.message : String(err));
+
 // ---------------------------------------------------------------------------------------------
-// The worker
+// The Python worker, started when the page loads; a seed file does not wait for it.
 
 /** @returns {Worker} */
 function startWorker() {
@@ -107,51 +125,140 @@ async function pythonSources() {
   return sources;
 }
 
-const worker = startWorker();
+/** @type {Worker | null} */
+let worker = null;
 /** @type {Map<number, {resolve: (reply: any) => void, reject: (err: Error) => void}>} */
 const pending = new Map();
 let nextId = 1;
-
-worker.onmessage = (/** @type {MessageEvent} */ event) => {
-  const { id, type } = event.data;
-  const request = pending.get(id);
-  if (!request) return;
-  pending.delete(id);
-  if (type === "error") request.reject(new Error(event.data.message));
-  else request.resolve(event.data);
-};
+/** @type {Promise<void> | null} */
+let pythonReady = null;
 
 /**
  * Sends the worker a request (worker.js lists them) and resolves to its reply.
+ * @param {Worker} target
  * @param {string} type
  * @param {Record<string, unknown>} [payload]
  * @returns {Promise<any>}
  */
-function ask(type, payload = {}) {
+function ask(target, type, payload = {}) {
   const id = nextId++;
   return new Promise((resolve, reject) => {
     pending.set(id, { resolve, reject });
-    worker.postMessage({ type, id, ...payload });
+    target.postMessage({ type, id, ...payload });
   });
 }
 
-// The parser's data for a ROM's bytes, as the JSON text Python wrote. The headless checks compare
-// it byte for byte with `cli.py --json`.
+/** Starts Pyodide and the parser once; later calls wait for the same start. */
+function ensurePython() {
+  if (!pythonReady) {
+    const started = performance.now();
+    const target = startWorker();
+    worker = target;
+    target.onmessage = (/** @type {MessageEvent} */ event) => {
+      const { id, type } = event.data;
+      const request = pending.get(id);
+      if (!request) return;
+      pending.delete(id);
+      if (type === "error") request.reject(new Error(event.data.message));
+      else request.resolve(event.data);
+    };
+    pythonReady = (async () => {
+      const { python } = await ask(target, "init", { sources: await pythonSources(), version: pageVersion });
+      if (!current) statusLine.textContent = `Ready (Python ${python}, ${Math.round(performance.now() - started)} ms).`;
+    })();
+  }
+  return pythonReady;
+}
+
+// What the parser reads from a ROM, as the JSON text Python wrote (spoiler.Read). The headless
+// checks compare it byte for byte with `cli.py --json`.
 /**
  * @param {Uint8Array} bytes
  * @returns {Promise<string>}
  */
 async function exportRomJson(bytes) {
-  const { json } = await ask("export", { bytes });
+  await ensurePython();
+  const { json } = await ask(/** @type {Worker} */ (worker), "export", { bytes });
   return json;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Checking a seed: its format, its major version, then the schema.
+
+/** @type {Promise<any> | null} */
+let schemaLoaded = null;
+
+function seedSchema() {
+  if (!schemaLoaded) {
+    const inline = document.getElementById("seed-schema");
+    schemaLoaded = inline ? Promise.resolve(JSON.parse(/** @type {string} */ (inline.textContent)))
+      : fetch(SCHEMA_FILE).then((response) => {
+        if (!response.ok) throw new Error(`could not load ${SCHEMA_FILE} (${response.status})`);
+        return response.json();
+      });
+  }
+  return schemaLoaded;
+}
+
 /**
- * @param {Uint8Array} bytes
- * @returns {Promise<RomData>}
+ * Checks a seed document, or explains why it can't be shown.
+ * @param {unknown} value
+ * @returns {Promise<{seed: Seed} | {error: string}>}
  */
-async function exportRom(bytes) {
-  return JSON.parse(await exportRomJson(bytes));
+async function checkSeed(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { error: "This is not a seed document." };
+  const fields = /** @type {Record<string, unknown>} */ (value);
+  if (fields.format !== "z1r-seed") return { error: "This is not a seed document: its \"format\" is not \"z1r-seed\"." };
+  const version = typeof fields.formatVersion === "string" ? /^(\d+)\.(\d+)$/.exec(fields.formatVersion) : null;
+  if (!version) return { error: "This seed document has no valid \"formatVersion\"." };
+  if (Number(version[1]) !== FORMAT_MAJOR) {
+    return { error: `This seed uses seed format ${fields.formatVersion}, but this visualizer reads format ` +
+                    `${FORMAT_MAJOR}.x. A newer or older visualizer is needed to show it.` };
+  }
+  const problems = validateJsonSchema(await seedSchema(), value);
+  if (problems.length) {
+    const more = problems.length > 3 ? ` (and ${problems.length - 3} more)` : "";
+    return { error: `This seed document does not match seed format ${FORMAT_MAJOR}: ${problems.slice(0, 3).join("; ")}${more}.` };
+  }
+  return { seed: /** @type {Seed} */ (value) };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Names, as the views show them.
+
+// With Progressive Items, these items give the next level of their line.
+/** @type {Record<string, string>} */
+const PROGRESSIVE_LINES = {
+  "Wood Sword": "Sword Upgrade", "White Sword": "Sword Upgrade", "Magical Sword": "Sword Upgrade",
+  "Blue Candle": "Candle Upgrade", "Red Candle": "Candle Upgrade",
+  "Wooden Arrow": "Arrow Upgrade", "Silver Arrow": "Arrow Upgrade",
+  "Blue Ring": "Ring Upgrade", "Red Ring": "Ring Upgrade",
+  "Boomerang": "Boomerang Upgrade", "Magical Boomerang": "Boomerang Upgrade",
+};
+
+/**
+ * @param {Seed} seed
+ * @param {string} item
+ */
+const itemLabel = (seed, item) => (seed.progressiveItems && PROGRESSIVE_LINES[item]) || item;
+
+/** @param {number} number */
+const roomNumber = (number) => number.toString(16).toUpperCase();
+
+/**
+ * The room's four map lines: type, enemies, item, staircase.
+ * @param {Seed} seed
+ * @param {SeedRoom} room
+ */
+function roomLines(seed, room) {
+  const { enemies, item, staircase } = room;
+  return [
+    room.type,
+    enemies ? (enemies.count !== undefined ? `${enemies.count} ${enemies.name}` : enemies.name) : "",
+    item ? `${item.drop ? "D " : ""}${itemLabel(seed, item.name)}` : "",
+    staircase ? (staircase.kind === "transport" ? `Stair #${staircase.number}`
+      : staircase.item ? itemLabel(seed, staircase.item) : "No Item") : "",
+  ];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -257,7 +364,7 @@ window.addEventListener("resize", placeBesideAnchor);
 
 /**
  * The pinned room and the view it is on. It stays while other views are shown, and is dropped
- * when a new ROM is read.
+ * when a new seed is shown.
  * @type {{view: string, key: string} | null}
  */
 let pinned = null;
@@ -360,15 +467,16 @@ function showMapPin() {
 
 /**
  * Tab order for a map: the top row first, each row left to right.
- * @template {{x_coord: number, y_coord: number}} T
+ * @template {{column: number, row: number}} T
  * @param {T[]} items
  * @returns {T[]}
  */
-const inMapOrder = (items) => [...items].sort((a, b) => b.y_coord - a.y_coord || a.x_coord - b.x_coord);
+const inMapOrder = (items) => [...items].sort((a, b) => a.row - b.row || a.column - b.column);
 
 // ---------------------------------------------------------------------------------------------
-// The maps. Coordinates are the parser's: x grows right, y grows up from the bottom of the map,
-// one unit per room or screen, as in the app's Bokeh figures.
+// The maps. Map units: x grows right from the map's left edge, y grows up from its bottom edge,
+// one unit per room or screen, as in the Streamlit app's Bokeh figures. The seed format counts
+// columns from 1 at the left and rows from 1 at the top.
 
 /**
  * An empty map: `rect` and `text` place shapes in map units.
@@ -412,83 +520,100 @@ function plot(widthUnits, heightUnits, unit, title) {
   return { svg, rect, text, toX, toY };
 }
 
-// Door markers: the app maps 'black' (an open door) to dark grey and keeps the other colours.
-const DOOR_COLOUR = (/** @type {string} */ colour) => (colour === "black" ? "#333333" : colour);
 /** @type {Direction[]} */
 const DIRECTIONS = ["north", "south", "east", "west"];
-// Solid walls are drawn as bars on the side of the room they belong to.
+// Door markers' colours, as in the Streamlit app (an open door's 'black' drawn dark grey).
+/** @type {Record<Door, string>} */
+const DOOR_COLOURS = {
+  open: "#333333", bombable: "blue", locked: "orange", "walk-through": "purple", shutter: "brown", solid: "red",
+};
+// Relative to a room's top right corner, in map units: where a direction's door marker sits, and
+// where its solid wall's bar is centred; and the bar's size.
+/** @type {Record<Direction, [number, number]>} */
+const DOOR_OFFSET = { north: [-0.5, -0.05], south: [-0.5, -0.95], east: [-0.05, -0.5], west: [-0.95, -0.5] };
+/** @type {Record<Direction, [number, number]>} */
+const WALL_OFFSET = { north: [-0.5, 0], south: [-0.5, -1], east: [0, -0.5], west: [-1, -0.5] };
 /** @type {Record<Direction, [number, number]>} */
 const WALL_SIZE = { north: [1, 0.05], south: [1, 0.05], east: [0.05, 1], west: [0.05, 1] };
+// Which neighbour (column, row change) a side faces; rows count down from the top.
+/** @type {Record<Direction, [number, number]>} */
+const NEIGHBOUR = { north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0] };
 /** @type {Array<[string, string]>} */
 const LEGEND = [["Open Door", "black"], ["Shutter Door", "brown"], ["Key-Locked Door", "orange"],
                 ["Bombable Wall", "blue"], ["Walk-Through Wall", "purple"], ["Solid Wall", "red"]];
 
 /**
- * A room's number-valued field, such as "north.x"; the caller has checked it is there.
- * @param {Room} room
- * @param {string} key
+ * @param {Seed} seed
+ * @param {SeedLevel} level
  */
-const coordinate = (room, key) => /** @type {number} */ (room[key]);
+function drawLevel(seed, level) {
+  const { svg, rect, text, toX, toY } = plot(8, 8, 100, `Level ${level.number} map`);
+  const roomColour = level.color;
+  // A room's top right corner in map units: x = column, y = rows above the bottom edge.
+  const corner = (/** @type {SeedRoom} */ room) => [room.column, 9 - room.row];
+  const occupied = new Set(level.rooms.map((room) => `${room.column},${room.row}`));
 
-/**
- * @param {string} levelNum
- * @param {Level} level
- */
-function drawLevel(levelNum, level) {
-  const { svg, rect, text, toX, toY } = plot(8, 8, 100, `Level ${levelNum} map`);
-  const roomColour = level.palette[2];
   /** @type {MapSpot[]} */
   const spots = [];
   for (const room of inMapOrder(level.rooms)) {
-    const node = rect(room.x_coord, room.y_coord, 0.8, 0.8, {
+    const [x, y] = corner(room);
+    const node = rect(x - 0.5, y - 0.5, 0.8, 0.8, {
       fill: roomColour, "fill-opacity": 0.6, stroke: roomColour, class: "room",
     });
     svg.append(node);
+    const { staircase, enemies } = room;
+    const key = roomNumber(room.number);
     spots.push({
       node,
-      key: room.room_num,
-      label: [`Room ${room.room_num}`, room.room_type, room.enemy_info, room.item_info, room.stair_info]
-        .filter(Boolean).join(", "),
-      // An item staircase's stair_info is its item; a transport staircase's is "Stair #n".
-      stair: room.stair_info.startsWith("Stair #") ? room.stair_info : "",
-      x: toX(room.x_coord),
-      y: toY(room.y_coord),
+      key,
+      label: [`Room ${key}`, ...roomLines(seed, room)].filter(Boolean).join(", "),
       fields: [
-        ["Room Number", room.room_num], ["Col", room.col], ["Row", room.row], ["Stair", room.stair_tooltip],
-        ["Room Type", room.room_type], ["Enemy Type", room.enemy_type_tooltip],
-        ["Num Enemies", room.enemy_num_tooltip],
+        ["Room Number", key], ["Col", room.column], ["Row", room.row],
+        ["Stair", staircase ? (staircase.kind === "transport" ? `Stairway #${staircase.number}`
+          : staircase.item ? itemLabel(seed, staircase.item) : "No Item") : "None"],
+        ["Room Type", room.type], ["Enemy Type", enemies ? enemies.name : ""],
+        ["Num Enemies", enemies ? enemies.count : undefined],
       ],
+      stair: staircase && staircase.kind === "transport" ? `Stair #${staircase.number}` : "",
+      x: toX(x - 0.5),
+      y: toY(y - 0.5),
     });
   }
   for (const room of level.rooms) {
+    const [x, y] = corner(room);
     for (const direction of DIRECTIONS) {
-      if (room[`${direction}.x`] === undefined) continue;
-      const colour = DOOR_COLOUR(/** @type {string} */ (room[`${direction}.color`]));
-      svg.append(rect(coordinate(room, `${direction}.x`), coordinate(room, `${direction}.y`), 0.1, 0.1, {
+      const door = room.doors[direction];
+      if (door === "solid") continue;
+      const [dx, dy] = DOOR_OFFSET[direction];
+      const colour = DOOR_COLOURS[door];
+      svg.append(rect(x + dx, y + dy, 0.1, 0.1, {
         fill: colour, "fill-opacity": 0.6, stroke: colour, "pointer-events": "none",
       }));
     }
   }
-  // Each wall between two rooms is recorded on both rooms' sides: draw it once.
+  // A solid wall is drawn only between two rooms of the level; each such wall is on both rooms'
+  // sides, so it is drawn once.
   /** @type {Map<string, [number, number, number, number]>} */
   const walls = new Map();
   for (const room of level.rooms) {
+    const [x, y] = corner(room);
     for (const direction of DIRECTIONS) {
-      if (room[`${direction}.color`] !== "red" || room[`${direction}.wall.x`] === undefined) continue;
+      if (room.doors[direction] !== "solid") continue;
+      const [nc, nr] = NEIGHBOUR[direction];
+      if (!occupied.has(`${room.column + nc},${room.row + nr}`)) continue;
+      const [dx, dy] = WALL_OFFSET[direction];
       const [w, h] = WALL_SIZE[direction];
-      const x = coordinate(room, `${direction}.wall.x`);
-      const y = coordinate(room, `${direction}.wall.y`);
-      walls.set(`${x.toFixed(3)},${y.toFixed(3)},${w},${h}`, [x, y, w, h]);
+      walls.set(`${(x + dx).toFixed(3)},${(y + dy).toFixed(3)},${w},${h}`, [x + dx, y + dy, w, h]);
     }
   }
   for (const [x, y, w, h] of walls.values()) {
     svg.append(rect(x, y, w, h, { fill: "red", stroke: "red", "pointer-events": "none" }));
   }
   for (const room of level.rooms) {
-    const lines = [room.room_type, room.enemy_info, room.item_info, room.stair_info];
-    lines.forEach((line, i) => {
+    const [x, y] = corner(room);
+    roomLines(seed, room).forEach((line, i) => {
       if (!line) return;
-      const label = text(room.col - 0.86, room.row - 0.2 * (i + 1), line, "8pt");
+      const label = text(x - 0.86, y - 0.2 * (i + 1), line, "8pt");
       label.setAttribute("pointer-events", "none");
       svg.append(label);
     });
@@ -501,39 +626,37 @@ function drawLevel(levelNum, level) {
       label,
     ])),
   ]);
-  makeInteractive(`Level ${levelNum}`, svg, spots);
+  makeInteractive(`Level ${level.number}`, svg, spots);
   return element("figure", { className: "plot level" }, [
-    element("figcaption", { textContent: `Level ${levelNum}` }), element("div", { className: "scroll" }, [svg]), legend,
+    element("figcaption", { textContent: `Level ${level.number}` }), element("div", { className: "scroll" }, [svg]), legend,
     element("p", { className: "map-hint", textContent: MAP_HINT }),
   ]);
 }
 
-/** @param {OverworldScreen[]} screens */
+/** @param {SeedScreen[]} screens */
 function drawOverworld(screens) {
   const { svg, rect, text, toX, toY } = plot(16, 8, 50, "Overworld map");
   /** @type {MapSpot[]} */
   const spots = [];
   for (const screen of inMapOrder(screens)) {
-    const node = rect(screen.x_coord, screen.y_coord, 0.95, 0.95, {
-      fill: "#4CAF50", "fill-opacity": 0.6, stroke: "#4CAF50", class: "room",
-    });
+    const x = screen.column - 0.5;
+    const y = 8.5 - screen.row;
+    const node = rect(x, y, 0.95, 0.95, { fill: "#4CAF50", "fill-opacity": 0.6, stroke: "#4CAF50", class: "room" });
     svg.append(node);
+    const key = screen.number.toString(16);
     spots.push({
       node,
-      key: screen.screen_num,
-      label: [`Screen ${screen.screen_num}`, screen.cave_name].filter(Boolean).join(", "),
+      key,
+      label: `Screen ${key}, ${screen.cave.name}`,
+      fields: [["Screen Number", key], ["Col", screen.column], ["Row", screen.row], ["Cave", screen.cave.name],
+               ["Map Label", screen.cave.shortName]],
       stair: "",
-      x: toX(screen.x_coord),
-      y: toY(screen.y_coord),
-      fields: [
-        ["Screen Number", screen.screen_num], ["Col", screen.col], ["Row", screen.row], ["Cave", screen.cave],
-        ["Cave2", screen.cave_name], ["Cave3", screen.cave_name_short],
-      ],
+      x: toX(x),
+      y: toY(y),
     });
   }
   for (const screen of screens) {
-    if (!screen.cave_name_short) continue;
-    const label = text(screen.col + 0.1, screen.y_coord, screen.cave_name_short, "14px");
+    const label = text(screen.column - 0.9, 8.5 - screen.row, screen.cave.shortName, "14px");
     label.setAttribute("pointer-events", "none");
     svg.append(label);
   }
@@ -550,20 +673,88 @@ function drawOverworld(screens) {
 const hex = (/** @type {number[]} */ values) => values.map((value) => value.toString(16).padStart(2, "0")).join(" ") + " ";
 
 /**
- * @param {Recorder} recorder
+ * The IPS patch that adds a custom recorder tune to a ROM, as the Streamlit app builds it
+ * (data_extractor.py, GetRecorderPatchData).
+ * @param {number[]} notes
+ */
+function recorderPatch(notes) {
+  return [
+    0x50, 0x41, 0x54, 0x43, 0x48,  // PATCH
+    0x00, 0x1A, 0xFE, 0x00, 0x03, 0x20, 0x00, 0xA0,
+    0x00, 0x1B, 0x12, 0x00, 0x03, 0x20, 0x10, 0xA0,
+    0x00, 0x1B, 0x3D, 0x00, 0x03, 0x20, 0x10, 0xA0,
+    0x00, 0x20, 0x10, 0x00, 0x0E,
+    0xAD, 0x07, 0x06, 0xC9, 0x10, 0xD0, 0x03, 0xA9, 0x00, 0x60, 0xB9, 0x54, 0x9A, 0x60,
+    0x00, 0x20, 0x20, 0x00, 0x0F,
+    0xAD, 0x07, 0x06, 0xC9, 0x10, 0xD0, 0x04, 0xB9, 0x20, 0xA0, 0x60, 0xB9, 0x55, 0x9A, 0x60,
+    0x00, 0x20, 0x30, 0x00, notes.length, ...notes,
+    0x45, 0x4F, 0x46,  // EOF
+  ];
+}
+
+/**
+ * @param {RecorderTune | null | undefined} tune
  * @returns {HTMLElement[]}
  */
-function recorderInfo(recorder) {
-  if (!recorder || !recorder.data) return [infoBox("This ROM doesn't appear to have a custom recorder tune")];
-  const tune = /** @type {RecorderTune} */ (recorder);
-  const url = URL.createObjectURL(new Blob([new Uint8Array(tune.patch)], { type: "application/octet-stream" }));
+function recorderInfo(tune) {
+  if (!tune) return [infoBox("This ROM doesn't appear to have a custom recorder tune")];
+  const patch = recorderPatch(tune.notes);
+  const filename = `${tune.text.replace(/ /g, "_")}.ips`;
+  const url = URL.createObjectURL(new Blob([new Uint8Array(patch)], { type: "application/octet-stream" }));
   return [
     element("p", { textContent: `Recorder Text: ${tune.text}` }),
-    element("p", { className: "mono", textContent: `Recorder Data: ${hex(tune.data)}` }),
-    element("p", { className: "mono", textContent: `Recorder Patch Data: ${hex(tune.patch)}` }),
-    element("a", { className: "button", href: url, download: tune.filename,
-                   textContent: `Download recorder tune IPS patch (${tune.filename})` }),
+    element("p", { className: "mono", textContent: `Recorder Data: ${hex(tune.notes)}` }),
+    element("p", { className: "mono", textContent: `Recorder Patch Data: ${hex(patch)}` }),
+    element("a", { className: "button", href: url, download: filename,
+                   textContent: `Download recorder tune IPS patch (${filename})` }),
   ];
+}
+
+// The item summary, with the Streamlit app's rules (spoiler.ItemSummary has them in Python).
+const EXCLUDED_ITEMS = ["Rupee", "5 Rupees", "Bombs", "Key", "Map", "Compass", "Triforce", "No Item", "Nothing"];
+
+/**
+ * @param {Seed} seed
+ * @returns {{levels: Record<string, Row[]>, caves: Row[], shops: Row[], overworld: Row[]}}
+ */
+function itemSummaryTables(seed) {
+  const named = (/** @type {string} */ item) => !item.startsWith("Unknown Item ");
+  /** @type {Record<string, Row[]>} */
+  const levels = {};
+  for (let number = 1; number <= 9; number++) {
+    /** @type {Row[]} */
+    const rows = [];
+    const level = seed.levels.find((candidate) => candidate.number === number);
+    for (const room of level ? level.rooms : []) {
+      if (room.item) {
+        const item = itemLabel(seed, room.item.name);
+        if (!EXCLUDED_ITEMS.includes(item)) {
+          rows.push({ Item: item, Screen: roomNumber(room.number), Location: room.item.drop ? "Drop" : "Floor" });
+        }
+      }
+      if (room.staircase && room.staircase.kind === "item") {
+        const item = room.staircase.item ? itemLabel(seed, room.staircase.item) : "No Item";
+        if (!EXCLUDED_ITEMS.includes(item)) rows.push({ Item: item, Screen: roomNumber(room.number), Location: "Item Stairway" });
+      }
+    }
+    levels[String(number)] = rows;
+  }
+  const caves = seed.caves.filter((cave) => cave.kind === "item").flatMap((cave) => cave.wares
+    .filter((ware) => named(ware.item)).map((ware) => ({ Cave: cave.name, Item: itemLabel(seed, ware.item) })));
+  const shops = seed.caves.filter((cave) => cave.kind === "shop" || cave.kind === "potion-shop").flatMap((cave) => cave.wares
+    .filter((ware) => named(ware.item)).map((ware) => {
+      /** @type {Row} */
+      const row = { Shop: cave.name, Item: itemLabel(seed, ware.item), Price: ware.price === undefined ? "" : ware.price };
+      if (ware.sellsOnce) row.Once = "yes";
+      return row;
+    }));
+  // A table's columns come from its first row: give every row the "Once" column if any has it.
+  if (shops.some((row) => row.Once)) for (const row of shops) row.Once = row.Once || "";
+  const overworld = [
+    { Location: "Armos", Item: seed.overworld.armos ? itemLabel(seed, seed.overworld.armos) : "Nothing" },
+    { Location: "Coast", Item: seed.overworld.coast ? itemLabel(seed, seed.overworld.coast) : "Nothing" },
+  ];
+  return { levels, caves, shops, overworld };
 }
 
 /**
@@ -596,14 +787,14 @@ function roomLink(level, key) {
 }
 
 /**
- * @param {ParsedRom} data
+ * @param {Seed} seed
  * @returns {HTMLElement[]}
  */
-function itemSummary(data) {
-  const summary = data.itemSummary;
+function itemSummary(seed) {
+  const summary = itemSummaryTables(seed);
   /** @type {HTMLElement[]} */
   const out = [];
-  if (data.progressiveItems) {
+  if (seed.progressiveItems) {
     out.push(infoBox("This ROM uses ZORA's Progressive Items: each sword, candle, arrow, ring and " +
                      "boomerang found or bought gives the next level the player lacks, so they are " +
                      "listed by their upgrade line."));
@@ -628,110 +819,205 @@ function itemSummary(data) {
 }
 
 /**
- * @param {ParsedRom} data
+ * @param {Seed} seed
  * @returns {HTMLElement[]}
  */
-function hintTexts(data) {
+function hintTexts(seed) {
+  const speakers = seed.hints.some((hint) => hint.speaker !== undefined);
   /** @type {Row[]} */
-  const rows = data.texts.map((text, num) => ({ "Text #": num, Text: text }));
-  if (data.recorderText) rows.push({ "Text #": "Recorder", Text: data.recorderText });
+  const rows = seed.hints.map((hint, num) => /** @type {Row} */ (speakers
+    ? { "Text #": num, Text: hint.text, "Said By": hint.speaker || "" } : { "Text #": num, Text: hint.text }));
+  if (seed.recorder && seed.recorder.text) {
+    rows.push(speakers ? { "Text #": "Recorder", Text: seed.recorder.text, "Said By": "" }
+      : { "Text #": "Recorder", Text: seed.recorder.text });
+  }
   return [
-    element("p", { textContent: `This ROM has ${data.texts.length} texts. Which character says each one ` +
-                                "isn't stored in the ROM." }),
-    table(rows),
+    element("p", { textContent: `This seed has ${seed.hints.length} texts.${speakers ? ""
+      : " Which character says each one isn't stored in the ROM."}` }),
+    ...(rows.length ? [table(rows)] : []),
   ];
+}
+
+/**
+ * The seed's source and producer, how it was made, and what it needs.
+ * @param {Seed} seed
+ * @param {string} source
+ * @returns {HTMLElement[]}
+ */
+function seedInfo(seed, source) {
+  /** @type {Row[]} */
+  const about = [
+    { Field: "Shown from", Value: source },
+    { Field: "Producer", Value: `${seed.producer.name} ${seed.producer.version}`.trim() },
+    { Field: "Seed format", Value: seed.formatVersion },
+  ];
+  const made = seed.seed || {};
+  if (made.number) about.push({ Field: "Seed", Value: made.number });
+  if (made.flags) about.push({ Field: "Flags", Value: made.flags });
+  if (made.zoraFlags) about.push({ Field: "ZORA flags", Value: made.zoraFlags });
+  if (made.code && made.code.length) about.push({ Field: "Seed code", Value: made.code.join(" · ") });
+  about.push({ Field: "Progressive Items", Value: seed.progressiveItems ? "on" : "off" });
+  const out = [element("h2", { textContent: "Seed" }), table(about)];
+
+  const needs = seed.requirements || {};
+  /** @type {Array<[string, number | undefined]>} */
+  const needed = [["White sword cave (hearts)", needs.whiteSwordHearts],
+                  ["Magical sword cave (hearts)", needs.magicalSwordHearts],
+                  ["Level 9 (triforce pieces)", needs.level9Triforces], ["Door repair (rupees)", needs.doorRepairCost]];
+  const knownNeeds = needed.filter(([, value]) => value !== undefined);
+  if (knownNeeds.length) {
+    out.push(element("h2", { textContent: "Requirements" }),
+             table(knownNeeds.map(([what, value]) => ({ Requirement: what, Value: /** @type {number} */ (value) }))));
+  }
+  if (seed.settings && seed.settings.length) {
+    out.push(element("h2", { textContent: "Settings" }), table(seed.settings.map((setting) => ({
+      Setting: setting.id ? `${setting.id} ${setting.name}` : setting.name, Chosen: setting.chosen, Resolved: setting.resolved,
+    }))));
+  }
+  const url = URL.createObjectURL(new Blob([JSON.stringify(seed, null, 2)], { type: "application/json" }));
+  out.push(element("p", {}, [element("a", { className: "button", href: url, download: "seed.json",
+                                            textContent: "Download this seed as a seed file (.json)" })]));
+  return out;
 }
 
 // ---------------------------------------------------------------------------------------------
 // The page
 
-/** @type {RomData | null} */
-let current = null;  // the parser's data for the chosen ROM
-
-/** @param {unknown} err */
-const errorMessage = (err) => (err instanceof Error ? err.message : String(err));
+/** @type {Shown | null} */
+let current = null;
 
 function renderView() {
   hideTooltip();
   currentMap = null;
-  const data = current;
-  if (!data) return;  // no ROM: the view picker is hidden
+  const shown = current;
+  if (!shown) return;  // nothing chosen: the view picker is hidden
   const view = viewSelect.value;
-  const ok = data.status === "ok";
+  const seed = shown.seed;
   /** @type {HTMLElement[]} */
   let content;
   if (view.startsWith("Level ")) {
-    const level = view.split(" ")[1];
-    content = ok ? [drawLevel(level, data.levels[level])]
-      : [infoBox("Sorry, level maps aren't available for this ROM")];
+    const number = Number(view.split(" ")[1]);
+    const level = seed ? seed.levels.find((candidate) => candidate.number === number) : undefined;
+    content = !seed ? [infoBox("Sorry, level maps aren't available for this ROM")]
+      : level ? [drawLevel(seed, level)] : [infoBox(`This seed has no Level ${number}.`)];
   } else if (view === "Overworld") {
-    content = ok ? [drawOverworld(data.overworld)] : [infoBox("Sorry, level maps aren't available for this ROM")];
+    content = seed ? [drawOverworld(seed.overworld.screens)] : [infoBox("Sorry, level maps aren't available for this ROM")];
   } else if (view === "Recorder Info") {
-    content = recorderInfo(data.recorder);
+    content = recorderInfo(shown.seed ? shown.seed.recorder : shown.recorder);
   } else if (view === "Item Summary") {
-    content = ok ? itemSummary(data) : [infoBox("Sorry, item summary isn't available for this ROM")];
+    content = seed ? itemSummary(seed) : [infoBox("Sorry, item summary isn't available for this ROM")];
+  } else if (view === "Hint Texts") {
+    content = seed ? hintTexts(seed) : [infoBox("Sorry, hint texts aren't available for this ROM")];
   } else {
-    content = ok ? hintTexts(data) : [infoBox("Sorry, hint texts aren't available for this ROM")];
+    content = shown.seed ? seedInfo(shown.seed, shown.source) : [infoBox("Sorry, seed info isn't available for this ROM")];
   }
   output.replaceChildren(...content);
   showMapPin();
 }
 
-/** @param {RomData} data */
-function showRom(data) {
-  current = data;
+/** @param {Shown} shown */
+function show(shown) {
+  current = shown;
   pinned = null;
-  messageArea.replaceChildren(...(data.status === "encoded" ? [errorBox(data.message)]
-    : data.status === "unsupported" ? [infoBox(data.message)] : []));
+  messageArea.replaceChildren(...(shown.seed ? []
+    : [shown.status === "encoded" ? errorBox(shown.message) : infoBox(shown.message)]));
   picker.hidden = false;
   renderView();
 }
 
-function showNoRom() {
+/** @param {string} [message]  Why nothing is shown, as an error. */
+function showNothing(message) {
   current = null;
   pinned = null;
-  messageArea.replaceChildren(infoBox(NO_ROM_TEXT));
+  messageArea.replaceChildren(message ? errorBox(message) : infoBox(NO_ROM_TEXT));
   picker.hidden = true;
   output.replaceChildren();
 }
 
-async function onRomChosen() {
+/**
+ * Checks a seed document's JSON text and shows it, or shows why not.
+ * @param {string} json
+ * @param {string} source  Where it came from, e.g. "seed.json".
+ * @returns {Promise<string | null>} null when shown, else the reason it was refused.
+ */
+async function showSeedJson(json, source) {
+  /** @type {unknown} */
+  let value;
+  try {
+    value = JSON.parse(json);
+  } catch (err) {
+    const reason = `This is not a seed document: it is not valid JSON (${errorMessage(err)}).`;
+    showNothing(reason);
+    return reason;
+  }
+  const checked = await checkSeed(value);
+  if ("error" in checked) {
+    showNothing(checked.error);
+    return checked.error;
+  }
+  show({ seed: checked.seed, source });
+  const { name, version } = checked.seed.producer;
+  statusLine.textContent = `Showing ${source}: a seed from ${name}${version ? ` ${version}` : ""} ` +
+                           `(seed format ${checked.seed.formatVersion}).`;
+  return null;
+}
+
+/** @param {File} file */
+async function isSeedFile(file) {
+  if (/\.json$/i.test(file.name)) return true;
+  const start = new TextDecoder().decode(await file.slice(0, 64).arrayBuffer());
+  return start.trimStart().startsWith("{");
+}
+
+async function onFileChosen() {
   const file = romInput.files?.[0];
   if (!file) {
-    showNoRom();
+    showNothing();
     return;
   }
-  statusLine.textContent = `Reading ${file.name}…`;
   try {
-    showRom(await exportRom(new Uint8Array(await file.arrayBuffer())));
+    if (await isSeedFile(file)) {
+      if (file.size > MAX_SEED_JSON) throw new Error("the file is too large to be a seed document");
+      await showSeedJson(await file.text(), file.name);
+      return;
+    }
+    statusLine.textContent = pythonReady ? `Reading ${file.name}…` : `Loading Python to read ${file.name}…`;
+    /** @type {{status: "ok", seed: unknown} | {status: "encoded" | "unsupported", message: string, recorder: RecorderTune | null}} */
+    const result = JSON.parse(await exportRomJson(new Uint8Array(await file.arrayBuffer())));
+    if (result.status !== "ok") {
+      show({ seed: null, status: result.status, message: result.message, recorder: result.recorder });
+      statusLine.textContent = `Showing ${file.name}.`;
+      return;
+    }
+    const checked = await checkSeed(result.seed);
+    if ("error" in checked) throw new Error(checked.error);
+    show({ seed: checked.seed, source: file.name });
     statusLine.textContent = `Showing ${file.name}.`;
   } catch (err) {
-    showNoRom();
+    showNothing();
     statusLine.textContent = `Could not read ${file.name}: ${errorMessage(err)}`;
   }
 }
 
 viewSelect.append(...VIEWS.map((view) => element("option", { value: view, textContent: view })));
 viewSelect.addEventListener("change", renderView);
-romInput.addEventListener("change", onRomChosen);
+romInput.addEventListener("change", onFileChosen);
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   if (currentMap) currentMap.unpin();
   else hideTooltip();
 });
-showNoRom();
+showNothing();
 
-Object.assign(window, { z1rVisualizer: { exportRom, exportRomJson, current: () => current } });
+Object.assign(window, {
+  z1rVisualizer: {
+    exportRomJson, current: () => current, showSeedJson,
+    itemSummary: () => (current && current.seed ? itemSummaryTables(current.seed) : null),
+    recorderPatch,
+  },
+});
 
-(async () => {
-  const started = performance.now();
-  try {
-    const { python } = await ask("init", { sources: await pythonSources() });
-    romInput.disabled = false;
-    statusLine.textContent = `Ready (Python ${python}, ${Math.round(performance.now() - started)} ms).`;
-    if (romInput.files?.[0]) onRomChosen();
-  } catch (err) {
-    statusLine.textContent = `Could not load Python: ${errorMessage(err)}. The first visit needs an internet ` +
-                              "connection to download Pyodide.";
-  }
-})();
+ensurePython().catch((err) => {
+  statusLine.textContent = `Could not load Python: ${errorMessage(err)}. The first visit needs an internet ` +
+                           "connection to download Pyodide. Seed files (.json) still open.";
+});

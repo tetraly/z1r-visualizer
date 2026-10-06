@@ -11,5 +11,5 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": []
   },
-  "files": ["app.js"]
+  "files": ["validate.js", "app.js"]
 }
