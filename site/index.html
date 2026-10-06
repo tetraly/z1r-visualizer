@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Z1R Visualizer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Z1R Visualizer</h1>
+    <span class="version" id="version">dev</span>
+  </header>
+  <p class="privacy">Your ROM is read in this page only. It is never uploaded.</p>
+
+  <div class="upload">
+    <label for="rom">Upload a ROM by choosing a file below.</label>
+    <input type="file" id="rom" accept=".nes" disabled>
+    <p id="status" class="status" role="status">Loading Python…</p>
+  </div>
+
+  <div id="messages"></div>
+
+  <div id="picker" class="picker" hidden>
+    <label for="view">What information would you like to display?</label>
+    <select id="view"></select>
+  </div>
+
+  <div id="output"></div>
+
+  <footer>
+    Reads vanilla Legend of Zelda ROMs, Zelda Randomizer ROMs made without the ‘Race ROM’
+    flag, and ZORA ROMs made without ‘Encode level data’. Python runs in your browser through
+    <a href="https://pyodide.org/">Pyodide</a>, downloaded once from jsDelivr.
+  </footer>
+</main>
+<div id="tooltip" class="tooltip" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
