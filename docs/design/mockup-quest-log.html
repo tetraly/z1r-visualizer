@@ -1,0 +1,1609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Z1R Visualizer · Quest Log (mockup)</title>
+<style>
+/* Quest Log: game-flavoured but restrained. Parchment and ink in light, a night palette in dark,
+   serif headings from the system's serif fonts, a centred column with a sticky tab bar whose
+   dungeons are round coins ringed in their colour. Colours are light-dark() pairs: the theme
+   follows the system, or data-theme on <html> (the toggle). */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#f3ead6, #11131b);
+  --surface: light-dark(#fbf6ea, #1a1d29);
+  --surface-2: light-dark(#efe3c8, #242838);
+  --text: light-dark(#2a1f14, #efe7d4);
+  --muted: light-dark(#665441, #b3a991);
+  --border: light-dark(#d6c4a0, #353a4e);
+  --border-strong: light-dark(#a88f63, #5b6178);
+  --accent: light-dark(#9b1c1f, #e9a53b);
+  --on-accent: light-dark(#fff8ec, #1a1206);
+  --accent-soft: light-dark(#f2dccb, #3a2f1c);
+  --link: light-dark(#8a1a1d, #f2bd63);
+  --focus: light-dark(#1f4fa3, #8fb8ff);
+  --info-bg: light-dark(#e9e2cf, #1f2a3a);
+  --info-text: light-dark(#3b3020, #cfdcf0);
+  --error-bg: light-dark(#f5d9d2, #3b1d1d);
+  --error-text: light-dark(#7d1a12, #f5c4bc);
+
+  --map-bg: light-dark(#fffaf0, #151824);
+  --map-text: light-dark(#21180f, #f3ecdb);
+  --room-opacity: 0.3;
+  --pin: light-dark(#21180f, #ffffff);
+  --stair: light-dark(#9b1c1f, #ff8f7a);
+  --door-open: light-dark(#3a3128, #d8cdb6);
+  --door-bomb: light-dark(#2347c9, #86a2ff);
+  --door-key: light-dark(#a35400, #f6b04a);
+  --door-walk: light-dark(#76239c, #d5a2ff);
+  --door-shutter: light-dark(#7a4314, #dca06a);
+  --door-outline: light-dark(#21180f, #f3ecdb);
+  --wall: light-dark(#c1121f, #ff6b6b);
+
+  /* Type: a 1.25 scale from 16px; serif display, sans text. Spacing: a 4px grid. */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.5625rem;
+  --fs-2xl: 2.441rem;
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --radius: 4px;
+  --shadow-color: light-dark(rgba(80, 56, 20, 0.14), rgba(0, 0, 0, 0.55));
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: var(--fs-md) / 1.55 var(--font);
+}
+h1, h2 { font-family: var(--serif); font-weight: 600; line-height: 1.2; margin: 0; }
+code { font-family: var(--mono); font-size: 0.9em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip { position: absolute; left: var(--sp-4); top: -100px; z-index: 20; }
+.skip:focus { top: var(--sp-2); background: var(--surface); color: var(--link); padding: var(--sp-2) var(--sp-3); }
+
+body[data-state="empty"] [data-loaded-only] { display: none !important; }
+body[data-state="loaded"] [data-empty-only] { display: none !important; }
+body[data-state="empty"] #messages .box.info { display: none; }
+#picker { display: none !important; }
+
+.page { max-width: 1120px; margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+
+/* Banner */
+.banner {
+  display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-6) 0 var(--sp-5);
+  border-bottom: 3px double var(--border-strong);
+}
+.mark { width: 40px; height: 35px; fill: var(--accent); flex: none; }
+.title { display: flex; flex-direction: column; margin-right: auto; min-width: 0; }
+.name { font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; }
+.subtitle { color: var(--muted); font-size: var(--fs-sm); }
+.toggle {
+  display: inline-flex; align-items: center; gap: var(--sp-2); cursor: pointer;
+  font: 600 var(--fs-sm) / 1 var(--font); color: var(--text);
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: 999px; padding: var(--sp-2) var(--sp-4);
+}
+.toggle-dot { width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(90deg, var(--text) 50%, var(--surface) 50%); border: 1px solid var(--text); }
+
+/* Tabs */
+.tabs {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-3) 0; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.coins { display: flex; gap: var(--sp-2); }
+.coin {
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  font: 700 var(--fs-md) / 1 var(--serif); color: var(--text);
+  background: var(--surface); border: 3px solid var(--level-color, var(--border-strong));
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+.coin:hover { background: var(--surface-2); }
+.coin[aria-current="page"] { background: var(--accent); color: var(--on-accent); box-shadow: inset 0 0 0 2px var(--on-accent); }
+.divider { width: 1px; height: 28px; background: var(--border-strong); margin: 0 var(--sp-2); }
+.tab {
+  cursor: pointer; font: 600 var(--fs-md) / 1 var(--font); color: var(--muted);
+  background: none; border: 0; border-bottom: 3px solid transparent; padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) - 3px);
+}
+.tab:hover { color: var(--text); }
+.tab[aria-current="page"] { color: var(--text); border-bottom-color: var(--accent); }
+
+.main { padding-top: var(--sp-5); min-width: 0; }
+.main.dragging { outline: 3px dashed var(--accent); outline-offset: 6px; }
+.view-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
+.view-head h1 { font-size: var(--fs-2xl); }
+.file { color: var(--muted); font-size: var(--fs-sm); }
+.text-button { font: inherit; color: var(--link); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.status { color: var(--muted); font-size: var(--fs-sm); margin: var(--sp-1) 0 var(--sp-4); min-height: 1.55em; font-style: italic; }
+
+/* Empty state: a framed card, like a page of the manual */
+.scroll-card {
+  max-width: 640px; margin: var(--sp-7) auto; padding: var(--sp-7) var(--sp-6);
+  background: var(--surface); text-align: center;
+  border: 1px solid var(--border-strong); outline: 1px solid var(--border-strong); outline-offset: 5px;
+  box-shadow: 0 8px 28px var(--shadow-color);
+}
+.scroll-card h1 { font-size: var(--fs-xl); }
+.scroll-card > p { color: var(--muted); margin: var(--sp-3) 0 var(--sp-5); }
+.cta {
+  display: inline-block; cursor: pointer; font: 700 var(--fs-md) / 1 var(--font); letter-spacing: 0.02em;
+  background: var(--accent); color: var(--on-accent); padding: var(--sp-4) var(--sp-6); border-radius: var(--radius);
+}
+.scroll-card:focus-within .cta { outline: 3px solid var(--focus); outline-offset: 3px; }
+.supports { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-2) var(--sp-4); text-align: left; margin: var(--sp-6) 0 0; font-size: var(--fs-sm); }
+.supports dt { font-family: var(--serif); font-weight: 700; }
+.supports dd { margin: 0; color: var(--muted); }
+
+.box { padding: var(--sp-3) var(--sp-4); margin: 0 0 var(--sp-4); font-size: var(--fs-sm); border-left: 4px solid currentColor; }
+.box.info { background: var(--info-bg); color: var(--info-text); }
+.box.error { background: var(--error-bg); color: var(--error-text); }
+
+/* Maps: a framed sheet */
+.plot { margin: 0 0 var(--sp-6); }
+.plot figcaption { display: none; }
+.plot .scroll {
+  overflow-x: auto; padding: var(--sp-3); background: var(--map-bg);
+  border: 1px solid var(--border-strong); outline: 1px solid var(--border-strong); outline-offset: 3px;
+}
+.map { display: block; max-width: none; margin: 0 auto; background: var(--map-bg); }
+.map .room { fill-opacity: var(--room-opacity); stroke-width: 2; cursor: pointer; }
+.map .room:focus { outline: none; }
+.map .room:hover, .map .room:focus-visible { stroke: var(--focus); stroke-width: 3; }
+.map .room.stair-pair { stroke: var(--stair); stroke-width: 4; stroke-dasharray: 8 5; }
+.map .room.pinned { stroke: var(--pin); stroke-width: 4; stroke-dasharray: none; }
+.map .stair-link { stroke: var(--stair); stroke-width: 3; stroke-dasharray: 8 5; stroke-linecap: round; }
+.map text {
+  fill: var(--map-text); font-family: var(--font); font-weight: 500;
+  paint-order: stroke; stroke: var(--map-bg); stroke-width: 3px; stroke-linejoin: round;
+}
+.map rect[width="10"][height="10"] { stroke: var(--door-outline); stroke-width: 1; fill-opacity: 1; }
+.map rect[fill="#333333"] { fill: var(--door-open); }
+.map rect[fill="blue"] { fill: var(--door-bomb); }
+.map rect[fill="orange"] { fill: var(--door-key); }
+.map rect[fill="purple"] { fill: var(--door-walk); }
+.map rect[fill="brown"] { fill: var(--door-shutter); }
+.map rect[fill="red"] { fill: var(--wall); stroke: var(--wall); }
+
+.legend { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-4); font-size: var(--fs-sm); }
+.legend-title { width: 100%; font-family: var(--serif); font-weight: 700; font-size: var(--fs-md); }
+.legend-item { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.swatch { width: 14px; height: 14px; border: 1px solid var(--door-outline); }
+.swatch[style*="black"] { background: var(--door-open) !important; }
+.swatch[style*="blue"] { background: var(--door-bomb) !important; }
+.swatch[style*="orange"] { background: var(--door-key) !important; }
+.swatch[style*="purple"] { background: var(--door-walk) !important; }
+.swatch[style*="brown"] { background: var(--door-shutter) !important; }
+.swatch[style*="red"] { background: var(--wall) !important; }
+.map-hint { color: var(--muted); font-size: var(--fs-sm); font-style: italic; margin: var(--sp-3) 0 0; }
+
+/* Lists: ledger-ruled tables */
+#output > h2 { font-size: var(--fs-xl); margin: var(--sp-6) 0 var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-strong); }
+#output > h2:first-child, #output > .box + h2 { margin-top: 0; }
+.grid.three { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--sp-5) var(--sp-6); }
+.grid.three > div > p { margin: 0 0 var(--sp-2); font-family: var(--serif); font-size: var(--fs-lg); }
+table.data { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+table.data th { text-align: left; font-family: var(--serif); font-weight: 700; padding: var(--sp-2); border-bottom: 2px solid var(--border-strong); }
+table.data td { padding: var(--sp-2); border-bottom: 1px solid var(--border); vertical-align: top; }
+table.data tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+button.link { font: inherit; font-family: var(--mono); color: var(--link); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.button { display: inline-block; color: var(--link); font-weight: 700; padding: var(--sp-2) var(--sp-4); border: 1px solid var(--border-strong); text-decoration: none; }
+.mono { font-family: var(--mono); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+
+/* Tooltip: a slip of paper */
+.tooltip {
+  position: fixed; z-index: 30; max-width: 300px; pointer-events: none;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border-strong);
+  box-shadow: 0 10px 30px var(--shadow-color); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); line-height: 1.6;
+}
+.tooltip .tip-label { color: var(--muted); font-family: var(--serif); font-weight: 700; }
+
+@media (max-width: 760px) {
+  .page { padding: 0 var(--sp-4) var(--sp-6); }
+  .banner { padding: var(--sp-4) 0; gap: var(--sp-3); }
+  .mark { width: 28px; height: 25px; }
+  .name { font-size: var(--fs-xl); }
+  .subtitle { display: none; }
+  .toggle [data-theme-label] { display: none; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .coin { width: 36px; height: 36px; flex: none; }
+  .tab { flex: none; }
+  .view-head h1 { font-size: var(--fs-xl); }
+  .scroll-card { margin: var(--sp-5) 0; padding: var(--sp-6) var(--sp-4); }
+  /* On a phone the tooltip is a sheet along the bottom, so it never covers the rooms beside the
+     pinned one (the renderer's left/top give way to these). */
+  .tooltip {
+    left: var(--sp-2) !important; right: var(--sp-2); top: auto !important; bottom: var(--sp-2);
+    max-width: none; columns: 2; column-gap: var(--sp-4);
+  }
+}
+</style>
+</head>
+<body data-state="empty">
+<a class="skip" href="#main">Skip to content</a>
+<div class="page">
+  <header class="banner">
+    <svg class="mark" viewBox="0 0 24 21" aria-hidden="true"><path d="M12 0l6 10.5H6zM6 10.5L12 21H0zM18 10.5L24 21H12z"/></svg>
+    <div class="title">
+      <span class="name">Z1R Visualizer</span>
+      <span class="subtitle">A spoiler map for <i>The Legend of Zelda</i> seeds · <span id="version">2026-10-06 8b4c129 mockup</span></span>
+    </div>
+    <button class="toggle" type="button" data-theme-toggle><span class="toggle-dot" aria-hidden="true"></span><span data-theme-label>System</span></button>
+  </header>
+
+  <nav class="tabs" aria-label="Views" data-loaded-only>
+    <div class="coins" role="group" aria-label="Dungeons">
+      <button type="button" class="coin" data-view="Level 1"><span class="visually-hidden">Level </span>1</button>
+      <button type="button" class="coin" data-view="Level 2"><span class="visually-hidden">Level </span>2</button>
+      <button type="button" class="coin" data-view="Level 3"><span class="visually-hidden">Level </span>3</button>
+      <button type="button" class="coin" data-view="Level 4"><span class="visually-hidden">Level </span>4</button>
+      <button type="button" class="coin" data-view="Level 5"><span class="visually-hidden">Level </span>5</button>
+      <button type="button" class="coin" data-view="Level 6"><span class="visually-hidden">Level </span>6</button>
+      <button type="button" class="coin" data-view="Level 7"><span class="visually-hidden">Level </span>7</button>
+      <button type="button" class="coin" data-view="Level 8"><span class="visually-hidden">Level </span>8</button>
+      <button type="button" class="coin" data-view="Level 9"><span class="visually-hidden">Level </span>9</button>
+    </div>
+    <span class="divider" aria-hidden="true"></span>
+    <button type="button" class="tab" data-view="Overworld">Overworld</button>
+    <button type="button" class="tab" data-view="Item Summary">Items</button>
+    <button type="button" class="tab" data-view="Hint Texts">Hints</button>
+    <button type="button" class="tab" data-view="Recorder Info">Recorder</button>
+    <button type="button" class="tab" data-view="Seed Info">Seed</button>
+  </nav>
+
+  <main id="main" class="main" data-drop>
+    <section class="scroll-card" data-empty-only aria-labelledby="empty-title">
+      <h1 id="empty-title">Open a seed to explore it</h1>
+      <p>Drop a <code>.nes</code> ROM or a <code>.json</code> seed file on this page, or choose one.</p>
+      <label class="cta" for="rom">Choose a file</label>
+      <input type="file" id="rom" class="visually-hidden" accept=".nes,.json">
+      <dl class="supports">
+        <dt>Reads</dt>
+        <dd>The Legend of Zelda (PRG0, PRG1), Zelda Randomizer seeds made without “Race ROM”, ZORA seeds made without “Encode level data”, and seed files.</dd>
+        <dt>Privacy</dt>
+        <dd>Your ROM is read in this page only. It is never uploaded.</dd>
+      </dl>
+    </section>
+
+    <div class="view-head" data-loaded-only>
+      <h1 data-view-title>Level 4</h1>
+      <span class="file"><span data-file-name></span> <button type="button" class="text-button" data-open-file>Open another</button></span>
+    </div>
+    <p id="status" class="status" role="status"></p>
+    <div id="messages"></div>
+    <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
+    <div id="output"></div>
+  </main>
+</div>
+<div id="tooltip" class="tooltip" hidden></div>
+<script type="application/json" id="seed-schema">{"$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://tetraly.github.io/z1r-visualizer/seed-format.schema.json", "title": "Z1R seed, format 1", "description": "A Legend of Zelda seed as a player sees it: dungeons, overworld caves, shops, items and hint texts. docs/seed-format.md explains every field. Unknown properties are allowed everywhere, so that later 1.x versions can add fields.", "type": "object", "required": ["format", "formatVersion", "producer", "levels", "overworld", "caves", "hints"], "properties": {"format": {"const": "z1r-seed"}, "formatVersion": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"}, "producer": {"type": "object", "required": ["name", "version"], "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 100}, "version": {"type": "string", "maxLength": 100}}}, "seed": {"type": "object", "properties": {"number": {"type": "string", "maxLength": 40}, "flags": {"type": "string", "maxLength": 200}, "zoraFlags": {"type": "string", "maxLength": 200}, "code": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 40}}}}, "progressiveItems": {"type": "boolean"}, "levels": {"type": "array", "minItems": 1, "maxItems": 9, "items": {"$ref": "#/$defs/level"}}, "overworld": {"type": "object", "required": ["screens", "armos", "coast"], "properties": {"screens": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/screen"}}, "armos": {"$ref": "#/$defs/itemOrNone"}, "coast": {"$ref": "#/$defs/itemOrNone"}}}, "caves": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/cave"}}, "hints": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/hint"}}, "recorder": {"type": "object", "required": ["text", "notes"], "properties": {"text": {"$ref": "#/$defs/text"}, "notes": {"type": "array", "maxItems": 64, "items": {"type": "integer", "minimum": 0, "maximum": 255}}}}, "requirements": {"type": "object", "properties": {"whiteSwordHearts": {"type": "integer", "minimum": 0, "maximum": 16}, "magicalSwordHearts": {"type": "integer", "minimum": 0, "maximum": 16}, "level9Triforces": {"type": "integer", "minimum": 0, "maximum": 8}, "doorRepairCost": {"type": "integer", "minimum": 0, "maximum": 255}}}, "settings": {"type": "array", "maxItems": 256, "items": {"type": "object", "required": ["name", "chosen", "resolved"], "properties": {"id": {"type": "string", "maxLength": 20}, "name": {"type": "string", "maxLength": 200}, "chosen": {"type": "string", "maxLength": 100}, "resolved": {"type": "string", "maxLength": 100}}}}}, "$defs": {"text": {"type": "string", "maxLength": 200}, "itemName": {"anyOf": [{"enum": ["Bombs", "Wood Sword", "White Sword", "Magical Sword", "Bait", "Recorder", "Blue Candle", "Red Candle", "Wooden Arrow", "Silver Arrow", "Bow", "Magical Key", "Raft", "Ladder", "Triforce of Power", "5 Rupees", "Wand", "Book", "Blue Ring", "Red Ring", "Power Bracelet", "Letter", "Compass", "Map", "Rupee", "Key", "Heart Container", "Triforce", "Shield", "Boomerang", "Magical Boomerang", "Blue Potion", "Red Potion", "Clock", "Heart", "Fairy"]}, {"type": "string", "pattern": "^Unknown Item [0-9A-F]{2}$"}]}, "itemOrNone": {"anyOf": [{"$ref": "#/$defs/itemName"}, {"type": "null"}]}, "door": {"enum": ["open", "solid", "bombable", "locked", "walk-through", "shutter"]}, "level": {"type": "object", "required": ["number", "color", "rooms"], "properties": {"number": {"type": "integer", "minimum": 1, "maximum": 9}, "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"}, "rooms": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/room"}}}}, "room": {"type": "object", "required": ["number", "column", "row", "type", "enemies", "item", "staircase", "doors"], "properties": {"number": {"type": "integer", "minimum": 0, "maximum": 127}, "column": {"type": "integer", "minimum": 1, "maximum": 8}, "row": {"type": "integer", "minimum": 1, "maximum": 8}, "type": {"type": "string", "maxLength": 60}, "enemies": {"anyOf": [{"type": "object", "required": ["name"], "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 60}, "count": {"type": "integer", "minimum": 1, "maximum": 99}}}, {"type": "null"}]}, "item": {"anyOf": [{"type": "object", "required": ["name", "drop"], "properties": {"name": {"$ref": "#/$defs/itemName"}, "drop": {"type": "boolean"}}}, {"type": "null"}]}, "staircase": {"anyOf": [{"type": "object", "required": ["kind", "item"], "properties": {"kind": {"const": "item"}, "item": {"$ref": "#/$defs/itemOrNone"}}}, {"type": "object", "required": ["kind", "number", "to"], "properties": {"kind": {"const": "transport"}, "number": {"type": "integer", "minimum": 1, "maximum": 64}, "to": {"type": "integer", "minimum": 0, "maximum": 127}}}, {"type": "null"}]}, "doors": {"type": "object", "required": ["north", "east", "south", "west"], "properties": {"north": {"$ref": "#/$defs/door"}, "east": {"$ref": "#/$defs/door"}, "south": {"$ref": "#/$defs/door"}, "west": {"$ref": "#/$defs/door"}}}}}, "screen": {"type": "object", "required": ["number", "column", "row", "cave"], "properties": {"number": {"type": "integer", "minimum": 0, "maximum": 127}, "column": {"type": "integer", "minimum": 1, "maximum": 16}, "row": {"type": "integer", "minimum": 1, "maximum": 8}, "cave": {"type": "object", "required": ["name", "shortName"], "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 60}, "shortName": {"type": "string", "minLength": 1, "maxLength": 20}}}}}, "cave": {"type": "object", "required": ["name", "kind", "wares"], "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 60}, "kind": {"enum": ["item", "take-any", "shop", "potion-shop"]}, "wares": {"type": "array", "maxItems": 3, "items": {"type": "object", "required": ["item"], "properties": {"item": {"$ref": "#/$defs/itemName"}, "price": {"type": "integer", "minimum": 0, "maximum": 255}, "sellsOnce": {"type": "boolean"}}}}}}, "hint": {"type": "object", "required": ["text"], "properties": {"text": {"$ref": "#/$defs/text"}, "speaker": {"type": "string", "maxLength": 100}}}}}</script>
+<script type="application/json" id="mockup-seed">{"format": "z1r-seed", "formatVersion": "1.0", "producer": {"name": "z1r-visualizer", "version": "2026-10-06 8b4c129"}, "progressiveItems": false, "levels": [{"number": 1, "color": "#F878F8", "rooms": [{"number": 127, "column": 6, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "open", "west": "solid"}}, {"number": 111, "column": 6, "row": 7, "type": "Circle Moat", "enemies": null, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "locked", "west": "bombable"}}, {"number": 110, "column": 5, "row": 7, "type": "Black Room", "enemies": {"name": "Hint #1"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "solid", "west": "solid"}}, {"number": 95, "column": 6, "row": 6, "type": "Reverse C", "enemies": {"name": "Enemy Mix P", "count": 8}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 15}, "doors": {"north": "open", "east": "solid", "south": "open", "west": "solid"}}, {"number": 15, "column": 6, "row": 1, "type": "Reverse C", "enemies": {"name": "Pols Voice", "count": 5}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 95}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 14, "column": 5, "row": 1, "type": "Four Fireball", "enemies": {"name": "Enemy Mix R", "count": 6}, "item": {"name": "Map", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "open", "west": "solid"}}, {"number": 30, "column": 5, "row": 2, "type": "Five Pair", "enemies": {"name": "Red Gohma"}, "item": null, "staircase": {"kind": "item", "item": "Recorder"}, "doors": {"north": "open", "east": "solid", "south": "open", "west": "solid"}}, {"number": 46, "column": 5, "row": 3, "type": "Chevy", "enemies": {"name": "Like Like", "count": 6}, "item": {"name": "Compass", "drop": true}, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "solid", "west": "locked"}}, {"number": 45, "column": 4, "row": 3, "type": "Desert Room", "enemies": {"name": "Like Like", "count": 3}, "item": {"name": "Power Bracelet", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "solid", "west": "open"}}, {"number": 44, "column": 3, "row": 3, "type": "Spike Trap", "enemies": {"name": "Enemy Mix R", "count": 6}, "item": null, "staircase": null, "doors": {"north": "locked", "east": "open", "south": "solid", "west": "solid"}}, {"number": 28, "column": 3, "row": 2, "type": "Four Fireball", "enemies": {"name": "Red Lanmola"}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "locked", "west": "solid"}}, {"number": 12, "column": 3, "row": 1, "type": "Four Fireball", "enemies": {"name": "Enemy Mix V", "count": 8}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "locked", "west": "solid"}}, {"number": 79, "column": 6, "row": 5, "type": "Four Short", "enemies": {"name": "Enemy Mix N", "count": 8}, "item": {"name": "Heart Container", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "open"}}, {"number": 78, "column": 5, "row": 5, "type": "Double Six", "enemies": {"name": "Enemy Mix Q", "count": 5}, "item": {"name": "Triforce", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "locked"}}, {"number": 77, "column": 4, "row": 5, "type": "Grid Room", "enemies": {"name": "Enemy Mix V", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "shutter", "west": "solid"}}, {"number": 93, "column": 4, "row": 6, "type": "Five Pair", "enemies": {"name": "Rupee Boss"}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "locked"}}, {"number": 92, "column": 3, "row": 6, "type": "Pointless Moat", "enemies": {"name": "Enemy Mix AA", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "solid", "west": "solid"}}]}, {"number": 2, "color": "#000000", "rooms": [{"number": 119, "column": 5, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "open", "west": "open"}}, {"number": 118, "column": 4, "row": 8, "type": "Two Fireball", "enemies": {"name": "Red Goriya", "count": 5}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "open", "south": "solid", "west": "solid"}}, {"number": 102, "column": 4, "row": 7, "type": "T Room", "enemies": {"name": "Blue Lynel", "count": 5}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "open", "west": "solid"}}, {"number": 103, "column": 5, "row": 7, "type": "Two Fireball", "enemies": {"name": "Moldorm"}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "locked", "east": "shutter", "south": "locked", "west": "locked"}}, {"number": 104, "column": 6, "row": 7, "type": "Four Fireball", "enemies": null, "item": {"name": "Map", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "open"}}, {"number": 105, "column": 7, "row": 7, "type": "Desert Room", "enemies": {"name": "Red Lynel", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 87, "column": 5, "row": 6, "type": "Single Six", "enemies": {"name": "Enemy Mix X", "count": 8}, "item": {"name": "Bombs", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "locked", "west": "solid"}}, {"number": 71, "column": 5, "row": 5, "type": "Vert. Moat", "enemies": {"name": "Enemy Mix X", "count": 8}, "item": {"name": "Triforce", "drop": false}, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "shutter", "west": "bombable"}}, {"number": 70, "column": 4, "row": 5, "type": "Four Tall", "enemies": {"name": "Enemy Mix M", "count": 8}, "item": {"name": "Compass", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "solid", "west": "solid"}}, {"number": 55, "column": 5, "row": 4, "type": "Plain", "enemies": {"name": "Red Lynel", "count": 5}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "locked", "west": "solid"}}, {"number": 39, "column": 5, "row": 3, "type": "Four Short", "enemies": {"name": "Red Goriya", "count": 3}, "item": {"name": "Bow", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 38, "column": 4, "row": 3, "type": "Gleeok Room", "enemies": {"name": "Rupee Boss"}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "shutter", "east": "bombable", "south": "solid", "west": "solid"}}, {"number": 22, "column": 4, "row": 2, "type": "Gohma Room", "enemies": {"name": "Enemy Mix X", "count": 8}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "open", "west": "solid"}}, {"number": 6, "column": 4, "row": 1, "type": "Four Fireball", "enemies": {"name": "3 Dodongos"}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 5, "column": 3, "row": 1, "type": "Black Room", "enemies": {"name": "Bomb Upgrade"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "solid", "west": "open"}}, {"number": 4, "column": 2, "row": 1, "type": "Four Tall", "enemies": {"name": "Blue Lynel", "count": 3}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "shutter", "west": "open"}}, {"number": 3, "column": 1, "row": 1, "type": "Desert Room", "enemies": {"name": "Blue Lynel", "count": 3}, "item": {"name": "Wand", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 20, "column": 2, "row": 2, "type": "Double Block", "enemies": {"name": "Gel", "count": 5}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "solid"}}]}, {"number": 3, "color": "#00A800", "rooms": [{"number": 123, "column": 2, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "shutter", "south": "open", "west": "solid"}}, {"number": 124, "column": 3, "row": 8, "type": "Single Six", "enemies": {"name": "Vire", "count": 8}, "item": {"name": "Compass", "drop": true}, "staircase": null, "doors": {"north": "locked", "east": "locked", "south": "solid", "west": "shutter"}}, {"number": 125, "column": 4, "row": 8, "type": "Two Fireball", "enemies": {"name": "Blue Keese", "count": 5}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "open", "south": "solid", "west": "locked"}}, {"number": 126, "column": 5, "row": 8, "type": "Corridor Stair", "enemies": {"name": "Red Moblin", "count": 6}, "item": {"name": "Bombs", "drop": true}, "staircase": {"kind": "item", "item": "Silver Arrow"}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 109, "column": 4, "row": 7, "type": "Gleeok Room", "enemies": {"name": "Vire", "count": 5}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 108, "column": 3, "row": 7, "type": "Single Six", "enemies": {"name": "Blue Moblin", "count": 5}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "locked", "west": "shutter"}}, {"number": 107, "column": 2, "row": 7, "type": "Spiral Stair", "enemies": {"name": "Stalfos", "count": 5}, "item": {"name": "Key", "drop": true}, "staircase": {"kind": "transport", "number": 1, "to": 47}, "doors": {"north": "locked", "east": "shutter", "south": "shutter", "west": "solid"}}, {"number": 47, "column": 6, "row": 3, "type": "Corridor Stair", "enemies": {"name": "Enemy Mix L", "count": 6}, "item": {"name": "Map", "drop": true}, "staircase": {"kind": "transport", "number": 1, "to": 107}, "doors": {"north": "open", "east": "solid", "south": "open", "west": "solid"}}, {"number": 63, "column": 6, "row": 4, "type": "Four Fireball", "enemies": {"name": "Enemy Mix O", "count": 6}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "locked"}}, {"number": 62, "column": 5, "row": 4, "type": "Plain", "enemies": {"name": "Blue Keese", "count": 8}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "solid", "west": "shutter"}}, {"number": 61, "column": 4, "row": 4, "type": "Black Room", "enemies": {"name": "Mugger"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "solid", "west": "shutter"}}, {"number": 60, "column": 3, "row": 4, "type": "Single Six", "enemies": {"name": "Stalfos", "count": 6}, "item": {"name": "Triforce", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "open", "west": "locked"}}, {"number": 59, "column": 2, "row": 4, "type": "Zigzag", "enemies": {"name": "Enemy Mix L", "count": 6}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "locked", "south": "solid", "west": "solid"}}, {"number": 43, "column": 2, "row": 3, "type": "Triforce Room", "enemies": {"name": "Stalfos", "count": 5}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "open", "west": "solid"}}, {"number": 27, "column": 2, "row": 2, "type": "Two Fireball", "enemies": null, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "solid"}}, {"number": 76, "column": 3, "row": 5, "type": "Five Pair", "enemies": {"name": "Red Moblin", "count": 5}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 31, "column": 6, "row": 2, "type": "Single Six", "enemies": {"name": "Blue Gohma"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 91, "column": 2, "row": 6, "type": "Zigzag", "enemies": {"name": "Wallmaster", "count": 3}, "item": {"name": "Book", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}]}, {"number": 4, "color": "#3CBCFC", "rooms": [{"number": 121, "column": 4, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "open", "west": "shutter"}}, {"number": 120, "column": 3, "row": 8, "type": "Desert Room", "enemies": {"name": "Enemy Mix Q", "count": 5}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 122, "column": 5, "row": 8, "type": "Horiz. Moat", "enemies": {"name": "Red Lanmola"}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "bombable"}}, {"number": 106, "column": 5, "row": 7, "type": "Circle Moat", "enemies": null, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "open", "west": "solid"}}, {"number": 90, "column": 5, "row": 6, "type": "Desert Room", "enemies": {"name": "Horiz. Traps"}, "item": {"name": "Map", "drop": true}, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "locked", "west": "shutter"}}, {"number": 89, "column": 4, "row": 6, "type": "Black Room", "enemies": {"name": "Like Like", "count": 3}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "open", "south": "solid", "west": "solid"}}, {"number": 73, "column": 4, "row": 5, "type": "Four Tall", "enemies": {"name": "Like Like", "count": 3}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "open", "south": "shutter", "west": "bombable"}}, {"number": 72, "column": 3, "row": 5, "type": "Two Fireball", "enemies": {"name": "Enemy Mix Q", "count": 5}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "solid", "west": "solid"}}, {"number": 74, "column": 5, "row": 5, "type": "Reverse C", "enemies": {"name": "Digdogger (1)"}, "item": null, "staircase": null, "doors": {"north": "open", "east": "open", "south": "locked", "west": "shutter"}}, {"number": 75, "column": 6, "row": 5, "type": "Spiral Stair", "enemies": {"name": "Stalfos", "count": 5}, "item": null, "staircase": {"kind": "item", "item": "Heart Container"}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 58, "column": 5, "row": 4, "type": "Two Fireball", "enemies": {"name": "Stalfos", "count": 5}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "open", "west": "locked"}}, {"number": 57, "column": 4, "row": 4, "type": "T Room", "enemies": {"name": "Enemy Mix AA", "count": 8}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "open", "west": "solid"}}, {"number": 42, "column": 5, "row": 3, "type": "Two Fireball", "enemies": {"name": "Zol", "count": 3}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 26, "column": 5, "row": 2, "type": "Black Room", "enemies": {"name": "Bomb Upgrade"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 25, "column": 4, "row": 2, "type": "Chevy", "enemies": {"name": "Blue Wizzrobe", "count": 5}, "item": {"name": "Compass", "drop": false}, "staircase": null, "doors": {"north": "shutter", "east": "bombable", "south": "solid", "west": "solid"}}, {"number": 9, "column": 4, "row": 1, "type": "Four Fireball", "enemies": {"name": "Enemy Mix AA", "count": 8}, "item": {"name": "Triforce", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "shutter", "west": "solid"}}, {"number": 10, "column": 5, "row": 1, "type": "Chevy", "enemies": {"name": "Digdogger (3)"}, "item": {"name": "Magical Sword", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "solid", "west": "open"}}, {"number": 11, "column": 6, "row": 1, "type": "Pointless Moat", "enemies": {"name": "Enemy Mix Q", "count": 5}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "shutter"}}]}, {"number": 5, "color": "#3CBCFC", "rooms": [{"number": 117, "column": 3, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "bombable", "east": "solid", "south": "open", "west": "open"}}, {"number": 116, "column": 2, "row": 8, "type": "Black Room", "enemies": {"name": "Hint #6"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "open"}}, {"number": 115, "column": 1, "row": 8, "type": "Black Room", "enemies": {"name": "Red Goriya", "count": 5}, "item": {"name": "Map", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "solid", "west": "solid"}}, {"number": 101, "column": 3, "row": 7, "type": "Triforce Room", "enemies": {"name": "Red Goriya", "count": 5}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "bombable", "west": "solid"}}, {"number": 85, "column": 3, "row": 6, "type": "Four Fireball", "enemies": {"name": "Blue Lynel", "count": 5}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "locked", "west": "locked"}}, {"number": 84, "column": 2, "row": 6, "type": "Five Pair", "enemies": {"name": "Blue Goriya", "count": 3}, "item": null, "staircase": {"kind": "item", "item": "Red Candle"}, "doors": {"north": "locked", "east": "locked", "south": "solid", "west": "solid"}}, {"number": 68, "column": 2, "row": 5, "type": "Black Room", "enemies": {"name": "Hint #2"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "locked", "west": "open"}}, {"number": 67, "column": 1, "row": 5, "type": "Reverse C", "enemies": {"name": "Blue Goriya", "count": 5}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 8}, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 8, "column": 6, "row": 1, "type": "Corridor Stair", "enemies": {"name": "Red Lynel", "count": 8}, "item": {"name": "Key", "drop": false}, "staircase": {"kind": "transport", "number": 1, "to": 67}, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 7, "column": 5, "row": 1, "type": "Desert Room", "enemies": {"name": "Blue Goriya", "count": 3}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "open", "west": "solid"}}, {"number": 23, "column": 5, "row": 2, "type": "NSU", "enemies": {"name": "Enemy Mix X", "count": 8}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "bombable", "south": "solid", "west": "solid"}}, {"number": 24, "column": 6, "row": 2, "type": "Horiz. Moat", "enemies": {"name": "Manhandala"}, "item": {"name": "Triforce", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "shutter", "west": "bombable"}}, {"number": 40, "column": 6, "row": 3, "type": "Plain", "enemies": {"name": "Blue Lynel", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "shutter", "west": "solid"}}, {"number": 56, "column": 6, "row": 4, "type": "Circle Moat", "enemies": {"name": "Enemy Mix T", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 41, "column": 7, "row": 3, "type": "Corridor Stair", "enemies": {"name": "Blue Keese", "count": 3}, "item": {"name": "Heart Container", "drop": true}, "staircase": {"kind": "transport", "number": 2, "to": 86}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 86, "column": 4, "row": 6, "type": "Corridor Stair", "enemies": {"name": "3 Head Gleeok"}, "item": {"name": "Key", "drop": false}, "staircase": {"kind": "transport", "number": 2, "to": 41}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 69, "column": 3, "row": 5, "type": "T Room", "enemies": {"name": "Red Lynel", "count": 5}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "open", "west": "shutter"}}, {"number": 53, "column": 3, "row": 4, "type": "Single Block", "enemies": {"name": "Moldorm"}, "item": null, "staircase": null, "doors": {"north": "open", "east": "open", "south": "open", "west": "solid"}}, {"number": 54, "column": 4, "row": 4, "type": "Black Room", "enemies": {"name": "Hint #1"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 37, "column": 3, "row": 3, "type": "Triforce Room", "enemies": null, "item": {"name": "Compass", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}]}, {"number": 6, "color": "#AC7C00", "rooms": [{"number": 113, "column": 3, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "bombable", "east": "locked", "south": "open", "west": "solid"}}, {"number": 114, "column": 4, "row": 8, "type": "Three Rows", "enemies": {"name": "Digdogger (3)"}, "item": null, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "solid", "west": "locked"}}, {"number": 98, "column": 4, "row": 7, "type": "Four Fireball", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": null, "doors": {"north": "locked", "east": "shutter", "south": "locked", "west": "locked"}}, {"number": 97, "column": 3, "row": 7, "type": "Plain", "enemies": {"name": "Blue Moblin", "count": 3}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "bombable", "west": "shutter"}}, {"number": 96, "column": 2, "row": 7, "type": "Single Six", "enemies": {"name": "Red Moblin", "count": 8}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "shutter", "south": "open", "west": "solid"}}, {"number": 112, "column": 2, "row": 8, "type": "Circle Moat", "enemies": {"name": "Red Moblin", "count": 6}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 80, "column": 2, "row": 6, "type": "Black Room", "enemies": {"name": "Wallmaster", "count": 3}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 99, "column": 5, "row": 7, "type": "Spike Trap", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": null, "doors": {"north": "open", "east": "bombable", "south": "solid", "west": "shutter"}}, {"number": 100, "column": 6, "row": 7, "type": "Black Room", "enemies": {"name": "Hint #3"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "bombable"}}, {"number": 83, "column": 5, "row": 6, "type": "Desert Room", "enemies": {"name": "Stalfos", "count": 8}, "item": {"name": "Triforce", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "open"}}, {"number": 82, "column": 4, "row": 6, "type": "Reverse C", "enemies": {"name": "Blue Moblin", "count": 5}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "locked", "west": "solid"}}, {"number": 66, "column": 4, "row": 5, "type": "Black Room", "enemies": {"name": "Hint #4"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "open"}}, {"number": 65, "column": 3, "row": 5, "type": "Circle Moat", "enemies": {"name": "Red Moblin", "count": 5}, "item": {"name": "Map", "drop": true}, "staircase": null, "doors": {"north": "shutter", "east": "shutter", "south": "solid", "west": "locked"}}, {"number": 64, "column": 2, "row": 5, "type": "Two Fireball", "enemies": {"name": "Vire", "count": 3}, "item": null, "staircase": null, "doors": {"north": "open", "east": "locked", "south": "solid", "west": "solid"}}, {"number": 48, "column": 2, "row": 4, "type": "Horiz. Moat", "enemies": {"name": "Wallmaster", "count": 3}, "item": {"name": "Bombs", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "shutter", "south": "shutter", "west": "solid"}}, {"number": 49, "column": 3, "row": 4, "type": "Corridor Stair", "enemies": {"name": "Stalfos", "count": 8}, "item": null, "staircase": {"kind": "item", "item": "Boomerang"}, "doors": {"north": "open", "east": "solid", "south": "open", "west": "open"}}, {"number": 33, "column": 3, "row": 3, "type": "Horiz. Moat", "enemies": {"name": "Enemy Mix S", "count": 8}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "bombable", "east": "bombable", "south": "shutter", "west": "locked"}}, {"number": 32, "column": 2, "row": 3, "type": "Double Block", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 52}, "doors": {"north": "solid", "east": "locked", "south": "open", "west": "solid"}}, {"number": 52, "column": 6, "row": 4, "type": "Grid Room", "enemies": {"name": "Wallmaster", "count": 8}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 32}, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "open"}}, {"number": 51, "column": 5, "row": 4, "type": "Gohma Room", "enemies": {"name": "Rupee Boss"}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "solid", "west": "open"}}, {"number": 50, "column": 4, "row": 4, "type": "Single Six", "enemies": {"name": "Wallmaster", "count": 6}, "item": null, "staircase": null, "doors": {"north": "open", "east": "open", "south": "solid", "west": "solid"}}, {"number": 34, "column": 4, "row": 3, "type": "Double Six", "enemies": {"name": "Red Moblin", "count": 6}, "item": {"name": "Heart Container", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "open", "west": "bombable"}}, {"number": 35, "column": 5, "row": 3, "type": "Double Six", "enemies": {"name": "Enemy Mix L", "count": 6}, "item": {"name": "Bombs", "drop": false}, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "open", "west": "shutter"}}, {"number": 19, "column": 5, "row": 2, "type": "Grid Room", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 36, "column": 6, "row": 3, "type": "Desert Room", "enemies": null, "item": {"name": "Bombs", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 17, "column": 3, "row": 2, "type": "Four Fireball", "enemies": {"name": "Manhandala"}, "item": {"name": "Compass", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "bombable", "west": "solid"}}, {"number": 1, "column": 3, "row": 1, "type": "Two Fireball", "enemies": {"name": "Stalfos", "count": 5}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "solid"}}]}, {"number": 7, "color": "#AC7C00", "rooms": [{"number": 126, "column": 7, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "open", "west": "solid"}}, {"number": 110, "column": 7, "row": 7, "type": "Black Room", "enemies": {"name": "Hint #2"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "locked", "west": "solid"}}, {"number": 111, "column": 8, "row": 7, "type": "Plain", "enemies": {"name": "Blue Lynel", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "open", "west": "open"}}, {"number": 127, "column": 8, "row": 8, "type": "Pointless Moat", "enemies": {"name": "Gel", "count": 3}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 95, "column": 8, "row": 6, "type": "Vert. Moat", "enemies": {"name": "Red Goriya", "count": 5}, "item": {"name": "5 Rupees", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 79, "column": 8, "row": 5, "type": "Double Moat", "enemies": {"name": "Gel", "count": 5}, "item": {"name": "Map", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "shutter"}}, {"number": 78, "column": 7, "row": 5, "type": "Four Tall", "enemies": {"name": "Enemy Mix Y", "count": 6}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "solid", "west": "solid"}}, {"number": 62, "column": 7, "row": 4, "type": "Corridor Stair", "enemies": {"name": "Moldorm"}, "item": {"name": "Key", "drop": true}, "staircase": {"kind": "item", "item": "Magical Boomerang"}, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 61, "column": 6, "row": 4, "type": "Black Room", "enemies": {"name": "Digdogger (1)"}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "solid", "west": "shutter"}}, {"number": 60, "column": 5, "row": 4, "type": "Black Room", "enemies": {"name": "Enemy Mix T", "count": 8}, "item": null, "staircase": null, "doors": {"north": "bombable", "east": "open", "south": "bombable", "west": "solid"}}, {"number": 76, "column": 5, "row": 5, "type": "Four Fireball", "enemies": {"name": "Blue Keese", "count": 3}, "item": {"name": "Heart Container", "drop": true}, "staircase": null, "doors": {"north": "bombable", "east": "solid", "south": "solid", "west": "open"}}, {"number": 75, "column": 4, "row": 5, "type": "Vert. Moat", "enemies": {"name": "Blue Lynel", "count": 8}, "item": {"name": "Compass", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "solid", "west": "solid"}}, {"number": 44, "column": 5, "row": 3, "type": "Four Fireball", "enemies": {"name": "Enemy Mix T", "count": 8}, "item": null, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "bombable", "west": "solid"}}, {"number": 28, "column": 5, "row": 2, "type": "Spiral Stair", "enemies": {"name": "Manhandala"}, "item": {"name": "Bombs", "drop": true}, "staircase": {"kind": "transport", "number": 1, "to": 46}, "doors": {"north": "shutter", "east": "bombable", "south": "locked", "west": "shutter"}}, {"number": 46, "column": 7, "row": 3, "type": "Diamond Stair", "enemies": {"name": "Blue Goriya", "count": 8}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 28}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 27, "column": 4, "row": 2, "type": "Four Fireball", "enemies": null, "item": null, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "solid", "west": "locked"}}, {"number": 26, "column": 3, "row": 2, "type": "Four Fireball", "enemies": {"name": "Gel", "count": 6}, "item": null, "staircase": null, "doors": {"north": "open", "east": "locked", "south": "shutter", "west": "solid"}}, {"number": 42, "column": 3, "row": 3, "type": "Circle Wall", "enemies": {"name": "Digdogger (3)"}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "solid", "west": "shutter"}}, {"number": 41, "column": 2, "row": 3, "type": "Black Room", "enemies": {"name": "Hint #3"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "open", "west": "solid"}}, {"number": 57, "column": 2, "row": 4, "type": "Two Fireball", "enemies": {"name": "Gel", "count": 3}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "solid", "west": "shutter"}}, {"number": 56, "column": 1, "row": 4, "type": "Black Room", "enemies": {"name": "3 Head Gleeok"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 10, "column": 3, "row": 1, "type": "Two Fireball", "enemies": {"name": "Red Lynel", "count": 3}, "item": {"name": "Triforce", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "open"}}, {"number": 9, "column": 2, "row": 1, "type": "Five Pair", "enemies": {"name": "Red Goriya", "count": 5}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 29, "column": 6, "row": 2, "type": "Black Room", "enemies": {"name": "Hungry Enemy"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "bombable"}}, {"number": 12, "column": 5, "row": 1, "type": "Double Block", "enemies": {"name": "Blue Goriya", "count": 6}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "shutter", "west": "solid"}}, {"number": 13, "column": 6, "row": 1, "type": "Double Moat", "enemies": {"name": "Digdogger (3)"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "open"}}, {"number": 14, "column": 7, "row": 1, "type": "Triforce Room", "enemies": {"name": "Red Lynel", "count": 5}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}]}, {"number": 8, "color": "#BCBCBC", "rooms": [{"number": 123, "column": 5, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "open", "west": "locked"}}, {"number": 122, "column": 4, "row": 8, "type": "Double Block", "enemies": {"name": "Horiz. Traps"}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "locked", "south": "solid", "west": "open"}}, {"number": 121, "column": 3, "row": 8, "type": "Double Block", "enemies": {"name": "Rupee Boss"}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "solid", "west": "open"}}, {"number": 120, "column": 2, "row": 8, "type": "Two Fireball", "enemies": {"name": "Enemy Mix U", "count": 8}, "item": {"name": "Compass", "drop": false}, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "solid", "west": "solid"}}, {"number": 104, "column": 2, "row": 7, "type": "Horiz. Chute", "enemies": {"name": "Zol", "count": 5}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "bombable", "south": "shutter", "west": "solid"}}, {"number": 105, "column": 3, "row": 7, "type": "Corridor Stair", "enemies": {"name": "Digdogger (3)"}, "item": {"name": "White Sword", "drop": true}, "staircase": {"kind": "transport", "number": 2, "to": 73}, "doors": {"north": "bombable", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 73, "column": 3, "row": 5, "type": "Five Pair", "enemies": {"name": "Aquamentus"}, "item": null, "staircase": {"kind": "transport", "number": 2, "to": 105}, "doors": {"north": "solid", "east": "open", "south": "open", "west": "solid"}}, {"number": 89, "column": 3, "row": 6, "type": "Maze Room", "enemies": {"name": "Gel", "count": 8}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "bombable", "west": "open"}}, {"number": 88, "column": 2, "row": 6, "type": "Four Short", "enemies": {"name": "Horiz. Traps"}, "item": {"name": "5 Rupees", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "open", "west": "open"}}, {"number": 87, "column": 1, "row": 6, "type": "Plain", "enemies": {"name": "Red Wizzrobe", "count": 3}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "solid", "west": "solid"}}, {"number": 74, "column": 4, "row": 5, "type": "Double Block", "enemies": {"name": "Digdogger (1)"}, "item": null, "staircase": {"kind": "item", "item": "Heart Container"}, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "open"}}, {"number": 58, "column": 4, "row": 4, "type": "Black Room", "enemies": {"name": "Mugger"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "shutter", "west": "solid"}}, {"number": 59, "column": 5, "row": 4, "type": "Double Six", "enemies": {"name": "Zol", "count": 3}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 106, "column": 4, "row": 7, "type": "Corridor Stair", "enemies": {"name": "Enemy Mix AA", "count": 8}, "item": {"name": "Map", "drop": true}, "staircase": {"kind": "transport", "number": 1, "to": 7}, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 7, "column": 1, "row": 1, "type": "Diamond Stair", "enemies": {"name": "Blue Wizzrobe", "count": 3}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 106}, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 8, "column": 2, "row": 1, "type": "Double Block", "enemies": {"name": "Enemy Mix N", "count": 8}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "bombable", "west": "open"}}, {"number": 24, "column": 2, "row": 2, "type": "Black Room", "enemies": {"name": "Gel", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "bombable", "east": "solid", "south": "open", "west": "solid"}}, {"number": 40, "column": 2, "row": 3, "type": "Double Block", "enemies": {"name": "Red Wizzrobe", "count": 5}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "solid", "west": "open"}}, {"number": 39, "column": 1, "row": 3, "type": "Black Room", "enemies": {"name": "Bomb Upgrade"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "bombable", "west": "solid"}}, {"number": 55, "column": 1, "row": 4, "type": "Corridor Stair", "enemies": {"name": "Blue Keese", "count": 8}, "item": {"name": "Key", "drop": false}, "staircase": {"kind": "item", "item": "Ladder"}, "doors": {"north": "bombable", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 124, "column": 6, "row": 8, "type": "Grid Room", "enemies": {"name": "Enemy Mix R", "count": 6}, "item": {"name": "Triforce", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "bombable", "south": "solid", "west": "open"}}, {"number": 125, "column": 7, "row": 8, "type": "Two Fireball", "enemies": {"name": "Aquamentus"}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "solid", "west": "bombable"}}, {"number": 109, "column": 7, "row": 7, "type": "Triforce Room", "enemies": {"name": "Enemy Mix Z", "count": 5}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "open", "west": "shutter"}}, {"number": 108, "column": 6, "row": 7, "type": "Pointless Moat", "enemies": {"name": "Red Wizzrobe", "count": 5}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "shutter", "south": "open", "west": "open"}}, {"number": 107, "column": 5, "row": 7, "type": "Chevy", "enemies": null, "item": null, "staircase": null, "doors": {"north": "open", "east": "shutter", "south": "solid", "west": "solid"}}, {"number": 91, "column": 5, "row": 6, "type": "Pointless Moat", "enemies": {"name": "Aquamentus"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "solid"}}, {"number": 93, "column": 7, "row": 6, "type": "Two Fireball", "enemies": {"name": "Digdogger (3)"}, "item": {"name": "Bombs", "drop": false}, "staircase": null, "doors": {"north": "bombable", "east": "open", "south": "open", "west": "solid"}}, {"number": 94, "column": 8, "row": 6, "type": "Four Fireball", "enemies": {"name": "Horiz. Traps"}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 77, "column": 7, "row": 5, "type": "Four Fireball", "enemies": {"name": "Pols Voice", "count": 6}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "bombable", "west": "solid"}}]}, {"number": 9, "color": "#00A800", "rooms": [{"number": 115, "column": 4, "row": 8, "type": "Entrance Room", "enemies": null, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "open", "west": "solid"}}, {"number": 99, "column": 4, "row": 7, "type": "Black Room", "enemies": {"name": "Hint #1"}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "shutter", "south": "open", "west": "shutter"}}, {"number": 98, "column": 3, "row": 7, "type": "Double Six", "enemies": {"name": "Stalfos", "count": 6}, "item": null, "staircase": null, "doors": {"north": "open", "east": "open", "south": "locked", "west": "solid"}}, {"number": 114, "column": 3, "row": 8, "type": "Grid Room", "enemies": {"name": "Vire", "count": 6}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "solid", "west": "open"}}, {"number": 113, "column": 2, "row": 8, "type": "Gohma Room", "enemies": {"name": "Blue Moblin", "count": 5}, "item": null, "staircase": {"kind": "transport", "number": 1, "to": 3}, "doors": {"north": "bombable", "east": "open", "south": "solid", "west": "open"}}, {"number": 3, "column": 4, "row": 1, "type": "Spiral Stair", "enemies": {"name": "Enemy Mix W", "count": 6}, "item": {"name": "5 Rupees", "drop": false}, "staircase": {"kind": "transport", "number": 1, "to": 113}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 112, "column": 1, "row": 8, "type": "Double Block", "enemies": {"name": "Digdogger (3)"}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "solid", "west": "solid"}}, {"number": 96, "column": 1, "row": 7, "type": "T Room", "enemies": {"name": "Stalfos", "count": 5}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "shutter", "west": "solid"}}, {"number": 97, "column": 2, "row": 7, "type": "Two Fireball", "enemies": {"name": "Blue Keese", "count": 5}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "bombable", "east": "solid", "south": "bombable", "west": "shutter"}}, {"number": 81, "column": 2, "row": 6, "type": "Four Fireball", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "shutter", "south": "bombable", "west": "bombable"}}, {"number": 80, "column": 1, "row": 6, "type": "Black Room", "enemies": {"name": "Hint #4"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "open", "west": "solid"}}, {"number": 82, "column": 3, "row": 6, "type": "Triforce Room", "enemies": {"name": "Stalfos", "count": 6}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "shutter", "east": "open", "south": "open", "west": "shutter"}}, {"number": 83, "column": 4, "row": 6, "type": "Plain", "enemies": {"name": "Blue Keese", "count": 5}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "bombable", "east": "open", "south": "open", "west": "open"}}, {"number": 84, "column": 5, "row": 6, "type": "Double Block", "enemies": {"name": "Enemy Mix W", "count": 6}, "item": null, "staircase": {"kind": "transport", "number": 6, "to": 103}, "doors": {"north": "solid", "east": "solid", "south": "locked", "west": "open"}}, {"number": 103, "column": 8, "row": 7, "type": "Diamond Stair", "enemies": {"name": "Enemy Mix N", "count": 8}, "item": {"name": "Key", "drop": false}, "staircase": {"kind": "transport", "number": 6, "to": 84}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "bombable"}}, {"number": 102, "column": 7, "row": 7, "type": "Lava Moat", "enemies": {"name": "Vire", "count": 6}, "item": null, "staircase": null, "doors": {"north": "open", "east": "bombable", "south": "solid", "west": "bombable"}}, {"number": 101, "column": 6, "row": 7, "type": "Black Room", "enemies": {"name": "Hint #2"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "locked", "west": "bombable"}}, {"number": 100, "column": 5, "row": 7, "type": "Diamond Stair", "enemies": {"name": "Enemy Mix O", "count": 6}, "item": {"name": "5 Rupees", "drop": false}, "staircase": {"kind": "transport", "number": 2, "to": 50}, "doors": {"north": "locked", "east": "bombable", "south": "open", "west": "open"}}, {"number": 50, "column": 3, "row": 4, "type": "Double Block", "enemies": {"name": "Enemy Mix L", "count": 6}, "item": null, "staircase": {"kind": "transport", "number": 2, "to": 100}, "doors": {"north": "open", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 49, "column": 2, "row": 4, "type": "Four Tall", "enemies": {"name": "Enemy Mix S", "count": 8}, "item": {"name": "Bombs", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "bombable", "south": "shutter", "west": "bombable"}}, {"number": 48, "column": 1, "row": 4, "type": "Zigzag", "enemies": {"name": "Enemy Mix O", "count": 6}, "item": null, "staircase": {"kind": "transport", "number": 4, "to": 52}, "doors": {"north": "open", "east": "bombable", "south": "solid", "west": "solid"}}, {"number": 52, "column": 5, "row": 4, "type": "Double Block", "enemies": {"name": "Rupee Boss"}, "item": null, "staircase": {"kind": "transport", "number": 4, "to": 48}, "doors": {"north": "locked", "east": "solid", "south": "open", "west": "solid"}}, {"number": 68, "column": 5, "row": 5, "type": "Gannon Room", "enemies": {"name": "The Beast"}, "item": {"name": "Triforce of Power", "drop": false}, "staircase": null, "doors": {"north": "shutter", "east": "shutter", "south": "solid", "west": "solid"}}, {"number": 69, "column": 6, "row": 5, "type": "Reverse C", "enemies": {"name": "Blue Moblin", "count": 3}, "item": null, "staircase": {"kind": "transport", "number": 5, "to": 54}, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "bombable"}}, {"number": 54, "column": 7, "row": 4, "type": "Diamond Stair", "enemies": {"name": "Aquamentus"}, "item": null, "staircase": {"kind": "transport", "number": 5, "to": 69}, "doors": {"north": "locked", "east": "solid", "south": "open", "west": "open"}}, {"number": 53, "column": 6, "row": 4, "type": "Horiz. Chute", "enemies": {"name": "Blue Moblin", "count": 8}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "open", "south": "solid", "west": "solid"}}, {"number": 37, "column": 6, "row": 3, "type": "Black Room", "enemies": {"name": "Rupee Boss"}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "bombable", "east": "shutter", "south": "open", "west": "open"}}, {"number": 36, "column": 5, "row": 3, "type": "Plain", "enemies": {"name": "Blue Keese", "count": 8}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "shutter", "south": "locked", "west": "solid"}}, {"number": 20, "column": 5, "row": 2, "type": "Grid Room", "enemies": {"name": "Rupee Boss"}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "shutter", "west": "locked"}}, {"number": 19, "column": 4, "row": 2, "type": "Circle Moat", "enemies": {"name": "Stalfos", "count": 3}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "locked", "south": "bombable", "west": "shutter"}}, {"number": 18, "column": 3, "row": 2, "type": "Single Six", "enemies": {"name": "Blue Keese", "count": 8}, "item": {"name": "Map", "drop": true}, "staircase": null, "doors": {"north": "open", "east": "shutter", "south": "shutter", "west": "shutter"}}, {"number": 17, "column": 2, "row": 2, "type": "Two Fireball", "enemies": {"name": "Blue Moblin", "count": 3}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "locked", "east": "shutter", "south": "open", "west": "solid"}}, {"number": 33, "column": 2, "row": 3, "type": "Four Short", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "open", "west": "bombable"}}, {"number": 32, "column": 1, "row": 3, "type": "Spiral Stair", "enemies": {"name": "Stalfos", "count": 3}, "item": {"name": "Key", "drop": false}, "staircase": {"kind": "transport", "number": 3, "to": 34}, "doors": {"north": "shutter", "east": "bombable", "south": "shutter", "west": "solid"}}, {"number": 34, "column": 3, "row": 3, "type": "Corridor Stair", "enemies": {"name": "Rupee Boss"}, "item": {"name": "Bombs", "drop": false}, "staircase": {"kind": "transport", "number": 3, "to": 32}, "doors": {"north": "shutter", "east": "solid", "south": "open", "west": "solid"}}, {"number": 16, "column": 1, "row": 2, "type": "Zelda Room", "enemies": {"name": "Stalfos", "count": 6}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "shutter", "west": "solid"}}, {"number": 1, "column": 2, "row": 1, "type": "Zigzag", "enemies": {"name": "Stalfos", "count": 5}, "item": {"name": "Bombs", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "locked", "west": "open"}}, {"number": 0, "column": 1, "row": 1, "type": "Triforce Room", "enemies": {"name": "Stalfos", "count": 3}, "item": {"name": "Bombs", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 2, "column": 3, "row": 1, "type": "Two Fireball", "enemies": {"name": "Red Moblin", "count": 6}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "open", "west": "solid"}}, {"number": 35, "column": 4, "row": 3, "type": "Double Block", "enemies": {"name": "Enemy Mix W", "count": 6}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "bombable", "east": "solid", "south": "solid", "west": "solid"}}, {"number": 4, "column": 5, "row": 1, "type": "Four Tall", "enemies": {"name": "Red Moblin", "count": 5}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "open", "west": "solid"}}, {"number": 5, "column": 6, "row": 1, "type": "Black Room", "enemies": {"name": "Hint #3"}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "bombable", "south": "open", "west": "bombable"}}, {"number": 21, "column": 6, "row": 2, "type": "Double Block", "enemies": {"name": "Blue Keese", "count": 8}, "item": null, "staircase": null, "doors": {"north": "shutter", "east": "solid", "south": "bombable", "west": "solid"}}, {"number": 6, "column": 7, "row": 1, "type": "Double Block", "enemies": {"name": "Enemy Mix L", "count": 6}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "locked", "west": "bombable"}}, {"number": 22, "column": 7, "row": 2, "type": "Plain", "enemies": {"name": "Aquamentus"}, "item": null, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "locked", "west": "solid"}}, {"number": 38, "column": 7, "row": 3, "type": "Zigzag", "enemies": {"name": "Enemy Mix O", "count": 6}, "item": null, "staircase": null, "doors": {"north": "locked", "east": "solid", "south": "locked", "west": "open"}}, {"number": 70, "column": 7, "row": 5, "type": "Triforce Room", "enemies": {"name": "Wallmaster", "count": 5}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "open", "south": "open", "west": "solid"}}, {"number": 86, "column": 7, "row": 6, "type": "Vert. Moat", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": null, "doors": {"north": "open", "east": "solid", "south": "open", "west": "solid"}}, {"number": 71, "column": 8, "row": 5, "type": "Four Fireball", "enemies": {"name": "Vire", "count": 3}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "open"}}, {"number": 65, "column": 2, "row": 5, "type": "Vert. Moat", "enemies": {"name": "Vire", "count": 6}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "open", "east": "bombable", "south": "open", "west": "shutter"}}, {"number": 64, "column": 1, "row": 5, "type": "Desert Room", "enemies": {"name": "The Kidnapped"}, "item": {"name": "Compass", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "open", "south": "solid", "west": "solid"}}, {"number": 66, "column": 3, "row": 5, "type": "Four Fireball", "enemies": {"name": "Aquamentus"}, "item": {"name": "Key", "drop": true}, "staircase": null, "doors": {"north": "shutter", "east": "bombable", "south": "shutter", "west": "bombable"}}, {"number": 67, "column": 4, "row": 5, "type": "Desert Room", "enemies": {"name": "Enemy Mix N", "count": 8}, "item": null, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "bombable", "west": "bombable"}}, {"number": 116, "column": 5, "row": 8, "type": "Spiral Stair", "enemies": {"name": "Blue Keese", "count": 5}, "item": null, "staircase": {"kind": "item", "item": "Magical Key"}, "doors": {"north": "open", "east": "open", "south": "solid", "west": "solid"}}, {"number": 117, "column": 6, "row": 8, "type": "Two Fireball", "enemies": {"name": "Enemy Mix L", "count": 6}, "item": {"name": "5 Rupees", "drop": true}, "staircase": null, "doors": {"north": "locked", "east": "open", "south": "solid", "west": "shutter"}}, {"number": 118, "column": 7, "row": 8, "type": "Double Block", "enemies": {"name": "Digdogger (3)"}, "item": null, "staircase": {"kind": "item", "item": "Heart Container"}, "doors": {"north": "solid", "east": "locked", "south": "solid", "west": "open"}}, {"number": 119, "column": 8, "row": 8, "type": "Double Six", "enemies": {"name": "Stalfos", "count": 6}, "item": {"name": "Key", "drop": false}, "staircase": null, "doors": {"north": "solid", "east": "solid", "south": "solid", "west": "locked"}}]}], "overworld": {"screens": [{"number": 1, "column": 2, "row": 1, "cave": {"name": "Medium Secret", "shortName": "30R"}}, {"number": 3, "column": 4, "row": 1, "cave": {"name": "Any Road", "shortName": "Any Rd."}}, {"number": 4, "column": 5, "row": 1, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 5, "column": 6, "row": 1, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 7, "column": 8, "row": 1, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 10, "column": 11, "row": 1, "cave": {"name": "Letter Cave", "shortName": "Letter"}}, {"number": 11, "column": 12, "row": 1, "cave": {"name": "Medium Secret", "shortName": "30R"}}, {"number": 12, "column": 13, "row": 1, "cave": {"name": "Level 9", "shortName": "L9"}}, {"number": 13, "column": 14, "row": 1, "cave": {"name": "Potion Shop", "shortName": "Potion"}}, {"number": 14, "column": 15, "row": 1, "cave": {"name": "Take Any", "shortName": "Take Any"}}, {"number": 15, "column": 16, "row": 1, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 16, "column": 1, "row": 2, "cave": {"name": "Shop 3", "shortName": "Shop 3"}}, {"number": 18, "column": 3, "row": 2, "cave": {"name": "Hint Shop 2", "shortName": "Hints 2"}}, {"number": 19, "column": 4, "row": 2, "cave": {"name": "Level 5", "shortName": "L5"}}, {"number": 20, "column": 5, "row": 2, "cave": {"name": "Potion Shop", "shortName": "Potion"}}, {"number": 22, "column": 7, "row": 2, "cave": {"name": "Small Secret", "shortName": "10R"}}, {"number": 26, "column": 11, "row": 2, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 28, "column": 13, "row": 2, "cave": {"name": "Shop 1", "shortName": "Shop 1"}}, {"number": 29, "column": 14, "row": 2, "cave": {"name": "Large Secret", "shortName": "100R"}}, {"number": 30, "column": 15, "row": 2, "cave": {"name": "Any Road", "shortName": "Any Rd."}}, {"number": 31, "column": 16, "row": 2, "cave": {"name": "Medium Secret", "shortName": "30R"}}, {"number": 33, "column": 2, "row": 3, "cave": {"name": "Shop 3", "shortName": "Shop 3"}}, {"number": 34, "column": 3, "row": 3, "cave": {"name": "Shop 1", "shortName": "Shop 1"}}, {"number": 35, "column": 4, "row": 3, "cave": {"name": "Any Road", "shortName": "Any Rd."}}, {"number": 36, "column": 5, "row": 3, "cave": {"name": "Take Any", "shortName": "Take Any"}}, {"number": 37, "column": 6, "row": 3, "cave": {"name": "Level 3", "shortName": "L3"}}, {"number": 38, "column": 7, "row": 3, "cave": {"name": "Small Secret", "shortName": "10R"}}, {"number": 39, "column": 8, "row": 3, "cave": {"name": "Potion Shop", "shortName": "Potion"}}, {"number": 40, "column": 9, "row": 3, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 44, "column": 13, "row": 3, "cave": {"name": "Money Making Game", "shortName": "MMG"}}, {"number": 45, "column": 14, "row": 3, "cave": {"name": "Medium Secret", "shortName": "30R"}}, {"number": 47, "column": 16, "row": 3, "cave": {"name": "Shop 1", "shortName": "Shop 1"}}, {"number": 51, "column": 4, "row": 4, "cave": {"name": "Magical Sword Cave", "shortName": "Mags"}}, {"number": 55, "column": 8, "row": 4, "cave": {"name": "Shop 1", "shortName": "Shop 1"}}, {"number": 60, "column": 13, "row": 4, "cave": {"name": "White Sword Cave", "shortName": "White"}}, {"number": 61, "column": 14, "row": 4, "cave": {"name": "Shop 4", "shortName": "Shop 4"}}, {"number": 66, "column": 3, "row": 5, "cave": {"name": "Potion Shop", "shortName": "Potion"}}, {"number": 68, "column": 5, "row": 5, "cave": {"name": "Shop 2", "shortName": "Shop 2"}}, {"number": 69, "column": 6, "row": 5, "cave": {"name": "White Sword Clue", "shortName": "WS Clue"}}, {"number": 70, "column": 7, "row": 5, "cave": {"name": "Small Secret", "shortName": "10R"}}, {"number": 71, "column": 8, "row": 5, "cave": {"name": "Money Making Game", "shortName": "MMG"}}, {"number": 72, "column": 9, "row": 5, "cave": {"name": "Magical Sword Clue", "shortName": "MS Clue"}}, {"number": 73, "column": 10, "row": 5, "cave": {"name": "Money Making Game", "shortName": "MMG"}}, {"number": 74, "column": 11, "row": 5, "cave": {"name": "Potion Shop", "shortName": "Potion"}}, {"number": 75, "column": 12, "row": 5, "cave": {"name": "Shop 3", "shortName": "Shop 3"}}, {"number": 77, "column": 14, "row": 5, "cave": {"name": "Medium Secret", "shortName": "30R"}}, {"number": 78, "column": 15, "row": 5, "cave": {"name": "Level 1", "shortName": "L1"}}, {"number": 81, "column": 2, "row": 6, "cave": {"name": "Level 8", "shortName": "L8"}}, {"number": 86, "column": 7, "row": 6, "cave": {"name": "Shop 3", "shortName": "Shop 3"}}, {"number": 91, "column": 12, "row": 6, "cave": {"name": "Shop 2", "shortName": "Shop 2"}}, {"number": 94, "column": 15, "row": 6, "cave": {"name": "Medium Secret", "shortName": "30R"}}, {"number": 98, "column": 3, "row": 7, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 99, "column": 4, "row": 7, "cave": {"name": "Hint Shop 1", "shortName": "Hints 1"}}, {"number": 100, "column": 5, "row": 7, "cave": {"name": "Shop 2", "shortName": "Shop 2"}}, {"number": 102, "column": 7, "row": 7, "cave": {"name": "Wood Sword Cave", "shortName": "Wood"}}, {"number": 103, "column": 8, "row": 7, "cave": {"name": "Level 7", "shortName": "L7"}}, {"number": 104, "column": 9, "row": 7, "cave": {"name": "Level 2", "shortName": "L2"}}, {"number": 106, "column": 11, "row": 7, "cave": {"name": "Level 6", "shortName": "L6"}}, {"number": 107, "column": 12, "row": 7, "cave": {"name": "Take Any", "shortName": "Take Any"}}, {"number": 109, "column": 14, "row": 7, "cave": {"name": "Potion Shop", "shortName": "Potion"}}, {"number": 111, "column": 16, "row": 7, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 112, "column": 1, "row": 8, "cave": {"name": "Large Secret", "shortName": "100R"}}, {"number": 113, "column": 2, "row": 8, "cave": {"name": "Large Secret", "shortName": "100R"}}, {"number": 116, "column": 5, "row": 8, "cave": {"name": "Money Making Game", "shortName": "MMG"}}, {"number": 117, "column": 6, "row": 8, "cave": {"name": "Level 4", "shortName": "L4"}}, {"number": 118, "column": 7, "row": 8, "cave": {"name": "Small Secret", "shortName": "10R"}}, {"number": 119, "column": 8, "row": 8, "cave": {"name": "Medium Secret", "shortName": "30R"}}, {"number": 120, "column": 9, "row": 8, "cave": {"name": "Door Repair", "shortName": "-20R"}}, {"number": 121, "column": 10, "row": 8, "cave": {"name": "Any Road", "shortName": "Any Rd."}}, {"number": 123, "column": 12, "row": 8, "cave": {"name": "Take Any", "shortName": "Take Any"}}, {"number": 124, "column": 13, "row": 8, "cave": {"name": "Potion Shop", "shortName": "Potion"}}, {"number": 125, "column": 14, "row": 8, "cave": {"name": "Money Making Game", "shortName": "MMG"}}], "armos": "Heart Container", "coast": "Raft"}, "caves": [{"name": "Wood Sword Cave", "kind": "item", "wares": [{"item": "Blue Candle"}, {"item": "Wood Sword"}]}, {"name": "Take Any", "kind": "take-any", "wares": [{"item": "Red Potion"}, {"item": "Blue Candle"}, {"item": "Heart Container"}]}, {"name": "White Sword Cave", "kind": "item", "wares": [{"item": "Red Ring"}]}, {"name": "Magical Sword Cave", "kind": "item", "wares": [{"item": "Heart Container"}]}, {"name": "Letter Cave", "kind": "item", "wares": [{"item": "Letter"}]}, {"name": "Shop 1", "kind": "shop", "wares": [{"item": "Key", "price": 67}, {"item": "Shield", "price": 152}, {"item": "Blue Ring", "price": 253}]}, {"name": "Shop 2", "kind": "shop", "wares": [{"item": "Shield", "price": 121}, {"item": "Bait", "price": 50}, {"item": "Blue Candle", "price": 78}]}, {"name": "Shop 3", "kind": "shop", "wares": [{"item": "Heart", "price": 10}, {"item": "Key", "price": 103}, {"item": "Shield", "price": 83}]}, {"name": "Shop 4", "kind": "shop", "wares": [{"item": "Bait", "price": 81}, {"item": "Wooden Arrow", "price": 70}, {"item": "Bombs", "price": 14}]}, {"name": "Potion Shop", "kind": "potion-shop", "wares": [{"item": "Blue Potion", "price": 34}, {"item": "Red Potion", "price": 72}]}], "hints": [{"text": "DID SOMEBODY SAY  ... WOOD?"}, {"text": "MASTER USING IT AND YOU CAN HAVE THE HEART CONTAINER"}, {"text": "I CHALLENGE YOU TO A STAIRING CONTEST!"}, {"text": "THE OLD MAN HAS THE RED RING IN REGION 8"}, {"text": "THE HOUSE ALWAYS WINS"}, {"text": "IT'S ME, HI I'M THE PROBLEM IT'S ME"}, {"text": "SHOW ME SOMETHING"}, {"text": "MEET THE MOBLIN IN REGION 2"}, {"text": "WOULD YOU LIKE TO OPT INTO AUTO-REFILLS?"}, {"text": "THIS IS NOT LEGAL ADVICE"}, {"text": "INSERT COMMUNITY HINT 9"}, {"text": "THIS LINE HERE IS MOSTLY FILLER"}, {"text": "INSERT COMMUNITY HINT 6"}, {"text": "INSERT COMMUNITY HINT 7"}, {"text": "LINK.EXE HAS STOPPED WORKING"}, {"text": "WOAH THERE I'VE GOT SOME NEAT JUNK FOR SALE"}, {"text": "CAKE OR DEATH?"}, {"text": "GANON WANTS RANSOM TAKE THIS!"}, {"text": "BUT YOU'RE STILL HUNGRY ..."}, {"text": "INSERT COMMUNITY HINT 48"}, {"text": "THE PRINCESS NEEDS NO RAFT"}, {"text": "INSERT COMMUNITY HINT 12"}, {"text": "THE DODONGO IS IN REGION 4"}, {"text": "INSERT COMMUNITY HINT 33"}, {"text": "THE GOHMA IS IN REGION 2"}, {"text": "HI, I'M BOMB BARKER PLEASE HAVE YOUR PETS SPAYED OR NEUTERED!"}, {"text": "THE DIGDOGGER HOLDS THE RED CANDLE"}, {"text": "LEAVE YOUR LIFE OR MONEY"}, {"text": "THE DIGDOGGER IS IN REGION 1"}, {"text": "INSERT COMMUNITY HINT 27"}, {"text": "ZZZZZZZZ ...  ZZZZZZZZ...  ARE THEY GONE YET?"}, {"text": "INSERT COMMUNITY HINT 15"}, {"text": "THE GOHMA HOLDS THE SILVER ARROWS"}, {"text": "THE GLEEOK IS IN REGION 5"}, {"text": "YOU NEED EIGHT TRIFORCE PIECES."}, {"text": "SILVER ARROWS LIE ELSEWHERE"}, {"text": "GANON IS IN THE SOUTH-EAST"}, {"text": "ZELDA IS IN THE SOUTH-WEST"}, {"text": "THE LURKING MANHANDLA IS IN REGION 3"}, {"text": "INSERT COMMUNITY HINT 47"}, {"text": "!LFG"}, {"text": "INSERT COMMUNITY HINT 34"}, {"text": "THE RAFT NEEDS THE LADDER"}, {"text": "THE RECORDER NEEDS THE BOW"}, {"text": "THIS COULD BE YOU!"}], "requirements": {"whiteSwordHearts": 4, "magicalSwordHearts": 11, "level9Triforces": 8, "doorRepairCost": 20}}</script>
+<script>
+// A small JSON Schema validator for the keywords docs/seed-format.schema.json uses, so the page
+// can check a seed from ZORA or a file without a library. It throws on any other keyword, so a
+// schema change it cannot check is noticed rather than half-checked.
+//
+// Type-checked with JSDoc (scripts/check_site.mjs runs tsc).
+// @ts-check
+"use strict";
+
+const SUPPORTED_KEYWORDS = new Set([
+  "$schema", "$id", "title", "description", "$defs", "$ref", "type", "const", "enum", "pattern",
+  "minLength", "maxLength", "minimum", "maximum", "minItems", "maxItems", "required", "properties",
+  "items", "anyOf",
+]);
+
+/**
+ * The JSON type of a value, with "integer" for whole numbers.
+ * @param {unknown} value
+ */
+function jsonType(value) {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  if (typeof value === "number") return Number.isInteger(value) ? "integer" : "number";
+  return typeof value;
+}
+
+/**
+ * Checks a value against a schema.
+ * @param {any} root  The schema; its "$defs" resolve "#/$defs/<name>" references.
+ * @param {unknown} value
+ * @returns {string[]} The problems found, each "<path>: <what>"; empty when the value is valid.
+ */
+function validateJsonSchema(root, value) {
+  /** @type {string[]} */
+  const errors = [];
+
+  /**
+   * @param {any} schema
+   * @param {unknown} node
+   * @param {string} path
+   * @param {string[]} out
+   */
+  function check(schema, node, path, out) {
+    for (const keyword of Object.keys(schema)) {
+      if (!SUPPORTED_KEYWORDS.has(keyword)) throw new Error(`the validator does not support "${keyword}"`);
+    }
+    if (schema.$ref !== undefined) {
+      const name = String(schema.$ref).replace(/^#\/\$defs\//, "");
+      if (!root.$defs || !root.$defs[name]) throw new Error(`unknown reference ${schema.$ref}`);
+      check(root.$defs[name], node, path, out);
+    }
+    const type = jsonType(node);
+    const where = path || "the seed";
+    if (schema.type !== undefined && !(type === schema.type || (schema.type === "number" && type === "integer"))) {
+      out.push(`${where}: should be ${schema.type === "integer" ? "a whole number" : `of type ${schema.type}`}, not ${type}`);
+      return;
+    }
+    if (schema.const !== undefined && node !== schema.const) out.push(`${where}: should be ${JSON.stringify(schema.const)}`);
+    if (schema.enum !== undefined && !schema.enum.includes(node)) {
+      out.push(`${where}: ${JSON.stringify(node)} is not one of the allowed values`);
+    }
+    if (typeof node === "string") {
+      if (schema.pattern !== undefined && !new RegExp(schema.pattern, "u").test(node)) {
+        out.push(`${where}: ${JSON.stringify(node)} does not have the expected form`);
+      }
+      if (schema.minLength !== undefined && node.length < schema.minLength) out.push(`${where}: is too short`);
+      if (schema.maxLength !== undefined && node.length > schema.maxLength) out.push(`${where}: is too long`);
+    }
+    if (typeof node === "number") {
+      if (schema.minimum !== undefined && node < schema.minimum) out.push(`${where}: should be at least ${schema.minimum}`);
+      if (schema.maximum !== undefined && node > schema.maximum) out.push(`${where}: should be at most ${schema.maximum}`);
+    }
+    if (Array.isArray(node)) {
+      if (schema.minItems !== undefined && node.length < schema.minItems) out.push(`${where}: has too few entries`);
+      if (schema.maxItems !== undefined && node.length > schema.maxItems) out.push(`${where}: has too many entries`);
+      if (schema.items !== undefined) node.forEach((item, i) => check(schema.items, item, `${path}[${i}]`, out));
+    }
+    if (type === "object") {
+      const object = /** @type {Record<string, unknown>} */ (node);
+      for (const name of schema.required || []) {
+        if (!Object.prototype.hasOwnProperty.call(object, name)) out.push(`${where}: "${name}" is missing`);
+      }
+      for (const [name, sub] of Object.entries(schema.properties || {})) {
+        if (Object.prototype.hasOwnProperty.call(object, name)) {
+          check(sub, object[name], path ? `${path}.${name}` : name, out);
+        }
+      }
+    }
+    if (schema.anyOf !== undefined) {
+      /** @type {string[][]} */
+      const attempts = schema.anyOf.map((/** @type {any} */ option) => {
+        /** @type {string[]} */
+        const found = [];
+        check(option, node, path, found);
+        return found;
+      });
+      if (!attempts.some((found) => found.length === 0)) {
+        // Report the closest option's problems: usually the form the producer meant.
+        attempts.sort((a, b) => a.length - b.length);
+        out.push(...(attempts[0].length ? attempts[0] : [`${where}: does not match any allowed form`]));
+      }
+    }
+  }
+
+  check(root, value, "", errors);
+  return errors;
+}
+</script>
+<script>
+// The Z1R Visualizer page. It draws every view from a seed in the seed format
+// (docs/seed-format.md), which arrives one of three ways:
+// - from a ROM the player chooses: the Python parser (spoiler.py, run in worker.js with Pyodide)
+//   reads it; the ROM's bytes go only to the worker, and nothing is uploaded;
+// - from a seed file (.json) the player chooses;
+// - from the tab that opened this one, by window messaging ("View in Visualizer" in ZORA;
+//   docs/seed-format.md section 5).
+// Seeds from a file or another tab need no Pyodide. Every seed is checked against the format's
+// schema (validate.js) before it is drawn.
+//
+// Served as a site, the page fetches worker.js, the schema and the parser (py/). The single-file
+// build (scripts/build_site.py --single-file) inlines them, in the script elements read below.
+//
+// Type-checked with JSDoc (tsc --noEmit -p site/jsconfig.json, run by scripts/check_site.mjs).
+// @ts-check
+"use strict";
+
+// The seed format, as the page reads it (docs/seed-format.schema.json has the full definition).
+/**
+ * @typedef {"north" | "east" | "south" | "west"} Direction
+ * @typedef {"open" | "solid" | "bombable" | "locked" | "walk-through" | "shutter"} Door
+ * @typedef {{kind: "item", item: string | null} | {kind: "transport", number: number, to: number}} Staircase
+ * @typedef {{number: number, column: number, row: number, type: string,
+ *   enemies: {name: string, count?: number} | null, item: {name: string, drop: boolean} | null,
+ *   staircase: Staircase | null, doors: Record<Direction, Door>}} SeedRoom
+ * @typedef {{number: number, color: string, rooms: SeedRoom[]}} SeedLevel
+ * @typedef {{number: number, column: number, row: number, cave: {name: string, shortName: string}}} SeedScreen
+ * @typedef {{item: string, price?: number, sellsOnce?: boolean}} Ware
+ * @typedef {{name: string, kind: "item" | "take-any" | "shop" | "potion-shop", wares: Ware[]}} Cave
+ * @typedef {{text: string, notes: number[]}} RecorderTune
+ * @typedef {{format: "z1r-seed", formatVersion: string, producer: {name: string, version: string},
+ *   seed?: {number?: string, flags?: string, zoraFlags?: string, code?: string[]},
+ *   progressiveItems?: boolean, levels: SeedLevel[],
+ *   overworld: {screens: SeedScreen[], armos: string | null, coast: string | null},
+ *   caves: Cave[], hints: Array<{text: string, speaker?: string}>, recorder?: RecorderTune,
+ *   requirements?: {whiteSwordHearts?: number, magicalSwordHearts?: number, level9Triforces?: number,
+ *     doorRepairCost?: number},
+ *   settings?: Array<{id?: string, name: string, chosen: string, resolved: string}>}} Seed
+ *
+ * What the page shows: a seed, or a ROM it refused (which still has its recorder tune).
+ * @typedef {{seed: Seed, source: string} | {seed: null, status: "encoded" | "unsupported", message: string,
+ *   recorder: RecorderTune | null}} Shown
+ *
+ * @typedef {Record<string, string | number>} Row  A table row: column name to cell.
+ * @typedef {Array<[string, string | number | undefined]>} TooltipFields
+ * @typedef {{node: SVGElement, key: string, label: string, fields: TooltipFields, stair: string,
+ *   x: number, y: number}} MapSpot
+ *   A room or overworld screen on a map. key: its room or screen number; label: what a screen
+ *   reader announces for it; stair: its transport staircase ("Stair #2"), or ""; x, y: its centre
+ *   in the SVG's pixels.
+ */
+
+const PYTHON_FILES = ["constants.py", "rom_reader.py", "data_extractor.py", "spoiler.py"];
+const SCHEMA_FILE = "seed-format.schema.json";
+const FORMAT_MAJOR = 1;  // the seed format's major version this page reads
+const HANDOFF_PROTOCOL = 1;
+const MAX_SEED_JSON = 4 * 1024 * 1024;  // characters
+const SVG_NS = "http://www.w3.org/2000/svg";
+const VIEWS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => `Level ${level}`)
+  .concat(["Overworld", "Recorder Info", "Item Summary", "Hint Texts", "Seed Info"]);
+const NO_ROM_TEXT = "Please upload a Legend of Zelda ROM using the file widget above. Supported ROM " +
+  "types are vanilla Legend of Zelda ROMs and randomized ROMs created by Zelda Randomizer without " +
+  "the ‘Race ROM’ flag checked or by ZORA without ‘Encode level data’. A seed file (.json) in the " +
+  "seed format works too.";
+
+// The page's fixed elements (index.html; this script runs after them).
+const romInput = /** @type {HTMLInputElement} */ (document.getElementById("rom"));
+const viewSelect = /** @type {HTMLSelectElement} */ (document.getElementById("view"));
+const statusLine = /** @type {HTMLElement} */ (document.getElementById("status"));
+const messageArea = /** @type {HTMLElement} */ (document.getElementById("messages"));
+const picker = /** @type {HTMLElement} */ (document.getElementById("picker"));
+const output = /** @type {HTMLElement} */ (document.getElementById("output"));
+const tooltip = /** @type {HTMLElement} */ (document.getElementById("tooltip"));
+const pageVersion = /** @type {string} */ (/** @type {HTMLElement} */ (document.getElementById("version")).textContent);
+
+/**
+ * @template {keyof HTMLElementTagNameMap} K
+ * @param {K} tag
+ * @param {Record<string, unknown>} [props]  Properties set on the element, e.g. textContent.
+ * @param {Array<Node | string>} [children]
+ * @returns {HTMLElementTagNameMap[K]}
+ */
+function element(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  Object.assign(node, props);
+  node.append(...children);
+  return node;
+}
+
+/**
+ * @param {string} tag
+ * @param {Record<string, string | number>} [attrs]
+ * @returns {SVGElement}
+ */
+function svgElement(tag, attrs = {}) {
+  const node = /** @type {SVGElement} */ (document.createElementNS(SVG_NS, tag));
+  for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+  return node;
+}
+
+/** @param {unknown} err */
+const errorMessage = (err) => (err instanceof Error ? err.message : String(err));
+
+// ---------------------------------------------------------------------------------------------
+// The Python worker, started on first need: at once for a normal visit, but only when a ROM is
+// chosen if another tab opened this one to hand it a seed.
+
+/** @returns {Worker} */
+function startWorker() {
+  const inline = document.getElementById("worker-source");
+  if (inline) {
+    const source = /** @type {string} */ (inline.textContent);
+    return new Worker(URL.createObjectURL(new Blob([source], { type: "text/javascript" })));
+  }
+  return new Worker("worker.js");
+}
+
+/** @returns {Promise<Record<string, string>>} The parser's files, by name. */
+async function pythonSources() {
+  const inline = document.getElementById("python-sources");
+  if (inline) return JSON.parse(/** @type {string} */ (inline.textContent));
+  /** @type {Record<string, string>} */
+  const sources = {};
+  for (const name of PYTHON_FILES) {
+    const response = await fetch(`py/${name}`);
+    if (!response.ok) throw new Error(`could not load py/${name} (${response.status})`);
+    sources[name] = await response.text();
+  }
+  return sources;
+}
+
+/** @type {Worker | null} */
+let worker = null;
+/** @type {Map<number, {resolve: (reply: any) => void, reject: (err: Error) => void}>} */
+const pending = new Map();
+let nextId = 1;
+/** @type {Promise<void> | null} */
+let pythonReady = null;
+
+/**
+ * Sends the worker a request (worker.js lists them) and resolves to its reply.
+ * @param {Worker} target
+ * @param {string} type
+ * @param {Record<string, unknown>} [payload]
+ * @returns {Promise<any>}
+ */
+function ask(target, type, payload = {}) {
+  const id = nextId++;
+  return new Promise((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+    target.postMessage({ type, id, ...payload });
+  });
+}
+
+/** Starts Pyodide and the parser once; later calls wait for the same start. */
+function ensurePython() {
+  if (!pythonReady) {
+    const started = performance.now();
+    const target = startWorker();
+    worker = target;
+    target.onmessage = (/** @type {MessageEvent} */ event) => {
+      const { id, type } = event.data;
+      const request = pending.get(id);
+      if (!request) return;
+      pending.delete(id);
+      if (type === "error") request.reject(new Error(event.data.message));
+      else request.resolve(event.data);
+    };
+    pythonReady = (async () => {
+      const { python } = await ask(target, "init", { sources: await pythonSources(), version: pageVersion });
+      if (!current) statusLine.textContent = `Ready (Python ${python}, ${Math.round(performance.now() - started)} ms).`;
+    })();
+  }
+  return pythonReady;
+}
+
+// What the parser reads from a ROM, as the JSON text Python wrote (spoiler.Read). The headless
+// checks compare it byte for byte with `cli.py --json`.
+/**
+ * @param {Uint8Array} bytes
+ * @returns {Promise<string>}
+ */
+async function exportRomJson(bytes) {
+  await ensurePython();
+  const { json } = await ask(/** @type {Worker} */ (worker), "export", { bytes });
+  return json;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Checking a seed: its format, its major version, then the schema.
+
+/** @type {Promise<any> | null} */
+let schemaLoaded = null;
+
+function seedSchema() {
+  if (!schemaLoaded) {
+    const inline = document.getElementById("seed-schema");
+    schemaLoaded = inline ? Promise.resolve(JSON.parse(/** @type {string} */ (inline.textContent)))
+      : fetch(SCHEMA_FILE).then((response) => {
+        if (!response.ok) throw new Error(`could not load ${SCHEMA_FILE} (${response.status})`);
+        return response.json();
+      });
+  }
+  return schemaLoaded;
+}
+
+/**
+ * Checks a seed document, or explains why it can't be shown.
+ * @param {unknown} value
+ * @returns {Promise<{seed: Seed} | {error: string}>}
+ */
+async function checkSeed(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { error: "This is not a seed document." };
+  const fields = /** @type {Record<string, unknown>} */ (value);
+  if (fields.format !== "z1r-seed") return { error: "This is not a seed document: its \"format\" is not \"z1r-seed\"." };
+  const version = typeof fields.formatVersion === "string" ? /^(\d+)\.(\d+)$/.exec(fields.formatVersion) : null;
+  if (!version) return { error: "This seed document has no valid \"formatVersion\"." };
+  if (Number(version[1]) !== FORMAT_MAJOR) {
+    return { error: `This seed uses seed format ${fields.formatVersion}, but this visualizer reads format ` +
+                    `${FORMAT_MAJOR}.x. A newer or older visualizer is needed to show it.` };
+  }
+  const problems = validateJsonSchema(await seedSchema(), value);
+  if (problems.length) {
+    const more = problems.length > 3 ? ` (and ${problems.length - 3} more)` : "";
+    return { error: `This seed document does not match seed format ${FORMAT_MAJOR}: ${problems.slice(0, 3).join("; ")}${more}.` };
+  }
+  return { seed: /** @type {Seed} */ (value) };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Names, as the views show them.
+
+// With Progressive Items, these items give the next level of their line.
+/** @type {Record<string, string>} */
+const PROGRESSIVE_LINES = {
+  "Wood Sword": "Sword Upgrade", "White Sword": "Sword Upgrade", "Magical Sword": "Sword Upgrade",
+  "Blue Candle": "Candle Upgrade", "Red Candle": "Candle Upgrade",
+  "Wooden Arrow": "Arrow Upgrade", "Silver Arrow": "Arrow Upgrade",
+  "Blue Ring": "Ring Upgrade", "Red Ring": "Ring Upgrade",
+  "Boomerang": "Boomerang Upgrade", "Magical Boomerang": "Boomerang Upgrade",
+};
+
+/**
+ * @param {Seed} seed
+ * @param {string} item
+ */
+const itemLabel = (seed, item) => (seed.progressiveItems && PROGRESSIVE_LINES[item]) || item;
+
+/** @param {number} number */
+const roomNumber = (number) => number.toString(16).toUpperCase();
+
+/**
+ * The room's four map lines: type, enemies, item, staircase.
+ * @param {Seed} seed
+ * @param {SeedRoom} room
+ */
+function roomLines(seed, room) {
+  const { enemies, item, staircase } = room;
+  return [
+    room.type,
+    enemies ? (enemies.count !== undefined ? `${enemies.count} ${enemies.name}` : enemies.name) : "",
+    item ? `${item.drop ? "D " : ""}${itemLabel(seed, item.name)}` : "",
+    staircase ? (staircase.kind === "transport" ? `Stair #${staircase.number}`
+      : staircase.item ? itemLabel(seed, staircase.item) : "No Item") : "",
+  ];
+}
+
+// ---------------------------------------------------------------------------------------------
+// Messages, tables and tooltips
+
+/** @param {string} text */
+function infoBox(text) {
+  return element("div", { className: "box info", textContent: text });
+}
+
+/** @param {string} text */
+function errorBox(text) {
+  return element("div", { className: "box error", textContent: text });
+}
+
+// A table like pandas' DataFrame.to_html(index=False), as the Streamlit app shows them.
+/**
+ * @param {Row[]} rows  At least one; the first one's keys are the columns.
+ * @param {(column: string, value: string | number) => Node | string} [cell]  A cell's content;
+ *   its text by default.
+ */
+function table(rows, cell = (column, value) => String(value)) {
+  const columns = Object.keys(rows[0]);
+  const head = element("tr", {}, columns.map((name) => element("th", { textContent: name })));
+  const body = rows.map((row) => element("tr", {}, columns.map((name) => element("td", {}, [
+    cell(name, row[name]),
+  ]))));
+  return element("table", { className: "data" }, [element("thead", {}, [head]), element("tbody", {}, body)]);
+}
+
+// The tooltip follows the cursor over a room, or sits beside a focused or pinned room (its
+// anchor), following it when the page or a map's scroller moves.
+/** @type {SVGElement | null} */
+let tooltipAnchor = null;
+
+/** @param {TooltipFields} fields */
+function fillTooltip(fields) {
+  tooltip.replaceChildren(...fields.map(([label, value]) => element("div", {}, [
+    element("span", { className: "tip-label", textContent: `${label}: ` }),
+    element("span", { textContent: value === undefined || value === "" ? "???" : String(value) }),
+  ])));
+  tooltip.hidden = false;
+}
+
+/**
+ * Puts the tooltip's top left corner at (x, y) in the viewport, kept inside it.
+ * @param {number} x
+ * @param {number} y
+ */
+function placeTooltip(x, y) {
+  const left = Math.min(x, window.innerWidth - tooltip.offsetWidth - 8);
+  const top = Math.min(y, window.innerHeight - tooltip.offsetHeight - 8);
+  tooltip.style.left = `${Math.max(8, left)}px`;
+  tooltip.style.top = `${Math.max(8, top)}px`;
+}
+
+/**
+ * @param {MouseEvent} event
+ * @param {TooltipFields} fields
+ */
+function showTooltip(event, fields) {
+  tooltipAnchor = null;
+  fillTooltip(fields);
+  placeTooltip(event.clientX + 14, event.clientY + 14);
+}
+
+/**
+ * @param {SVGElement} node
+ * @param {TooltipFields} fields
+ */
+function showTooltipBeside(node, fields) {
+  tooltipAnchor = node;
+  fillTooltip(fields);
+  placeBesideAnchor();
+}
+
+// Right of the anchor, or left of it where the right has no room; hidden while it is off screen.
+function placeBesideAnchor() {
+  if (!tooltipAnchor) return;
+  const box = tooltipAnchor.getBoundingClientRect();
+  const onScreen = box.bottom > 0 && box.top < window.innerHeight && box.right > 0 && box.left < window.innerWidth;
+  tooltip.hidden = !onScreen;
+  if (!onScreen) return;
+  const right = box.right + 8;
+  placeTooltip(right + tooltip.offsetWidth <= window.innerWidth - 8 ? right : box.left - tooltip.offsetWidth - 8,
+               box.top);
+}
+
+function hideTooltip() {
+  tooltipAnchor = null;
+  tooltip.hidden = true;
+}
+
+window.addEventListener("scroll", placeBesideAnchor, true);  // capturing, to hear the maps' scrollers
+window.addEventListener("resize", placeBesideAnchor);
+
+// ---------------------------------------------------------------------------------------------
+// Pinning: a click or tap on a room, or Enter or Space on a focused one, keeps its tooltip beside
+// it and outlines it. Clicking it again, clicking the map beside the rooms, or Escape unpins.
+//
+// Staircase pairs: while a room at one end of a transport staircase is hovered, focused or
+// pinned, the room at the other end has a dashed outline and a dashed line joins the two.
+
+/**
+ * The pinned room and the view it is on. It stays while other views are shown, and is dropped
+ * when a new seed is shown.
+ * @type {{view: string, key: string} | null}
+ */
+let pinned = null;
+
+/**
+ * The map on screen, if any.
+ * @type {{showPin: () => void, unpin: () => void, spot: (key: string) => MapSpot | null} | null}
+ */
+let currentMap = null;
+
+const MAP_HINT = "Hover over a room for its details. Click or tap it, or press Enter on it, to pin them; " +
+                 "Escape unpins. Tab moves between rooms.";
+
+/**
+ * Makes a map's spots hoverable, focusable and pinnable, and makes it the current map.
+ * @param {string} view  The view showing the map, e.g. "Level 4".
+ * @param {SVGElement} svg
+ * @param {MapSpot[]} spots  In tab order.
+ */
+function makeInteractive(view, svg, spots) {
+  /** @param {string} key */
+  const spot = (key) => spots.find((candidate) => candidate.key === key) || null;
+  const pinnedSpot = () => (pinned && pinned.view === view ? spot(pinned.key) : null);
+
+  // The staircase lines go under the labels, so the labels stay readable.
+  const links = svgElement("g", { class: "stair-links", "aria-hidden": "true" });
+  svg.insertBefore(links, svg.querySelector("text"));
+  /** @type {MapSpot | null} */
+  let paired = null;
+  /** @param {MapSpot | null} active  The hovered, focused or pinned spot. */
+  const showStairPair = (active) => {
+    if (active === paired) return;
+    paired = active;
+    links.replaceChildren();
+    for (const candidate of spots) {
+      const isPair = !!active && !!active.stair && candidate !== active && candidate.stair === active.stair;
+      candidate.node.classList.toggle("stair-pair", isPair);
+      if (isPair && active) {
+        links.append(svgElement("line", { x1: active.x, y1: active.y, x2: candidate.x, y2: candidate.y,
+                                          class: "stair-link" }));
+      }
+    }
+  };
+
+  // Marks the pinned spot and shows its tooltip and staircase pair, or neither.
+  const showPin = () => {
+    const current = pinnedSpot();
+    showStairPair(current);
+    for (const candidate of spots) {
+      candidate.node.classList.toggle("pinned", candidate === current);
+      candidate.node.setAttribute("aria-pressed", String(candidate === current));
+    }
+    if (current) showTooltipBeside(current.node, current.fields);
+    else hideTooltip();
+  };
+  const unpin = () => {
+    if (pinnedSpot()) pinned = null;
+    showPin();
+  };
+  /** @param {MapSpot} target */
+  const togglePin = (target) => {
+    pinned = pinnedSpot() === target ? null : { view, key: target.key };
+    showPin();
+  };
+
+  for (const target of spots) {
+    const { node } = target;
+    node.setAttribute("tabindex", "0");
+    node.setAttribute("role", "button");
+    node.setAttribute("aria-label", target.label);
+    node.setAttribute("aria-pressed", "false");
+    node.addEventListener("mousemove", (event) => {
+      showStairPair(target);
+      showTooltip(event, target.fields);
+    });
+    node.addEventListener("mouseleave", showPin);
+    node.addEventListener("focus", () => {
+      showStairPair(target);
+      showTooltipBeside(node, target.fields);
+    });
+    node.addEventListener("blur", showPin);
+    node.addEventListener("click", (event) => {
+      event.stopPropagation();
+      togglePin(target);
+    });
+    node.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      togglePin(target);
+    });
+  }
+  svg.addEventListener("click", unpin);  // reached only beside the rooms: theirs stop here
+  currentMap = { showPin, unpin, spot };
+}
+
+// After a map is drawn and on the page: shows its pinned spot, if it has one.
+function showMapPin() {
+  if (currentMap) currentMap.showPin();
+}
+
+/**
+ * Tab order for a map: the top row first, each row left to right.
+ * @template {{column: number, row: number}} T
+ * @param {T[]} items
+ * @returns {T[]}
+ */
+const inMapOrder = (items) => [...items].sort((a, b) => a.row - b.row || a.column - b.column);
+
+// ---------------------------------------------------------------------------------------------
+// The maps. Map units: x grows right from the map's left edge, y grows up from its bottom edge,
+// one unit per room or screen, as in the Streamlit app's Bokeh figures. The seed format counts
+// columns from 1 at the left and rows from 1 at the top.
+
+/**
+ * An empty map: `rect` and `text` place shapes in map units.
+ * @param {number} widthUnits
+ * @param {number} heightUnits
+ * @param {number} unit  Pixels per map unit.
+ * @param {string} title
+ */
+function plot(widthUnits, heightUnits, unit, title) {
+  const svg = svgElement("svg", {
+    viewBox: `0 0 ${widthUnits * unit} ${heightUnits * unit}`,
+    width: widthUnits * unit, height: heightUnits * unit, class: "map", role: "group", "aria-label": title,
+  });
+  /** @param {number} x */
+  const toX = (x) => x * unit;
+  /** @param {number} y */
+  const toY = (y) => (heightUnits - y) * unit;
+  /**
+   * A rectangle centred on (cx, cy).
+   * @param {number} cx
+   * @param {number} cy
+   * @param {number} w
+   * @param {number} h
+   * @param {Record<string, string | number>} attrs
+   */
+  const rect = (cx, cy, w, h, attrs) => svgElement("rect", {
+    x: toX(cx - w / 2), y: toY(cy + h / 2), width: w * unit, height: h * unit, ...attrs,
+  });
+  /**
+   * Left-aligned text, vertically centred on y.
+   * @param {number} x
+   * @param {number} y
+   * @param {string} value
+   * @param {string} size  A CSS font size.
+   */
+  const text = (x, y, value, size) => {
+    const node = svgElement("text", { x: toX(x), y: toY(y), "font-size": size, "dominant-baseline": "middle" });
+    node.textContent = value;
+    return node;
+  };
+  return { svg, rect, text, toX, toY };
+}
+
+/** @type {Direction[]} */
+const DIRECTIONS = ["north", "south", "east", "west"];
+// Door markers' colours, as in the Streamlit app (an open door's 'black' drawn dark grey).
+/** @type {Record<Door, string>} */
+const DOOR_COLOURS = {
+  open: "#333333", bombable: "blue", locked: "orange", "walk-through": "purple", shutter: "brown", solid: "red",
+};
+// Relative to a room's top right corner, in map units: where a direction's door marker sits, and
+// where its solid wall's bar is centred; and the bar's size.
+/** @type {Record<Direction, [number, number]>} */
+const DOOR_OFFSET = { north: [-0.5, -0.05], south: [-0.5, -0.95], east: [-0.05, -0.5], west: [-0.95, -0.5] };
+/** @type {Record<Direction, [number, number]>} */
+const WALL_OFFSET = { north: [-0.5, 0], south: [-0.5, -1], east: [0, -0.5], west: [-1, -0.5] };
+/** @type {Record<Direction, [number, number]>} */
+const WALL_SIZE = { north: [1, 0.05], south: [1, 0.05], east: [0.05, 1], west: [0.05, 1] };
+// Which neighbour (column, row change) a side faces; rows count down from the top.
+/** @type {Record<Direction, [number, number]>} */
+const NEIGHBOUR = { north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0] };
+/** @type {Array<[string, string]>} */
+const LEGEND = [["Open Door", "black"], ["Shutter Door", "brown"], ["Key-Locked Door", "orange"],
+                ["Bombable Wall", "blue"], ["Walk-Through Wall", "purple"], ["Solid Wall", "red"]];
+
+/**
+ * @param {Seed} seed
+ * @param {SeedLevel} level
+ */
+function drawLevel(seed, level) {
+  const { svg, rect, text, toX, toY } = plot(8, 8, 100, `Level ${level.number} map`);
+  const roomColour = level.color;
+  // A room's top right corner in map units: x = column, y = rows above the bottom edge.
+  const corner = (/** @type {SeedRoom} */ room) => [room.column, 9 - room.row];
+  const occupied = new Set(level.rooms.map((room) => `${room.column},${room.row}`));
+
+  /** @type {MapSpot[]} */
+  const spots = [];
+  for (const room of inMapOrder(level.rooms)) {
+    const [x, y] = corner(room);
+    const node = rect(x - 0.5, y - 0.5, 0.8, 0.8, {
+      fill: roomColour, "fill-opacity": 0.6, stroke: roomColour, class: "room",
+    });
+    svg.append(node);
+    const { staircase, enemies } = room;
+    const key = roomNumber(room.number);
+    spots.push({
+      node,
+      key,
+      label: [`Room ${key}`, ...roomLines(seed, room)].filter(Boolean).join(", "),
+      fields: [
+        ["Room Number", key], ["Col", room.column], ["Row", room.row],
+        ["Stair", staircase ? (staircase.kind === "transport" ? `Stairway #${staircase.number}`
+          : staircase.item ? itemLabel(seed, staircase.item) : "No Item") : "None"],
+        ["Room Type", room.type], ["Enemy Type", enemies ? enemies.name : ""],
+        ["Num Enemies", enemies ? enemies.count : undefined],
+      ],
+      stair: staircase && staircase.kind === "transport" ? `Stair #${staircase.number}` : "",
+      x: toX(x - 0.5),
+      y: toY(y - 0.5),
+    });
+  }
+  for (const room of level.rooms) {
+    const [x, y] = corner(room);
+    for (const direction of DIRECTIONS) {
+      const door = room.doors[direction];
+      if (door === "solid") continue;
+      const [dx, dy] = DOOR_OFFSET[direction];
+      const colour = DOOR_COLOURS[door];
+      svg.append(rect(x + dx, y + dy, 0.1, 0.1, {
+        fill: colour, "fill-opacity": 0.6, stroke: colour, "pointer-events": "none",
+      }));
+    }
+  }
+  // A solid wall is drawn only between two rooms of the level; each such wall is on both rooms'
+  // sides, so it is drawn once.
+  /** @type {Map<string, [number, number, number, number]>} */
+  const walls = new Map();
+  for (const room of level.rooms) {
+    const [x, y] = corner(room);
+    for (const direction of DIRECTIONS) {
+      if (room.doors[direction] !== "solid") continue;
+      const [nc, nr] = NEIGHBOUR[direction];
+      if (!occupied.has(`${room.column + nc},${room.row + nr}`)) continue;
+      const [dx, dy] = WALL_OFFSET[direction];
+      const [w, h] = WALL_SIZE[direction];
+      walls.set(`${(x + dx).toFixed(3)},${(y + dy).toFixed(3)},${w},${h}`, [x + dx, y + dy, w, h]);
+    }
+  }
+  for (const [x, y, w, h] of walls.values()) {
+    svg.append(rect(x, y, w, h, { fill: "red", stroke: "red", "pointer-events": "none" }));
+  }
+  for (const room of level.rooms) {
+    const [x, y] = corner(room);
+    roomLines(seed, room).forEach((line, i) => {
+      if (!line) return;
+      const label = text(x - 0.86, y - 0.2 * (i + 1), line, "8pt");
+      label.setAttribute("pointer-events", "none");
+      svg.append(label);
+    });
+  }
+
+  const legend = element("div", { className: "legend" }, [
+    element("span", { className: "legend-title", textContent: "The Legend of Door & Wall Types" }),
+    ...LEGEND.map(([label, colour]) => element("span", { className: "legend-item" }, [
+      element("span", { className: `swatch${colour === "red" ? " solid" : ""}`, style: `background:${colour}` }),
+      label,
+    ])),
+  ]);
+  makeInteractive(`Level ${level.number}`, svg, spots);
+  return element("figure", { className: "plot level" }, [
+    element("figcaption", { textContent: `Level ${level.number}` }), element("div", { className: "scroll" }, [svg]), legend,
+    element("p", { className: "map-hint", textContent: MAP_HINT }),
+  ]);
+}
+
+/** @param {SeedScreen[]} screens */
+function drawOverworld(screens) {
+  const { svg, rect, text, toX, toY } = plot(16, 8, 50, "Overworld map");
+  /** @type {MapSpot[]} */
+  const spots = [];
+  for (const screen of inMapOrder(screens)) {
+    const x = screen.column - 0.5;
+    const y = 8.5 - screen.row;
+    const node = rect(x, y, 0.95, 0.95, { fill: "#4CAF50", "fill-opacity": 0.6, stroke: "#4CAF50", class: "room" });
+    svg.append(node);
+    const key = screen.number.toString(16);
+    spots.push({
+      node,
+      key,
+      label: `Screen ${key}, ${screen.cave.name}`,
+      fields: [["Screen Number", key], ["Col", screen.column], ["Row", screen.row], ["Cave", screen.cave.name],
+               ["Map Label", screen.cave.shortName]],
+      stair: "",
+      x: toX(x),
+      y: toY(y),
+    });
+  }
+  for (const screen of screens) {
+    const label = text(screen.column - 0.9, 8.5 - screen.row, screen.cave.shortName, "14px");
+    label.setAttribute("pointer-events", "none");
+    svg.append(label);
+  }
+  makeInteractive("Overworld", svg, spots);
+  return element("figure", { className: "plot overworld" }, [
+    element("figcaption", { textContent: "Overworld" }), element("div", { className: "scroll" }, [svg]),
+    element("p", { className: "map-hint", textContent: MAP_HINT }),
+  ]);
+}
+
+// ---------------------------------------------------------------------------------------------
+// The other views
+
+const hex = (/** @type {number[]} */ values) => values.map((value) => value.toString(16).padStart(2, "0")).join(" ") + " ";
+
+/**
+ * The IPS patch that adds a custom recorder tune to a ROM, as the Streamlit app builds it
+ * (data_extractor.py, GetRecorderPatchData).
+ * @param {number[]} notes
+ */
+function recorderPatch(notes) {
+  return [
+    0x50, 0x41, 0x54, 0x43, 0x48,  // PATCH
+    0x00, 0x1A, 0xFE, 0x00, 0x03, 0x20, 0x00, 0xA0,
+    0x00, 0x1B, 0x12, 0x00, 0x03, 0x20, 0x10, 0xA0,
+    0x00, 0x1B, 0x3D, 0x00, 0x03, 0x20, 0x10, 0xA0,
+    0x00, 0x20, 0x10, 0x00, 0x0E,
+    0xAD, 0x07, 0x06, 0xC9, 0x10, 0xD0, 0x03, 0xA9, 0x00, 0x60, 0xB9, 0x54, 0x9A, 0x60,
+    0x00, 0x20, 0x20, 0x00, 0x0F,
+    0xAD, 0x07, 0x06, 0xC9, 0x10, 0xD0, 0x04, 0xB9, 0x20, 0xA0, 0x60, 0xB9, 0x55, 0x9A, 0x60,
+    0x00, 0x20, 0x30, 0x00, notes.length, ...notes,
+    0x45, 0x4F, 0x46,  // EOF
+  ];
+}
+
+/**
+ * @param {RecorderTune | null | undefined} tune
+ * @returns {HTMLElement[]}
+ */
+function recorderInfo(tune) {
+  if (!tune) return [infoBox("This ROM doesn't appear to have a custom recorder tune")];
+  const patch = recorderPatch(tune.notes);
+  const filename = `${tune.text.replace(/ /g, "_")}.ips`;
+  const url = URL.createObjectURL(new Blob([new Uint8Array(patch)], { type: "application/octet-stream" }));
+  return [
+    element("p", { textContent: `Recorder Text: ${tune.text}` }),
+    element("p", { className: "mono", textContent: `Recorder Data: ${hex(tune.notes)}` }),
+    element("p", { className: "mono", textContent: `Recorder Patch Data: ${hex(patch)}` }),
+    element("a", { className: "button", href: url, download: filename,
+                   textContent: `Download recorder tune IPS patch (${filename})` }),
+  ];
+}
+
+// The item summary, with the Streamlit app's rules (spoiler.ItemSummary has them in Python).
+const EXCLUDED_ITEMS = ["Rupee", "5 Rupees", "Bombs", "Key", "Map", "Compass", "Triforce", "No Item", "Nothing"];
+
+/**
+ * @param {Seed} seed
+ * @returns {{levels: Record<string, Row[]>, caves: Row[], shops: Row[], overworld: Row[]}}
+ */
+function itemSummaryTables(seed) {
+  const named = (/** @type {string} */ item) => !item.startsWith("Unknown Item ");
+  /** @type {Record<string, Row[]>} */
+  const levels = {};
+  for (let number = 1; number <= 9; number++) {
+    /** @type {Row[]} */
+    const rows = [];
+    const level = seed.levels.find((candidate) => candidate.number === number);
+    for (const room of level ? level.rooms : []) {
+      if (room.item) {
+        const item = itemLabel(seed, room.item.name);
+        if (!EXCLUDED_ITEMS.includes(item)) {
+          rows.push({ Item: item, Screen: roomNumber(room.number), Location: room.item.drop ? "Drop" : "Floor" });
+        }
+      }
+      if (room.staircase && room.staircase.kind === "item") {
+        const item = room.staircase.item ? itemLabel(seed, room.staircase.item) : "No Item";
+        if (!EXCLUDED_ITEMS.includes(item)) rows.push({ Item: item, Screen: roomNumber(room.number), Location: "Item Stairway" });
+      }
+    }
+    levels[String(number)] = rows;
+  }
+  const caves = seed.caves.filter((cave) => cave.kind === "item").flatMap((cave) => cave.wares
+    .filter((ware) => named(ware.item)).map((ware) => ({ Cave: cave.name, Item: itemLabel(seed, ware.item) })));
+  const shops = seed.caves.filter((cave) => cave.kind === "shop" || cave.kind === "potion-shop").flatMap((cave) => cave.wares
+    .filter((ware) => named(ware.item)).map((ware) => {
+      /** @type {Row} */
+      const row = { Shop: cave.name, Item: itemLabel(seed, ware.item), Price: ware.price === undefined ? "" : ware.price };
+      if (ware.sellsOnce) row.Once = "yes";
+      return row;
+    }));
+  // A table's columns come from its first row: give every row the "Once" column if any has it.
+  if (shops.some((row) => row.Once)) for (const row of shops) row.Once = row.Once || "";
+  const overworld = [
+    { Location: "Armos", Item: seed.overworld.armos ? itemLabel(seed, seed.overworld.armos) : "Nothing" },
+    { Location: "Coast", Item: seed.overworld.coast ? itemLabel(seed, seed.overworld.coast) : "Nothing" },
+  ];
+  return { levels, caves, shops, overworld };
+}
+
+/**
+ * Shows a level's map with one room pinned, scrolled into view and focused.
+ * @param {number} level
+ * @param {string} key  The room number.
+ */
+function showRoomOnMap(level, key) {
+  const view = `Level ${level}`;
+  pinned = { view, key };
+  viewSelect.value = view;
+  renderView();
+  const target = currentMap ? currentMap.spot(key) : null;
+  if (!target) return;
+  target.node.scrollIntoView({ block: "center", inline: "center" });
+  target.node.focus({ preventScroll: true });
+}
+
+/**
+ * An Item Summary room number that opens its level's map with the room pinned.
+ * @param {number} level
+ * @param {string} key
+ */
+function roomLink(level, key) {
+  const button = element("button", { type: "button", className: "link", textContent: key });
+  button.setAttribute("aria-label", `Show room ${key} on the Level ${level} map`);
+  button.title = `Show on the Level ${level} map`;
+  button.addEventListener("click", () => showRoomOnMap(level, key));
+  return button;
+}
+
+/**
+ * @param {Seed} seed
+ * @returns {HTMLElement[]}
+ */
+function itemSummary(seed) {
+  const summary = itemSummaryTables(seed);
+  /** @type {HTMLElement[]} */
+  const out = [];
+  if (seed.progressiveItems) {
+    out.push(infoBox("This ROM uses ZORA's Progressive Items: each sword, candle, arrow, ring and " +
+                     "boomerang found or bought gives the next level the player lacks, so they are " +
+                     "listed by their upgrade line."));
+  }
+  out.push(element("h2", { textContent: "Dungeon Items" }));
+  const levels = element("div", { className: "grid three" });
+  for (let level = 1; level <= 9; level++) {
+    const items = summary.levels[String(level)];
+    levels.append(element("div", {}, items.length
+      ? [element("p", {}, [element("strong", { textContent: `Level ${level}:` })]),
+         table(items, (column, value) => (column === "Screen" ? roomLink(level, String(value)) : String(value)))]
+      : [element("p", {}, [element("strong", { textContent: `Level ${level}:` }), " No major items"])]));
+  }
+  out.push(levels);
+  out.push(element("h2", { textContent: "Caves, Shops, and Overworld Items" }));
+  /** @type {Array<[string, Row[]]>} */
+  const columns = [["Major Caves:", summary.caves], ["Shops:", summary.shops], ["Overworld Items:", summary.overworld]];
+  out.push(element("div", { className: "grid three" }, columns.map(([title, rows]) => element("div", {}, [
+    element("p", {}, [element("strong", { textContent: title })]), ...(rows.length ? [table(rows)] : []),
+  ]))));
+  return out;
+}
+
+/**
+ * @param {Seed} seed
+ * @returns {HTMLElement[]}
+ */
+function hintTexts(seed) {
+  const speakers = seed.hints.some((hint) => hint.speaker !== undefined);
+  /** @type {Row[]} */
+  const rows = seed.hints.map((hint, num) => /** @type {Row} */ (speakers
+    ? { "Text #": num, Text: hint.text, "Said By": hint.speaker || "" } : { "Text #": num, Text: hint.text }));
+  if (seed.recorder && seed.recorder.text) {
+    rows.push(speakers ? { "Text #": "Recorder", Text: seed.recorder.text, "Said By": "" }
+      : { "Text #": "Recorder", Text: seed.recorder.text });
+  }
+  return [
+    element("p", { textContent: `This seed has ${seed.hints.length} texts.${speakers ? ""
+      : " Which character says each one isn't stored in the ROM."}` }),
+    ...(rows.length ? [table(rows)] : []),
+  ];
+}
+
+/**
+ * The seed's source and producer, how it was made, and what it needs.
+ * @param {Seed} seed
+ * @param {string} source
+ * @returns {HTMLElement[]}
+ */
+function seedInfo(seed, source) {
+  /** @type {Row[]} */
+  const about = [
+    { Field: "Shown from", Value: source },
+    { Field: "Producer", Value: `${seed.producer.name} ${seed.producer.version}`.trim() },
+    { Field: "Seed format", Value: seed.formatVersion },
+  ];
+  const made = seed.seed || {};
+  if (made.number) about.push({ Field: "Seed", Value: made.number });
+  if (made.flags) about.push({ Field: "Flags", Value: made.flags });
+  if (made.zoraFlags) about.push({ Field: "ZORA flags", Value: made.zoraFlags });
+  if (made.code && made.code.length) about.push({ Field: "Seed code", Value: made.code.join(" · ") });
+  about.push({ Field: "Progressive Items", Value: seed.progressiveItems ? "on" : "off" });
+  const out = [element("h2", { textContent: "Seed" }), table(about)];
+
+  const needs = seed.requirements || {};
+  /** @type {Array<[string, number | undefined]>} */
+  const needed = [["White sword cave (hearts)", needs.whiteSwordHearts],
+                  ["Magical sword cave (hearts)", needs.magicalSwordHearts],
+                  ["Level 9 (triforce pieces)", needs.level9Triforces], ["Door repair (rupees)", needs.doorRepairCost]];
+  const knownNeeds = needed.filter(([, value]) => value !== undefined);
+  if (knownNeeds.length) {
+    out.push(element("h2", { textContent: "Requirements" }),
+             table(knownNeeds.map(([what, value]) => ({ Requirement: what, Value: /** @type {number} */ (value) }))));
+  }
+  if (seed.settings && seed.settings.length) {
+    out.push(element("h2", { textContent: "Settings" }), table(seed.settings.map((setting) => ({
+      Setting: setting.id ? `${setting.id} ${setting.name}` : setting.name, Chosen: setting.chosen, Resolved: setting.resolved,
+    }))));
+  }
+  const url = URL.createObjectURL(new Blob([JSON.stringify(seed, null, 2)], { type: "application/json" }));
+  out.push(element("p", {}, [element("a", { className: "button", href: url, download: "seed.json",
+                                            textContent: "Download this seed as a seed file (.json)" })]));
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The page
+
+/** @type {Shown | null} */
+let current = null;
+
+function renderView() {
+  hideTooltip();
+  currentMap = null;
+  const shown = current;
+  if (!shown) return;  // nothing chosen: the view picker is hidden
+  const view = viewSelect.value;
+  const seed = shown.seed;
+  /** @type {HTMLElement[]} */
+  let content;
+  if (view.startsWith("Level ")) {
+    const number = Number(view.split(" ")[1]);
+    const level = seed ? seed.levels.find((candidate) => candidate.number === number) : undefined;
+    content = !seed ? [infoBox("Sorry, level maps aren't available for this ROM")]
+      : level ? [drawLevel(seed, level)] : [infoBox(`This seed has no Level ${number}.`)];
+  } else if (view === "Overworld") {
+    content = seed ? [drawOverworld(seed.overworld.screens)] : [infoBox("Sorry, level maps aren't available for this ROM")];
+  } else if (view === "Recorder Info") {
+    content = recorderInfo(shown.seed ? shown.seed.recorder : shown.recorder);
+  } else if (view === "Item Summary") {
+    content = seed ? itemSummary(seed) : [infoBox("Sorry, item summary isn't available for this ROM")];
+  } else if (view === "Hint Texts") {
+    content = seed ? hintTexts(seed) : [infoBox("Sorry, hint texts aren't available for this ROM")];
+  } else {
+    content = shown.seed ? seedInfo(shown.seed, shown.source) : [infoBox("Sorry, seed info isn't available for this ROM")];
+  }
+  output.replaceChildren(...content);
+  showMapPin();
+}
+
+/** @param {Shown} shown */
+function show(shown) {
+  current = shown;
+  pinned = null;
+  messageArea.replaceChildren(...(shown.seed ? []
+    : [shown.status === "encoded" ? errorBox(shown.message) : infoBox(shown.message)]));
+  picker.hidden = false;
+  renderView();
+}
+
+/** @param {string} [message]  Why nothing is shown, as an error. */
+function showNothing(message) {
+  current = null;
+  pinned = null;
+  messageArea.replaceChildren(message ? errorBox(message) : infoBox(NO_ROM_TEXT));
+  picker.hidden = true;
+  output.replaceChildren();
+}
+
+/**
+ * Checks a seed document's JSON text and shows it, or shows why not.
+ * @param {string} json
+ * @param {string} source  Where it came from, e.g. "seed.json".
+ * @returns {Promise<string | null>} null when shown, else the reason it was refused.
+ */
+async function showSeedJson(json, source) {
+  /** @type {unknown} */
+  let value;
+  try {
+    value = JSON.parse(json);
+  } catch (err) {
+    const reason = `This is not a seed document: it is not valid JSON (${errorMessage(err)}).`;
+    showNothing(reason);
+    return reason;
+  }
+  const checked = await checkSeed(value);
+  if ("error" in checked) {
+    showNothing(checked.error);
+    return checked.error;
+  }
+  show({ seed: checked.seed, source });
+  const { name, version } = checked.seed.producer;
+  statusLine.textContent = `Showing ${source}: a seed from ${name}${version ? ` ${version}` : ""} ` +
+                           `(seed format ${checked.seed.formatVersion}).`;
+  return null;
+}
+
+/** @param {File} file */
+async function isSeedFile(file) {
+  if (/\.json$/i.test(file.name)) return true;
+  const start = new TextDecoder().decode(await file.slice(0, 64).arrayBuffer());
+  return start.trimStart().startsWith("{");
+}
+
+async function onFileChosen() {
+  const file = romInput.files?.[0];
+  if (!file) {
+    showNothing();
+    return;
+  }
+  try {
+    if (await isSeedFile(file)) {
+      if (file.size > MAX_SEED_JSON) throw new Error("the file is too large to be a seed document");
+      await showSeedJson(await file.text(), file.name);
+      return;
+    }
+    statusLine.textContent = pythonReady ? `Reading ${file.name}…` : `Loading Python to read ${file.name}…`;
+    /** @type {{status: "ok", seed: unknown} | {status: "encoded" | "unsupported", message: string, recorder: RecorderTune | null}} */
+    const result = JSON.parse(await exportRomJson(new Uint8Array(await file.arrayBuffer())));
+    if (result.status !== "ok") {
+      show({ seed: null, status: result.status, message: result.message, recorder: result.recorder });
+      statusLine.textContent = `Showing ${file.name}.`;
+      return;
+    }
+    const checked = await checkSeed(result.seed);
+    if ("error" in checked) throw new Error(checked.error);
+    show({ seed: checked.seed, source: file.name });
+    statusLine.textContent = `Showing ${file.name}.`;
+  } catch (err) {
+    showNothing();
+    statusLine.textContent = `Could not read ${file.name}: ${errorMessage(err)}`;
+  }
+}
+
+viewSelect.append(...VIEWS.map((view) => element("option", { value: view, textContent: view })));
+viewSelect.addEventListener("change", renderView);
+romInput.addEventListener("change", onFileChosen);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (currentMap) currentMap.unpin();
+  else hideTooltip();
+});
+showNothing();
+
+// ---------------------------------------------------------------------------------------------
+// The hand-off (docs/seed-format.md section 5): tell the opener this page is ready, and show the
+// seed it posts back. Only the opener is listened to; any origin may be the opener.
+
+/**
+ * @param {MessageEventSource} target
+ * @param {string} origin  The origin the message came from; "null" for a page opened from disk.
+ * @param {string | null} error
+ */
+function replyToOpener(target, origin, error) {
+  const reply = error ? { type: "z1r-seed-received", protocol: HANDOFF_PROTOCOL, ok: false, error }
+    : { type: "z1r-seed-received", protocol: HANDOFF_PROTOCOL, ok: true };
+  /** @type {Window} */ (target).postMessage(reply, origin === "null" ? "*" : origin);
+}
+
+function listenToOpener() {
+  const opener = window.opener;
+  if (!opener) return;
+  let received = false;
+  let tries = 0;
+  const sayReady = () => opener.postMessage({ type: "z1r-seed-ready", protocol: HANDOFF_PROTOCOL }, "*");
+  sayReady();
+  const timer = window.setInterval(() => {
+    if (received || ++tries >= 30) window.clearInterval(timer);
+    else sayReady();
+  }, 1000);
+  statusLine.textContent = "Waiting for a seed from the page that opened this one…";
+
+  window.addEventListener("message", async (event) => {
+    if (event.source !== window.opener || !event.source) return;
+    const data = event.data;
+    if (!data || typeof data !== "object" || data.type !== "z1r-seed") return;
+    received = true;
+    /** @type {string | null} */
+    let error = null;
+    if (data.protocol !== HANDOFF_PROTOCOL) error = `unknown hand-off protocol ${JSON.stringify(data.protocol)}`;
+    else if (typeof data.json !== "string") error = "the message has no seed JSON text";
+    else if (data.json.length > MAX_SEED_JSON) error = "the seed JSON text is too large";
+    if (error) showNothing(`The page that opened this one sent a seed that can't be shown: ${error}.`);
+    else error = await showSeedJson(data.json, "the seed from the page that opened this one");
+    replyToOpener(event.source, event.origin, error);
+  });
+}
+
+Object.assign(window, {
+  z1rVisualizer: {
+    exportRomJson, current: () => current, showSeedJson,
+    itemSummary: () => (current && current.seed ? itemSummaryTables(current.seed) : null),
+    recorderPatch,
+  },
+});
+
+listenToOpener();
+// (mockup: no Python preload)
+</script>
+<script>
+// Mockup glue for the design directions in docs/design (not part of the real page yet). Each
+// mockup is the real renderer (site/app.js, site/validate.js) inside a direction's own shell and
+// stylesheet; this script adds what the shells share:
+// - the theme: follows the system, with a toggle (system, light, dark) remembered per browser;
+// - navigation: buttons with data-view drive the renderer's view select, and show which is current;
+// - the drop area: elements with data-drop take a dropped file as if it were chosen;
+// - a docked tooltip, where the shell has a [data-tooltip-dock] panel;
+// - the sample seed, shown unless the URL has ?empty (the empty state).
+// Mockups have no Python, so they open seed files (.json), not ROMs.
+"use strict";
+(() => {
+  const root = document.documentElement;
+  const select = /** @type {HTMLSelectElement} */ (document.getElementById("view"));
+  const input = /** @type {HTMLInputElement} */ (document.getElementById("rom"));
+  const picker = /** @type {HTMLElement} */ (document.getElementById("picker"));
+  const output = /** @type {HTMLElement} */ (document.getElementById("output"));
+  const params = new URLSearchParams(location.search);
+
+  // Theme: "system" removes data-theme, so the stylesheet's light-dark() follows the system.
+  const THEMES = ["system", "light", "dark"];
+  const THEME_LABELS = { system: "Theme: system", light: "Theme: light", dark: "Theme: dark" };
+  let theme = "system";
+  try {
+    theme = localStorage.getItem("z1r-theme") || "system";
+  } catch (err) {
+    // storage blocked: follow the system
+  }
+  if (params.get("theme")) theme = params.get("theme");
+  const applyTheme = () => {
+    if (theme === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", theme);
+    for (const button of document.querySelectorAll("[data-theme-toggle]")) {
+      button.setAttribute("aria-label", `${THEME_LABELS[theme]}. Change theme`);
+      button.dataset.mode = theme;
+      const label = button.querySelector("[data-theme-label]");
+      if (label) label.textContent = theme[0].toUpperCase() + theme.slice(1);
+    }
+  };
+  for (const button of document.querySelectorAll("[data-theme-toggle]")) {
+    button.addEventListener("click", () => {
+      theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+      try {
+        localStorage.setItem("z1r-theme", theme);
+      } catch (err) {
+        // not remembered
+      }
+      applyTheme();
+    });
+  }
+  applyTheme();
+
+  // Navigation: the renderer switches views through its select; the buttons drive it, and follow
+  // it when the renderer switches by itself (an Item Summary room link opens a level).
+  const syncNav = () => {
+    for (const button of document.querySelectorAll("[data-view]")) {
+      const current = button.getAttribute("data-view") === select.value;
+      if (current) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    }
+    document.body.dataset.view = select.value.startsWith("Level") ? "level" : select.value.toLowerCase().replace(/ /g, "-");
+    const title = document.querySelector("[data-view-title]");
+    if (title) title.textContent = select.value;
+  };
+  for (const button of document.querySelectorAll("[data-view]")) {
+    button.addEventListener("click", () => {
+      select.value = /** @type {string} */ (button.getAttribute("data-view"));
+      select.dispatchEvent(new Event("change"));
+      syncNav();
+    });
+  }
+  new MutationObserver(syncNav).observe(output, { childList: true });
+
+  // The page's state, for the shells' CSS: "empty" until a seed is shown.
+  const syncState = () => {
+    document.body.dataset.state = picker.hidden ? "empty" : "loaded";
+    const name = document.querySelector("[data-file-name]");
+    const shown = window.z1rVisualizer && window.z1rVisualizer.current();
+    if (name) name.textContent = shown && shown.seed ? shown.source : "";
+    // Level buttons carry their dungeon's colour, for shells that show it.
+    for (const button of document.querySelectorAll('[data-view^="Level "]')) {
+      const number = Number(button.getAttribute("data-view").split(" ")[1]);
+      const level = shown && shown.seed ? shown.seed.levels.find((candidate) => candidate.number === number) : null;
+      if (level) button.style.setProperty("--level-color", level.color);
+      else button.style.removeProperty("--level-color");
+    }
+  };
+  new MutationObserver(syncState).observe(picker, { attributes: true, attributeFilter: ["hidden"] });
+
+  // The drop area.
+  for (const zone of document.querySelectorAll("[data-drop]")) {
+    zone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      zone.classList.add("dragging");
+    });
+    zone.addEventListener("dragleave", () => zone.classList.remove("dragging"));
+    zone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      zone.classList.remove("dragging");
+      if (!event.dataTransfer || !event.dataTransfer.files.length) return;
+      input.files = event.dataTransfer.files;
+      input.dispatchEvent(new Event("change"));
+    });
+  }
+  for (const button of document.querySelectorAll("[data-open-file]")) {
+    button.addEventListener("click", () => input.click());
+  }
+
+  // A docked tooltip: the renderer keeps updating the same element wherever it is.
+  const dock = document.querySelector("[data-tooltip-dock]");
+  if (dock) dock.append(/** @type {HTMLElement} */ (document.getElementById("tooltip")));
+
+  syncState();
+  syncNav();
+  const sample = document.getElementById("mockup-seed");
+  if (sample && !params.has("empty")) {
+    window.z1rVisualizer.showSeedJson(sample.textContent, "zora-sword-seed1.json").then(() => {
+      select.value = params.get("view") || "Level 4";
+      select.dispatchEvent(new Event("change"));
+      syncState();
+      syncNav();
+    });
+  }
+})();
+</script>
+</body>
+</html>

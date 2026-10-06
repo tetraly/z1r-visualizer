@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Z1R Visualizer · Quest Log (mockup)</title>
+<!-- STYLE -->
+</head>
+<body data-state="empty">
+<a class="skip" href="#main">Skip to content</a>
+<div class="page">
+  <header class="banner">
+    <svg class="mark" viewBox="0 0 24 21" aria-hidden="true"><path d="M12 0l6 10.5H6zM6 10.5L12 21H0zM18 10.5L24 21H12z"/></svg>
+    <div class="title">
+      <span class="name">Z1R Visualizer</span>
+      <span class="subtitle">A spoiler map for <i>The Legend of Zelda</i> seeds · <span id="version">{{VERSION}}</span></span>
+    </div>
+    <button class="toggle" type="button" data-theme-toggle><span class="toggle-dot" aria-hidden="true"></span><span data-theme-label>System</span></button>
+  </header>
+
+  <nav class="tabs" aria-label="Views" data-loaded-only>
+    <div class="coins" role="group" aria-label="Dungeons">
+      <button type="button" class="coin" data-view="Level 1"><span class="visually-hidden">Level </span>1</button>
+      <button type="button" class="coin" data-view="Level 2"><span class="visually-hidden">Level </span>2</button>
+      <button type="button" class="coin" data-view="Level 3"><span class="visually-hidden">Level </span>3</button>
+      <button type="button" class="coin" data-view="Level 4"><span class="visually-hidden">Level </span>4</button>
+      <button type="button" class="coin" data-view="Level 5"><span class="visually-hidden">Level </span>5</button>
+      <button type="button" class="coin" data-view="Level 6"><span class="visually-hidden">Level </span>6</button>
+      <button type="button" class="coin" data-view="Level 7"><span class="visually-hidden">Level </span>7</button>
+      <button type="button" class="coin" data-view="Level 8"><span class="visually-hidden">Level </span>8</button>
+      <button type="button" class="coin" data-view="Level 9"><span class="visually-hidden">Level </span>9</button>
+    </div>
+    <span class="divider" aria-hidden="true"></span>
+    <button type="button" class="tab" data-view="Overworld">Overworld</button>
+    <button type="button" class="tab" data-view="Item Summary">Items</button>
+    <button type="button" class="tab" data-view="Hint Texts">Hints</button>
+    <button type="button" class="tab" data-view="Recorder Info">Recorder</button>
+    <button type="button" class="tab" data-view="Seed Info">Seed</button>
+  </nav>
+
+  <main id="main" class="main" data-drop>
+    <section class="scroll-card" data-empty-only aria-labelledby="empty-title">
+      <h1 id="empty-title">Open a seed to explore it</h1>
+      <p>Drop a <code>.nes</code> ROM or a <code>.json</code> seed file on this page, or choose one.</p>
+      <label class="cta" for="rom">Choose a file</label>
+      <input type="file" id="rom" class="visually-hidden" accept=".nes,.json">
+      <dl class="supports">
+        <dt>Reads</dt>
+        <dd>The Legend of Zelda (PRG0, PRG1), Zelda Randomizer seeds made without “Race ROM”, ZORA seeds made without “Encode level data”, and seed files.</dd>
+        <dt>Privacy</dt>
+        <dd>Your ROM is read in this page only. It is never uploaded.</dd>
+      </dl>
+    </section>
+
+    <div class="view-head" data-loaded-only>
+      <h1 data-view-title>Level 4</h1>
+      <span class="file"><span data-file-name></span> <button type="button" class="text-button" data-open-file>Open another</button></span>
+    </div>
+    <p id="status" class="status" role="status"></p>
+    <div id="messages"></div>
+    <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
+    <div id="output"></div>
+  </main>
+</div>
+<div id="tooltip" class="tooltip" hidden></div>
+<!-- SCRIPTS -->
+</body>
+</html>

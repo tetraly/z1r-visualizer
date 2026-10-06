@@ -1,0 +1,234 @@
+/* Quest Log: game-flavoured but restrained. Parchment and ink in light, a night palette in dark,
+   serif headings from the system's serif fonts, a centred column with a sticky tab bar whose
+   dungeons are round coins ringed in their colour. Colours are light-dark() pairs: the theme
+   follows the system, or data-theme on <html> (the toggle). */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#f3ead6, #11131b);
+  --surface: light-dark(#fbf6ea, #1a1d29);
+  --surface-2: light-dark(#efe3c8, #242838);
+  --text: light-dark(#2a1f14, #efe7d4);
+  --muted: light-dark(#665441, #b3a991);
+  --border: light-dark(#d6c4a0, #353a4e);
+  --border-strong: light-dark(#a88f63, #5b6178);
+  --accent: light-dark(#9b1c1f, #e9a53b);
+  --on-accent: light-dark(#fff8ec, #1a1206);
+  --accent-soft: light-dark(#f2dccb, #3a2f1c);
+  --link: light-dark(#8a1a1d, #f2bd63);
+  --focus: light-dark(#1f4fa3, #8fb8ff);
+  --info-bg: light-dark(#e9e2cf, #1f2a3a);
+  --info-text: light-dark(#3b3020, #cfdcf0);
+  --error-bg: light-dark(#f5d9d2, #3b1d1d);
+  --error-text: light-dark(#7d1a12, #f5c4bc);
+
+  --map-bg: light-dark(#fffaf0, #151824);
+  --map-text: light-dark(#21180f, #f3ecdb);
+  --room-opacity: 0.3;
+  --pin: light-dark(#21180f, #ffffff);
+  --stair: light-dark(#9b1c1f, #ff8f7a);
+  --door-open: light-dark(#3a3128, #d8cdb6);
+  --door-bomb: light-dark(#2347c9, #86a2ff);
+  --door-key: light-dark(#a35400, #f6b04a);
+  --door-walk: light-dark(#76239c, #d5a2ff);
+  --door-shutter: light-dark(#7a4314, #dca06a);
+  --door-outline: light-dark(#21180f, #f3ecdb);
+  --wall: light-dark(#c1121f, #ff6b6b);
+
+  /* Type: a 1.25 scale from 16px; serif display, sans text. Spacing: a 4px grid. */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.5625rem;
+  --fs-2xl: 2.441rem;
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --radius: 4px;
+  --shadow-color: light-dark(rgba(80, 56, 20, 0.14), rgba(0, 0, 0, 0.55));
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: var(--fs-md) / 1.55 var(--font);
+}
+h1, h2 { font-family: var(--serif); font-weight: 600; line-height: 1.2; margin: 0; }
+code { font-family: var(--mono); font-size: 0.9em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip { position: absolute; left: var(--sp-4); top: -100px; z-index: 20; }
+.skip:focus { top: var(--sp-2); background: var(--surface); color: var(--link); padding: var(--sp-2) var(--sp-3); }
+
+body[data-state="empty"] [data-loaded-only] { display: none !important; }
+body[data-state="loaded"] [data-empty-only] { display: none !important; }
+body[data-state="empty"] #messages .box.info { display: none; }
+#picker { display: none !important; }
+
+.page { max-width: 1120px; margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+
+/* Banner */
+.banner {
+  display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-6) 0 var(--sp-5);
+  border-bottom: 3px double var(--border-strong);
+}
+.mark { width: 40px; height: 35px; fill: var(--accent); flex: none; }
+.title { display: flex; flex-direction: column; margin-right: auto; min-width: 0; }
+.name { font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; }
+.subtitle { color: var(--muted); font-size: var(--fs-sm); }
+.toggle {
+  display: inline-flex; align-items: center; gap: var(--sp-2); cursor: pointer;
+  font: 600 var(--fs-sm) / 1 var(--font); color: var(--text);
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: 999px; padding: var(--sp-2) var(--sp-4);
+}
+.toggle-dot { width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(90deg, var(--text) 50%, var(--surface) 50%); border: 1px solid var(--text); }
+
+/* Tabs */
+.tabs {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-3) 0; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.coins { display: flex; gap: var(--sp-2); }
+.coin {
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  font: 700 var(--fs-md) / 1 var(--serif); color: var(--text);
+  background: var(--surface); border: 3px solid var(--level-color, var(--border-strong));
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+.coin:hover { background: var(--surface-2); }
+.coin[aria-current="page"] { background: var(--accent); color: var(--on-accent); box-shadow: inset 0 0 0 2px var(--on-accent); }
+.divider { width: 1px; height: 28px; background: var(--border-strong); margin: 0 var(--sp-2); }
+.tab {
+  cursor: pointer; font: 600 var(--fs-md) / 1 var(--font); color: var(--muted);
+  background: none; border: 0; border-bottom: 3px solid transparent; padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) - 3px);
+}
+.tab:hover { color: var(--text); }
+.tab[aria-current="page"] { color: var(--text); border-bottom-color: var(--accent); }
+
+.main { padding-top: var(--sp-5); min-width: 0; }
+.main.dragging { outline: 3px dashed var(--accent); outline-offset: 6px; }
+.view-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
+.view-head h1 { font-size: var(--fs-2xl); }
+.file { color: var(--muted); font-size: var(--fs-sm); }
+.text-button { font: inherit; color: var(--link); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.status { color: var(--muted); font-size: var(--fs-sm); margin: var(--sp-1) 0 var(--sp-4); min-height: 1.55em; font-style: italic; }
+
+/* Empty state: a framed card, like a page of the manual */
+.scroll-card {
+  max-width: 640px; margin: var(--sp-7) auto; padding: var(--sp-7) var(--sp-6);
+  background: var(--surface); text-align: center;
+  border: 1px solid var(--border-strong); outline: 1px solid var(--border-strong); outline-offset: 5px;
+  box-shadow: 0 8px 28px var(--shadow-color);
+}
+.scroll-card h1 { font-size: var(--fs-xl); }
+.scroll-card > p { color: var(--muted); margin: var(--sp-3) 0 var(--sp-5); }
+.cta {
+  display: inline-block; cursor: pointer; font: 700 var(--fs-md) / 1 var(--font); letter-spacing: 0.02em;
+  background: var(--accent); color: var(--on-accent); padding: var(--sp-4) var(--sp-6); border-radius: var(--radius);
+}
+.scroll-card:focus-within .cta { outline: 3px solid var(--focus); outline-offset: 3px; }
+.supports { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-2) var(--sp-4); text-align: left; margin: var(--sp-6) 0 0; font-size: var(--fs-sm); }
+.supports dt { font-family: var(--serif); font-weight: 700; }
+.supports dd { margin: 0; color: var(--muted); }
+
+.box { padding: var(--sp-3) var(--sp-4); margin: 0 0 var(--sp-4); font-size: var(--fs-sm); border-left: 4px solid currentColor; }
+.box.info { background: var(--info-bg); color: var(--info-text); }
+.box.error { background: var(--error-bg); color: var(--error-text); }
+
+/* Maps: a framed sheet */
+.plot { margin: 0 0 var(--sp-6); }
+.plot figcaption { display: none; }
+.plot .scroll {
+  overflow-x: auto; padding: var(--sp-3); background: var(--map-bg);
+  border: 1px solid var(--border-strong); outline: 1px solid var(--border-strong); outline-offset: 3px;
+}
+.map { display: block; max-width: none; margin: 0 auto; background: var(--map-bg); }
+.map .room { fill-opacity: var(--room-opacity); stroke-width: 2; cursor: pointer; }
+.map .room:focus { outline: none; }
+.map .room:hover, .map .room:focus-visible { stroke: var(--focus); stroke-width: 3; }
+.map .room.stair-pair { stroke: var(--stair); stroke-width: 4; stroke-dasharray: 8 5; }
+.map .room.pinned { stroke: var(--pin); stroke-width: 4; stroke-dasharray: none; }
+.map .stair-link { stroke: var(--stair); stroke-width: 3; stroke-dasharray: 8 5; stroke-linecap: round; }
+.map text {
+  fill: var(--map-text); font-family: var(--font); font-weight: 500;
+  paint-order: stroke; stroke: var(--map-bg); stroke-width: 3px; stroke-linejoin: round;
+}
+.map rect[width="10"][height="10"] { stroke: var(--door-outline); stroke-width: 1; fill-opacity: 1; }
+.map rect[fill="#333333"] { fill: var(--door-open); }
+.map rect[fill="blue"] { fill: var(--door-bomb); }
+.map rect[fill="orange"] { fill: var(--door-key); }
+.map rect[fill="purple"] { fill: var(--door-walk); }
+.map rect[fill="brown"] { fill: var(--door-shutter); }
+.map rect[fill="red"] { fill: var(--wall); stroke: var(--wall); }
+
+.legend { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-4); font-size: var(--fs-sm); }
+.legend-title { width: 100%; font-family: var(--serif); font-weight: 700; font-size: var(--fs-md); }
+.legend-item { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.swatch { width: 14px; height: 14px; border: 1px solid var(--door-outline); }
+.swatch[style*="black"] { background: var(--door-open) !important; }
+.swatch[style*="blue"] { background: var(--door-bomb) !important; }
+.swatch[style*="orange"] { background: var(--door-key) !important; }
+.swatch[style*="purple"] { background: var(--door-walk) !important; }
+.swatch[style*="brown"] { background: var(--door-shutter) !important; }
+.swatch[style*="red"] { background: var(--wall) !important; }
+.map-hint { color: var(--muted); font-size: var(--fs-sm); font-style: italic; margin: var(--sp-3) 0 0; }
+
+/* Lists: ledger-ruled tables */
+#output > h2 { font-size: var(--fs-xl); margin: var(--sp-6) 0 var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-strong); }
+#output > h2:first-child, #output > .box + h2 { margin-top: 0; }
+.grid.three { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--sp-5) var(--sp-6); }
+.grid.three > div > p { margin: 0 0 var(--sp-2); font-family: var(--serif); font-size: var(--fs-lg); }
+table.data { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+table.data th { text-align: left; font-family: var(--serif); font-weight: 700; padding: var(--sp-2); border-bottom: 2px solid var(--border-strong); }
+table.data td { padding: var(--sp-2); border-bottom: 1px solid var(--border); vertical-align: top; }
+table.data tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+button.link { font: inherit; font-family: var(--mono); color: var(--link); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.button { display: inline-block; color: var(--link); font-weight: 700; padding: var(--sp-2) var(--sp-4); border: 1px solid var(--border-strong); text-decoration: none; }
+.mono { font-family: var(--mono); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+
+/* Tooltip: a slip of paper */
+.tooltip {
+  position: fixed; z-index: 30; max-width: 300px; pointer-events: none;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border-strong);
+  box-shadow: 0 10px 30px var(--shadow-color); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); line-height: 1.6;
+}
+.tooltip .tip-label { color: var(--muted); font-family: var(--serif); font-weight: 700; }
+
+@media (max-width: 760px) {
+  .page { padding: 0 var(--sp-4) var(--sp-6); }
+  .banner { padding: var(--sp-4) 0; gap: var(--sp-3); }
+  .mark { width: 28px; height: 25px; }
+  .name { font-size: var(--fs-xl); }
+  .subtitle { display: none; }
+  .toggle [data-theme-label] { display: none; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .coin { width: 36px; height: 36px; flex: none; }
+  .tab { flex: none; }
+  .view-head h1 { font-size: var(--fs-xl); }
+  .scroll-card { margin: var(--sp-5) 0; padding: var(--sp-6) var(--sp-4); }
+  /* On a phone the tooltip is a sheet along the bottom, so it never covers the rooms beside the
+     pinned one (the renderer's left/top give way to these). */
+  .tooltip {
+    left: var(--sp-2) !important; right: var(--sp-2); top: auto !important; bottom: var(--sp-2);
+    max-width: none; columns: 2; column-gap: var(--sp-4);
+  }
+}
