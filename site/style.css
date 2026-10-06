@@ -9,6 +9,7 @@
   --error-bg: #fdecec;
   --error-fg: #8c1c1c;
   --table-head: #f3f4f6;
+  --link: #1a5fb4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,6 +23,7 @@
     --error-bg: #3d1a1a;
     --error-fg: #f5c2c2;
     --table-head: #1c2029;
+    --link: #8ab4f8;
   }
 }
 
@@ -81,7 +83,10 @@ select {
 .map { display: block; background: #ffffff; max-width: none; border: 1px solid var(--border); }
 .map text { fill: #000000; font-family: Helvetica, Arial, sans-serif; }
 .map .room { cursor: pointer; }
-.map .room:hover, .map .room:focus-visible { stroke: #000000; stroke-width: 2; outline: none; }
+/* Rooms show focus with their own outline (below), so the browser's ring is off; a room focused from
+   an Item Summary link is pinned, which outlines it too. */
+.map .room:focus { outline: none; }
+.map .room:hover, .map .room:focus-visible { stroke: #000000; stroke-width: 2; }
 .map .room.stair-pair { stroke: #c2185b; stroke-width: 4; stroke-dasharray: 8 5; }
 .map .stair-link { stroke: #c2185b; stroke-width: 3; stroke-dasharray: 8 5; stroke-linecap: round; pointer-events: none; }
 .map .room.pinned { stroke: #000000; stroke-width: 4; stroke-dasharray: none; }
@@ -99,6 +104,18 @@ select {
 table.data { border-collapse: collapse; font-size: 0.9rem; max-width: 100%; }
 table.data th, table.data td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; vertical-align: top; }
 table.data th { background: var(--table-head); }
+
+/* The Item Summary's room numbers: buttons that look like links. */
+button.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+button.link:hover { text-decoration-thickness: 2px; }
 
 .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; overflow-wrap: anywhere; }
 

@@ -168,13 +168,17 @@ function errorBox(text) {
 }
 
 // A table like pandas' DataFrame.to_html(index=False), as the Streamlit app shows them.
-/** @param {Row[]} rows  At least one; the first one's keys are the columns. */
-function table(rows) {
+/**
+ * @param {Row[]} rows  At least one; the first one's keys are the columns.
+ * @param {(column: string, value: string | number) => Node | string} [cell]  A cell's content;
+ *   its text by default.
+ */
+function table(rows, cell = (column, value) => String(value)) {
   const columns = Object.keys(rows[0]);
   const head = element("tr", {}, columns.map((name) => element("th", { textContent: name })));
-  const body = rows.map((row) => element("tr", {}, columns.map((name) => element("td", {
-    textContent: String(row[name]),
-  }))));
+  const body = rows.map((row) => element("tr", {}, columns.map((name) => element("td", {}, [
+    cell(name, row[name]),
+  ]))));
   return element("table", { className: "data" }, [element("thead", {}, [head]), element("tbody", {}, body)]);
 }
 
@@ -563,6 +567,35 @@ function recorderInfo(recorder) {
 }
 
 /**
+ * Shows a level's map with one room pinned, scrolled into view and focused.
+ * @param {number} level
+ * @param {string} key  The room number.
+ */
+function showRoomOnMap(level, key) {
+  const view = `Level ${level}`;
+  pinned = { view, key };
+  viewSelect.value = view;
+  renderView();
+  const target = currentMap ? currentMap.spot(key) : null;
+  if (!target) return;
+  target.node.scrollIntoView({ block: "center", inline: "center" });
+  target.node.focus({ preventScroll: true });
+}
+
+/**
+ * An Item Summary room number that opens its level's map with the room pinned.
+ * @param {number} level
+ * @param {string} key
+ */
+function roomLink(level, key) {
+  const button = element("button", { type: "button", className: "link", textContent: key });
+  button.setAttribute("aria-label", `Show room ${key} on the Level ${level} map`);
+  button.title = `Show on the Level ${level} map`;
+  button.addEventListener("click", () => showRoomOnMap(level, key));
+  return button;
+}
+
+/**
  * @param {ParsedRom} data
  * @returns {HTMLElement[]}
  */
@@ -580,7 +613,8 @@ function itemSummary(data) {
   for (let level = 1; level <= 9; level++) {
     const items = summary.levels[String(level)];
     levels.append(element("div", {}, items.length
-      ? [element("p", {}, [element("strong", { textContent: `Level ${level}:` })]), table(items)]
+      ? [element("p", {}, [element("strong", { textContent: `Level ${level}:` })]),
+         table(items, (column, value) => (column === "Screen" ? roomLink(level, String(value)) : String(value)))]
       : [element("p", {}, [element("strong", { textContent: `Level ${level}:` }), " No major items"])]));
   }
   out.push(levels);
