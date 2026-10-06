@@ -1,13 +1,15 @@
-// Checks the single-file page against the CLI: opens build/z1r-visualizer.html from file:// in
-// headless Chrome, chooses each ROM through the page's file input, and compares the data the page
-// draws from with `python3 cli.py --json` for the same ROM, byte for byte. It also checks that
-// every view renders, and that encoded ROMs are refused.
+// Checks the page. First it type-checks site/'s JavaScript (tsc --noEmit, from its JSDoc types).
+// Then it opens the single file build/z1r-visualizer.html from file:// in headless Chrome, chooses
+// each ROM through the page's file input, and compares the data the page draws from with
+// `python3 cli.py --json` for the same ROM, byte for byte. It also checks that every view renders,
+// and that encoded ROMs are refused.
 //
 //   python3 scripts/build_site.py --single-file
 //   node scripts/check_site.mjs testdata/*.nes
 //
-// Needs Node 22 or later (for its built-in WebSocket) and Google Chrome. The first run downloads
-// Pyodide from jsDelivr into a throwaway Chrome profile.
+// Needs Node 22 or later (for its built-in WebSocket and npx) and Google Chrome. The first run
+// downloads TypeScript (pinned below) through npx, and Pyodide from jsDelivr into a throwaway
+// Chrome profile.
 import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,10 +19,27 @@ const CHROME = process.env.CHROME || "/Applications/Google Chrome.app/Contents/M
 const PORT = 9333;
 const PAGE = resolve("build/z1r-visualizer.html");
 const VIEWS = ["Level 1", "Overworld", "Recorder Info", "Item Summary", "Hint Texts"];
+// TypeScript 6.0.3: the last release of the JavaScript compiler; 7 is the native port, whose
+// JSDoc support differs. Each config checks one file: the page with the DOM's types, the worker
+// with the WebWorker's.
+const TYPESCRIPT = "typescript@6.0.3";
+const TYPE_CONFIGS = ["site/jsconfig.json", "site/jsconfig.worker.json"];
 const roms = process.argv.slice(2).map((path) => resolve(path));
 if (!roms.length) {
   console.error("usage: node scripts/check_site.mjs ROM...");
   process.exit(2);
+}
+
+let typeErrors = 0;
+for (const config of TYPE_CONFIGS) {
+  try {
+    execFileSync("npx", ["--yes", `--package=${TYPESCRIPT}`, "--", "tsc", "--noEmit", "-p", config],
+                 { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    console.log(`types: ${config} ok`);
+  } catch (err) {
+    typeErrors++;
+    console.log(`types: ${config} FAILED\n${err.stdout || ""}${err.stderr || ""}`);
+  }
 }
 
 const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -29,7 +48,7 @@ const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${PORT}
                               "about:blank"], { stdio: "ignore" });
 
 let ws = null;
-let failures = 0;
+let failures = typeErrors;
 try {
   let targets = null;
   for (let i = 0; i < 50 && !targets; i++) {
