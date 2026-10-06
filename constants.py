@@ -330,6 +330,12 @@ ENEMY_TYPES = {
     0x7E: "Enemy Mix CC",
     0x7F: "Enemy Mix DD",
 }
+
+# The $0F dungeon person: the bomb-upgrade seller in two levels (RomReader.GetBombUpgradeLevels),
+# a person who only talks anywhere else.
+BOMB_UPGRADE_PERSON = 0x4F
+TALKING_PERSON = "Talking Person"
+
 OVERWORLD_BLOCK_TYPES = {
     0x00: "Bomb",  # 2nd quest level 9
     0x01: "Bomb",

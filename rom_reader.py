@@ -1,6 +1,6 @@
 from enum import IntEnum
 import io
-from typing import IO, List
+from typing import IO, List, Optional, Tuple
 from constants import CHAR_MAP
 
 OVERWORLD_DATA_LOCATION = 0x18400
@@ -65,6 +65,20 @@ class RomReader:
             self._ReadMemory(ARMOS_ITEM_ADDRESS, 0x01)[0],
             self._ReadMemory(COAST_ITEM_ADDRESS, 0x01)[0],
         ]
+
+    def GetBombUpgradeLevels(self) -> Optional[Tuple[int, int]]:
+        """The two levels whose $0F dungeon person sells the bomb upgrade.
+
+        The game compares the current level with two numbers: CMP #a / BEQ / CMP #b / BNE, at
+        file offsets 0x4AEF-0x4AF5 (the levels at 0x4AF0 and 0x4AF4). Vanilla ROMs have 5 and 7;
+        randomizers that move the bomb-upgrade persons rewrite them. A $0F person in any other
+        level only talks. Returns None when the code there is not that comparison (a ROM that
+        changed it), so callers can keep the old reading.
+        """
+        code = self._ReadMemory(0x4AEF - NES_HEADER_OFFSET, 0x07)
+        if [code[0], code[2], code[3], code[4], code[6]] != [0xC9, 0xF0, 0x04, 0xC9, 0xD0]:
+            return None
+        return code[1], code[5]
 
     def GetRequirements(self) -> int:
         return {
