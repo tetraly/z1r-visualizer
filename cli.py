@@ -2,13 +2,16 @@
 #   For a single file:  python cli.py --files=rom.nes
 #   For a set of files:  python cli.py --files="rom1.nes rom2.nes"
 #   For a glob of files:  python cli.py --files="*.nes"
+#   The static page's data, one JSON line per file:  python cli.py --json --files=rom.nes
 
 import argparse
 import glob
 import io
+import json
 import os
 from data_extractor import DataExtractor, GarbledLevelDataError
 from constants import CAVE_NAME
+from spoiler import Export
 
 
 def GenerateLevelCSVLine(file_path, level_num, data):
@@ -38,6 +41,7 @@ def GenerateOverworldCSVLine(file_path, data):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--files', type=str, required=True, help='Roms to process and print')
+    parser.add_argument('--json', action='store_true', help="Print the static page's data instead")
     args = parser.parse_args()
     files_to_process = []
     for pattern in args.files.split(' '):
@@ -47,6 +51,10 @@ def main():
             files_to_process.append(pattern)
 
     for file_path in files_to_process:
+        if args.json:
+            with open(file_path, 'rb') as f:
+                print(json.dumps(dict(Export(f.read()), file=file_path)))
+            continue
         with open(file_path, 'rb') as f:
             rom = io.BytesIO(f.read())
             data_extractor = DataExtractor(rom=rom)
