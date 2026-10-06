@@ -30,6 +30,9 @@
  * @typedef {{status: "encoded" | "unsupported", message: string, recorder: Recorder}} RefusedRom
  * @typedef {ParsedRom | RefusedRom} RomData
  * @typedef {Array<[string, string | number | undefined]>} TooltipFields
+ * @typedef {{node: SVGElement, key: string, label: string, fields: TooltipFields}} MapSpot
+ *   A room or overworld screen on a map. key: its room or screen number; label: what a screen
+ *   reader announces for it.
  * @typedef {"north" | "south" | "east" | "west"} Direction
  */
 
@@ -173,38 +176,158 @@ function table(rows) {
   return element("table", { className: "data" }, [element("thead", {}, [head]), element("tbody", {}, body)]);
 }
 
+// The tooltip follows the cursor over a room, or sits beside a focused or pinned room (its
+// anchor), following it when the page or a map's scroller moves.
+/** @type {SVGElement | null} */
+let tooltipAnchor = null;
+
+/** @param {TooltipFields} fields */
+function fillTooltip(fields) {
+  tooltip.replaceChildren(...fields.map(([label, value]) => element("div", {}, [
+    element("span", { className: "tip-label", textContent: `${label}: ` }),
+    element("span", { textContent: value === undefined || value === "" ? "???" : String(value) }),
+  ])));
+  tooltip.hidden = false;
+}
+
+/**
+ * Puts the tooltip's top left corner at (x, y) in the viewport, kept inside it.
+ * @param {number} x
+ * @param {number} y
+ */
+function placeTooltip(x, y) {
+  const left = Math.min(x, window.innerWidth - tooltip.offsetWidth - 8);
+  const top = Math.min(y, window.innerHeight - tooltip.offsetHeight - 8);
+  tooltip.style.left = `${Math.max(8, left)}px`;
+  tooltip.style.top = `${Math.max(8, top)}px`;
+}
+
 /**
  * @param {MouseEvent} event
  * @param {TooltipFields} fields
  */
 function showTooltip(event, fields) {
-  const tip = tooltip;
-  tip.replaceChildren(...fields.map(([label, value]) => element("div", {}, [
-    element("span", { className: "tip-label", textContent: `${label}: ` }),
-    element("span", { textContent: value === undefined || value === "" ? "???" : String(value) }),
-  ])));
-  tip.hidden = false;
-  const x = Math.min(event.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
-  const y = Math.min(event.clientY + 14, window.innerHeight - tip.offsetHeight - 8);
-  tip.style.left = `${Math.max(8, x)}px`;
-  tip.style.top = `${Math.max(8, y)}px`;
-}
-
-function hideTooltip() {
-  tooltip.hidden = true;
+  tooltipAnchor = null;
+  fillTooltip(fields);
+  placeTooltip(event.clientX + 14, event.clientY + 14);
 }
 
 /**
  * @param {SVGElement} node
  * @param {TooltipFields} fields
- * @returns {SVGElement}
  */
-function withTooltip(node, fields) {
-  node.addEventListener("mousemove", (event) => showTooltip(event, fields));
-  node.addEventListener("mouseleave", hideTooltip);
-  node.addEventListener("click", (event) => showTooltip(event, fields));
-  return node;
+function showTooltipBeside(node, fields) {
+  tooltipAnchor = node;
+  fillTooltip(fields);
+  placeBesideAnchor();
 }
+
+// Right of the anchor, or left of it where the right has no room; hidden while it is off screen.
+function placeBesideAnchor() {
+  if (!tooltipAnchor) return;
+  const box = tooltipAnchor.getBoundingClientRect();
+  const onScreen = box.bottom > 0 && box.top < window.innerHeight && box.right > 0 && box.left < window.innerWidth;
+  tooltip.hidden = !onScreen;
+  if (!onScreen) return;
+  const right = box.right + 8;
+  placeTooltip(right + tooltip.offsetWidth <= window.innerWidth - 8 ? right : box.left - tooltip.offsetWidth - 8,
+               box.top);
+}
+
+function hideTooltip() {
+  tooltipAnchor = null;
+  tooltip.hidden = true;
+}
+
+window.addEventListener("scroll", placeBesideAnchor, true);  // capturing, to hear the maps' scrollers
+window.addEventListener("resize", placeBesideAnchor);
+
+// ---------------------------------------------------------------------------------------------
+// Pinning: a click or tap on a room, or Enter or Space on a focused one, keeps its tooltip beside
+// it and outlines it. Clicking it again, clicking the map beside the rooms, or Escape unpins.
+
+/**
+ * The pinned room and the view it is on. It stays while other views are shown, and is dropped
+ * when a new ROM is read.
+ * @type {{view: string, key: string} | null}
+ */
+let pinned = null;
+
+/**
+ * The map on screen, if any.
+ * @type {{showPin: () => void, unpin: () => void, spot: (key: string) => MapSpot | null} | null}
+ */
+let currentMap = null;
+
+const MAP_HINT = "Hover over a room for its details. Click or tap it, or press Enter on it, to pin them; " +
+                 "Escape unpins. Tab moves between rooms.";
+
+/**
+ * Makes a map's spots hoverable, focusable and pinnable, and makes it the current map.
+ * @param {string} view  The view showing the map, e.g. "Level 4".
+ * @param {SVGElement} svg
+ * @param {MapSpot[]} spots  In tab order.
+ */
+function makeInteractive(view, svg, spots) {
+  /** @param {string} key */
+  const spot = (key) => spots.find((candidate) => candidate.key === key) || null;
+  const pinnedSpot = () => (pinned && pinned.view === view ? spot(pinned.key) : null);
+  // Marks the pinned spot and shows its tooltip, or no tooltip.
+  const showPin = () => {
+    const current = pinnedSpot();
+    for (const candidate of spots) {
+      candidate.node.classList.toggle("pinned", candidate === current);
+      candidate.node.setAttribute("aria-pressed", String(candidate === current));
+    }
+    if (current) showTooltipBeside(current.node, current.fields);
+    else hideTooltip();
+  };
+  const unpin = () => {
+    if (pinnedSpot()) pinned = null;
+    showPin();
+  };
+  /** @param {MapSpot} target */
+  const togglePin = (target) => {
+    pinned = pinnedSpot() === target ? null : { view, key: target.key };
+    showPin();
+  };
+
+  for (const target of spots) {
+    const { node } = target;
+    node.setAttribute("tabindex", "0");
+    node.setAttribute("role", "button");
+    node.setAttribute("aria-label", target.label);
+    node.setAttribute("aria-pressed", "false");
+    node.addEventListener("mousemove", (event) => showTooltip(event, target.fields));
+    node.addEventListener("mouseleave", showPin);
+    node.addEventListener("focus", () => showTooltipBeside(node, target.fields));
+    node.addEventListener("blur", showPin);
+    node.addEventListener("click", (event) => {
+      event.stopPropagation();
+      togglePin(target);
+    });
+    node.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      togglePin(target);
+    });
+  }
+  svg.addEventListener("click", unpin);  // reached only beside the rooms: theirs stop here
+  currentMap = { showPin, unpin, spot };
+}
+
+// After a map is drawn and on the page: shows its pinned spot, if it has one.
+function showMapPin() {
+  if (currentMap) currentMap.showPin();
+}
+
+/**
+ * Tab order for a map: the top row first, each row left to right.
+ * @template {{x_coord: number, y_coord: number}} T
+ * @param {T[]} items
+ * @returns {T[]}
+ */
+const inMapOrder = (items) => [...items].sort((a, b) => b.y_coord - a.y_coord || a.x_coord - b.x_coord);
 
 // ---------------------------------------------------------------------------------------------
 // The maps. Coordinates are the parser's: x grows right, y grows up from the bottom of the map,
@@ -220,7 +343,7 @@ function withTooltip(node, fields) {
 function plot(widthUnits, heightUnits, unit, title) {
   const svg = svgElement("svg", {
     viewBox: `0 0 ${widthUnits * unit} ${heightUnits * unit}`,
-    width: widthUnits * unit, height: heightUnits * unit, class: "map", role: "img", "aria-label": title,
+    width: widthUnits * unit, height: heightUnits * unit, class: "map", role: "group", "aria-label": title,
   });
   /** @param {number} x */
   const toX = (x) => x * unit;
@@ -277,14 +400,24 @@ const coordinate = (room, key) => /** @type {number} */ (room[key]);
 function drawLevel(levelNum, level) {
   const { svg, rect, text } = plot(8, 8, 100, `Level ${levelNum} map`);
   const roomColour = level.palette[2];
-  for (const room of level.rooms) {
-    svg.append(withTooltip(rect(room.x_coord, room.y_coord, 0.8, 0.8, {
+  /** @type {MapSpot[]} */
+  const spots = [];
+  for (const room of inMapOrder(level.rooms)) {
+    const node = rect(room.x_coord, room.y_coord, 0.8, 0.8, {
       fill: roomColour, "fill-opacity": 0.6, stroke: roomColour, class: "room",
-    }), [
-      ["Room Number", room.room_num], ["Col", room.col], ["Row", room.row], ["Stair", room.stair_tooltip],
-      ["Room Type", room.room_type], ["Enemy Type", room.enemy_type_tooltip],
-      ["Num Enemies", room.enemy_num_tooltip],
-    ]));
+    });
+    svg.append(node);
+    spots.push({
+      node,
+      key: room.room_num,
+      label: [`Room ${room.room_num}`, room.room_type, room.enemy_info, room.item_info, room.stair_info]
+        .filter(Boolean).join(", "),
+      fields: [
+        ["Room Number", room.room_num], ["Col", room.col], ["Row", room.row], ["Stair", room.stair_tooltip],
+        ["Room Type", room.room_type], ["Enemy Type", room.enemy_type_tooltip],
+        ["Num Enemies", room.enemy_num_tooltip],
+      ],
+    });
   }
   for (const room of level.rooms) {
     for (const direction of DIRECTIONS) {
@@ -327,21 +460,32 @@ function drawLevel(levelNum, level) {
       label,
     ])),
   ]);
+  makeInteractive(`Level ${levelNum}`, svg, spots);
   return element("figure", { className: "plot level" }, [
     element("figcaption", { textContent: `Level ${levelNum}` }), element("div", { className: "scroll" }, [svg]), legend,
+    element("p", { className: "map-hint", textContent: MAP_HINT }),
   ]);
 }
 
 /** @param {OverworldScreen[]} screens */
 function drawOverworld(screens) {
   const { svg, rect, text } = plot(16, 8, 50, "Overworld map");
-  for (const screen of screens) {
-    svg.append(withTooltip(rect(screen.x_coord, screen.y_coord, 0.95, 0.95, {
+  /** @type {MapSpot[]} */
+  const spots = [];
+  for (const screen of inMapOrder(screens)) {
+    const node = rect(screen.x_coord, screen.y_coord, 0.95, 0.95, {
       fill: "#4CAF50", "fill-opacity": 0.6, stroke: "#4CAF50", class: "room",
-    }), [
-      ["Screen Number", screen.screen_num], ["Col", screen.col], ["Row", screen.row], ["Cave", screen.cave],
-      ["Cave2", screen.cave_name], ["Cave3", screen.cave_name_short],
-    ]));
+    });
+    svg.append(node);
+    spots.push({
+      node,
+      key: screen.screen_num,
+      label: [`Screen ${screen.screen_num}`, screen.cave_name].filter(Boolean).join(", "),
+      fields: [
+        ["Screen Number", screen.screen_num], ["Col", screen.col], ["Row", screen.row], ["Cave", screen.cave],
+        ["Cave2", screen.cave_name], ["Cave3", screen.cave_name_short],
+      ],
+    });
   }
   for (const screen of screens) {
     if (!screen.cave_name_short) continue;
@@ -349,8 +493,10 @@ function drawOverworld(screens) {
     label.setAttribute("pointer-events", "none");
     svg.append(label);
   }
+  makeInteractive("Overworld", svg, spots);
   return element("figure", { className: "plot overworld" }, [
     element("figcaption", { textContent: "Overworld" }), element("div", { className: "scroll" }, [svg]),
+    element("p", { className: "map-hint", textContent: MAP_HINT }),
   ]);
 }
 
@@ -433,6 +579,7 @@ const errorMessage = (err) => (err instanceof Error ? err.message : String(err))
 
 function renderView() {
   hideTooltip();
+  currentMap = null;
   const data = current;
   if (!data) return;  // no ROM: the view picker is hidden
   const view = viewSelect.value;
@@ -453,11 +600,13 @@ function renderView() {
     content = ok ? hintTexts(data) : [infoBox("Sorry, hint texts aren't available for this ROM")];
   }
   output.replaceChildren(...content);
+  showMapPin();
 }
 
 /** @param {RomData} data */
 function showRom(data) {
   current = data;
+  pinned = null;
   messageArea.replaceChildren(...(data.status === "encoded" ? [errorBox(data.message)]
     : data.status === "unsupported" ? [infoBox(data.message)] : []));
   picker.hidden = false;
@@ -466,6 +615,7 @@ function showRom(data) {
 
 function showNoRom() {
   current = null;
+  pinned = null;
   messageArea.replaceChildren(infoBox(NO_ROM_TEXT));
   picker.hidden = true;
   output.replaceChildren();
@@ -490,7 +640,11 @@ async function onRomChosen() {
 viewSelect.append(...VIEWS.map((view) => element("option", { value: view, textContent: view })));
 viewSelect.addEventListener("change", renderView);
 romInput.addEventListener("change", onRomChosen);
-document.addEventListener("keydown", (event) => { if (event.key === "Escape") hideTooltip(); });
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (currentMap) currentMap.unpin();
+  else hideTooltip();
+});
 showNoRom();
 
 Object.assign(window, { z1rVisualizer: { exportRom, exportRomJson, current: () => current } });

@@ -80,7 +80,10 @@ select {
    would be unreadable. */
 .map { display: block; background: #ffffff; max-width: none; border: 1px solid var(--border); }
 .map text { fill: #000000; font-family: Helvetica, Arial, sans-serif; }
-.map .room { cursor: default; }
+.map .room { cursor: pointer; }
+.map .room:hover, .map .room:focus-visible { stroke: #000000; stroke-width: 2; outline: none; }
+.map .room.pinned { stroke: #000000; stroke-width: 4; }
+.map-hint { color: var(--muted); font-size: 0.85rem; margin: 6px 0 0; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 0.85rem; align-items: center; }
 .legend-title { font-weight: 600; width: 100%; }
