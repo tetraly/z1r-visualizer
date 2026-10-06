@@ -30,9 +30,11 @@
  * @typedef {{status: "encoded" | "unsupported", message: string, recorder: Recorder}} RefusedRom
  * @typedef {ParsedRom | RefusedRom} RomData
  * @typedef {Array<[string, string | number | undefined]>} TooltipFields
- * @typedef {{node: SVGElement, key: string, label: string, fields: TooltipFields}} MapSpot
+ * @typedef {{node: SVGElement, key: string, label: string, fields: TooltipFields, stair: string,
+ *   x: number, y: number}} MapSpot
  *   A room or overworld screen on a map. key: its room or screen number; label: what a screen
- *   reader announces for it.
+ *   reader announces for it; stair: its transport staircase ("Stair #2"), or ""; x, y: its centre
+ *   in the SVG's pixels.
  * @typedef {"north" | "south" | "east" | "west"} Direction
  */
 
@@ -245,6 +247,9 @@ window.addEventListener("resize", placeBesideAnchor);
 // ---------------------------------------------------------------------------------------------
 // Pinning: a click or tap on a room, or Enter or Space on a focused one, keeps its tooltip beside
 // it and outlines it. Clicking it again, clicking the map beside the rooms, or Escape unpins.
+//
+// Staircase pairs: while a room at one end of a transport staircase is hovered, focused or
+// pinned, the room at the other end has a dashed outline and a dashed line joins the two.
 
 /**
  * The pinned room and the view it is on. It stays while other views are shown, and is dropped
@@ -272,9 +277,31 @@ function makeInteractive(view, svg, spots) {
   /** @param {string} key */
   const spot = (key) => spots.find((candidate) => candidate.key === key) || null;
   const pinnedSpot = () => (pinned && pinned.view === view ? spot(pinned.key) : null);
-  // Marks the pinned spot and shows its tooltip, or no tooltip.
+
+  // The staircase lines go under the labels, so the labels stay readable.
+  const links = svgElement("g", { class: "stair-links", "aria-hidden": "true" });
+  svg.insertBefore(links, svg.querySelector("text"));
+  /** @type {MapSpot | null} */
+  let paired = null;
+  /** @param {MapSpot | null} active  The hovered, focused or pinned spot. */
+  const showStairPair = (active) => {
+    if (active === paired) return;
+    paired = active;
+    links.replaceChildren();
+    for (const candidate of spots) {
+      const isPair = !!active && !!active.stair && candidate !== active && candidate.stair === active.stair;
+      candidate.node.classList.toggle("stair-pair", isPair);
+      if (isPair && active) {
+        links.append(svgElement("line", { x1: active.x, y1: active.y, x2: candidate.x, y2: candidate.y,
+                                          class: "stair-link" }));
+      }
+    }
+  };
+
+  // Marks the pinned spot and shows its tooltip and staircase pair, or neither.
   const showPin = () => {
     const current = pinnedSpot();
+    showStairPair(current);
     for (const candidate of spots) {
       candidate.node.classList.toggle("pinned", candidate === current);
       candidate.node.setAttribute("aria-pressed", String(candidate === current));
@@ -298,9 +325,15 @@ function makeInteractive(view, svg, spots) {
     node.setAttribute("role", "button");
     node.setAttribute("aria-label", target.label);
     node.setAttribute("aria-pressed", "false");
-    node.addEventListener("mousemove", (event) => showTooltip(event, target.fields));
+    node.addEventListener("mousemove", (event) => {
+      showStairPair(target);
+      showTooltip(event, target.fields);
+    });
     node.addEventListener("mouseleave", showPin);
-    node.addEventListener("focus", () => showTooltipBeside(node, target.fields));
+    node.addEventListener("focus", () => {
+      showStairPair(target);
+      showTooltipBeside(node, target.fields);
+    });
     node.addEventListener("blur", showPin);
     node.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -372,7 +405,7 @@ function plot(widthUnits, heightUnits, unit, title) {
     node.textContent = value;
     return node;
   };
-  return { svg, rect, text };
+  return { svg, rect, text, toX, toY };
 }
 
 // Door markers: the app maps 'black' (an open door) to dark grey and keeps the other colours.
@@ -398,7 +431,7 @@ const coordinate = (room, key) => /** @type {number} */ (room[key]);
  * @param {Level} level
  */
 function drawLevel(levelNum, level) {
-  const { svg, rect, text } = plot(8, 8, 100, `Level ${levelNum} map`);
+  const { svg, rect, text, toX, toY } = plot(8, 8, 100, `Level ${levelNum} map`);
   const roomColour = level.palette[2];
   /** @type {MapSpot[]} */
   const spots = [];
@@ -412,6 +445,10 @@ function drawLevel(levelNum, level) {
       key: room.room_num,
       label: [`Room ${room.room_num}`, room.room_type, room.enemy_info, room.item_info, room.stair_info]
         .filter(Boolean).join(", "),
+      // An item staircase's stair_info is its item; a transport staircase's is "Stair #n".
+      stair: room.stair_info.startsWith("Stair #") ? room.stair_info : "",
+      x: toX(room.x_coord),
+      y: toY(room.y_coord),
       fields: [
         ["Room Number", room.room_num], ["Col", room.col], ["Row", room.row], ["Stair", room.stair_tooltip],
         ["Room Type", room.room_type], ["Enemy Type", room.enemy_type_tooltip],
@@ -469,7 +506,7 @@ function drawLevel(levelNum, level) {
 
 /** @param {OverworldScreen[]} screens */
 function drawOverworld(screens) {
-  const { svg, rect, text } = plot(16, 8, 50, "Overworld map");
+  const { svg, rect, text, toX, toY } = plot(16, 8, 50, "Overworld map");
   /** @type {MapSpot[]} */
   const spots = [];
   for (const screen of inMapOrder(screens)) {
@@ -481,6 +518,9 @@ function drawOverworld(screens) {
       node,
       key: screen.screen_num,
       label: [`Screen ${screen.screen_num}`, screen.cave_name].filter(Boolean).join(", "),
+      stair: "",
+      x: toX(screen.x_coord),
+      y: toY(screen.y_coord),
       fields: [
         ["Screen Number", screen.screen_num], ["Col", screen.col], ["Row", screen.row], ["Cave", screen.cave],
         ["Cave2", screen.cave_name], ["Cave3", screen.cave_name_short],
