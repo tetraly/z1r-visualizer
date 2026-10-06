@@ -2,7 +2,7 @@ from rom_reader import RomReader
 import io
 from typing import IO, List
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from constants import Direction, WallType, ROOM_TYPES, ENEMY_TYPES, ITEM_TYPES
 from constants import ENTRANCE_DIRECTION_MAP, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
 from constants import OVERWORLD_BLOCK_TYPES, DOOR_TYPES
@@ -92,23 +92,52 @@ class DataExtractor(object):
                                                     (room_num, claimed[room_num], level_num))
                     claimed[room_num] = level_num
 
-    def GetItemName(self, code: int) -> str:
+    def GetItemName(self, code: int, by_line: bool = True) -> str:
         """Names an item code as the game hands it out: caves, shops, the Armos and the coast.
 
         $03 is the Magical Sword here. Only level rooms and item cellars treat it as "no item",
-        and only in ROMs that keep $03 as their nothing code (see GetRoomItemName).
+        and only in ROMs that keep $03 as their nothing code (see GetRoomItemName). With
+        by_line, a ROM with Progressive Items names line items by their line ("Sword Upgrade").
         """
-        if self.has_progressive_items and code in PROGRESSIVE_LINES:
+        if by_line and self.has_progressive_items and code in PROGRESSIVE_LINES:
             return PROGRESSIVE_LINES[code]
         if code == MAGICAL_SWORD_CODE:
             return "Magical Sword"
         return ITEM_TYPES.get(code, "Unknown Item %02X" % code)
 
-    def GetRoomItemName(self, code: int) -> str:
+    def GetRoomItemName(self, code: int, by_line: bool = True) -> str:
         """Names a level room's or item cellar's item code (the low five bits)."""
         if code == self.nothing_code:
             return ITEM_TYPES[MAGICAL_SWORD_CODE]  # "No Item"
-        return self.GetItemName(code)
+        return self.GetItemName(code, by_line)
+
+    def GetRoomItem(self, level_num: int, room_num: int) -> Optional[Tuple[str, bool]]:
+        """A room's item as (name, dropped by its enemies), or None; as _GetItemText, but
+        named by the item itself even with Progressive Items."""
+        code = self.GetRoomData(level_num, room_num + 4 * 0x80) % 0x20
+        if code == self.nothing_code:
+            # Ganon's room holds the Triforce of Power ($0E), which is also ZORA's nothing code.
+            if self._GetEnemyType(level_num, room_num) != ENEMY_TYPES[0x3E]:
+                return None
+            name = ITEM_TYPES[code]
+        else:
+            name = self.GetRoomItemName(code, by_line=False)
+        if name == ITEM_TYPES[MAGICAL_SWORD_CODE]:  # "No Item"
+            return None
+        is_drop = math.floor(self.GetRoomData(level_num, room_num + 5 * 0x80) / 4) % 0x02 == 1
+        return name, is_drop
+
+    def GetRoomEnemies(self, level_num: int, room_num: int) -> Optional[Tuple[str, Optional[int]]]:
+        """A room's enemies as (name, how many), or None. The count is None where the game's
+        group size doesn't apply (bosses and other single foes), as _GetEnemyText shows them."""
+        name = self._GetEnemyType(level_num, room_num)
+        if name == ENEMY_TYPES[0x00]:
+            return None
+        text = self._GetEnemyText(level_num, room_num)
+        if text.startswith('ERROR CODE'):
+            return text, None
+        count = self._GetEnemyNum(level_num, room_num)
+        return name, (count if text == '%d %s' % (count, name) else None)
 
     def GetRoomData(self, level_num: int, byte_num: int) -> int:
         foo = -1
@@ -222,6 +251,8 @@ class DataExtractor(object):
             self.data[level_num][right_exit]['stair_info'] = 'Stair #%d' % stairway_num
             self.data[level_num][left_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
             self.data[level_num][right_exit]['stair_tooltip'] = 'Stairway #%d' % stairway_num
+            self.data[level_num][left_exit]['stair_partner'] = right_exit
+            self.data[level_num][right_exit]['stair_partner'] = left_exit
             stairway_num += 1
 
     def _MarkVisibleSolidWalls(self, level_num: int) -> None:
@@ -362,6 +393,7 @@ class DataExtractor(object):
                 # This is an item staircase, not a transport staircase
                 item_type = int(self.GetRoomData(level_num, stairway_room_num + (4 * 0x80)) % 0x20)
                 item_name = self.GetRoomItemName(item_type)
+                self.data[level_num][left_exit]['stair_item_code'] = item_type
                 self.data[level_num][left_exit]['stair_info'] = item_name
                 self.data[level_num][left_exit]['stair_tooltip'] = item_name
                 break
