@@ -12,7 +12,7 @@ deploys from the `streamlit` branch. Sections 1-5 are the design record.
 | `cli.py --json` | the same data from the command line; the CLI stays Python |
 | `site/` | the page: `index.html`, `style.css`, `app.js` (views drawn in SVG and HTML), `worker.js` (Pyodide 0.28.3 from jsDelivr, a classic worker) |
 | `scripts/build_site.py` | `build/site/` (the page plus the parser in `py/`) and, with `--single-file`, `build/z1r-visualizer.html` (about 70 KB) |
-| `scripts/check_site.mjs` | opens the single file from `file://` in headless Chrome, chooses each ROM through the file input, compares the page's data with `cli.py --json` byte for byte, checks every view renders and encoded ROMs are refused |
+| `scripts/check_site.mjs` | type-checks `site/`'s JavaScript (`tsc --noEmit`), then opens the single file from `file://` in headless Chrome, chooses each ROM through the file input, compares the page's data with `cli.py --json` byte for byte, checks every view renders and encoded ROMs are refused |
 | `.github/workflows/pages.yml` | builds `build/site/` and deploys it to Pages; manual trigger only |
 
 ```bash
@@ -62,6 +62,38 @@ Differences:
   dark mode. The maps stay white, as the app forces.
 - **Speed**: the first visit downloads Pyodide (about 5.5 MB), about 3-5 s to "Ready". Later
   visits use the browser cache. Each ROM then takes about 20 ms.
+
+### Type checking
+
+`site/app.js` and `site/worker.js` carry JSDoc types and `// @ts-check`. `site/jsconfig.json` (the
+page, with the DOM's types) and `site/jsconfig.worker.json` (the worker, with the WebWorker's)
+check them strictly; nothing is compiled, and the build does not change. `scripts/check_site.mjs`
+runs `tsc --noEmit` on both before opening the page (TypeScript 6.0.3 through npx, no
+`package.json`), and a type error fails the check.
+
+### Interaction ideas from the Plotly prototype (`plotly_proto.py`; not built)
+
+What the prototype does: the same room boxes, doors, walls and four labels; a hover tooltip with
+the app's fields, carried by invisible square markers; a horizontal legend below. It switches
+zoom, pan and the mode bar **off** (`fixedrange`, `dragmode=False`, `displayModeBar: False`), and
+has no selection. Its legend entries are dummy traces, so clicking one would hide nothing on the
+map.
+
+Ideas for the SVG maps, roughly in order of value for a spoiler view:
+
+| # | Idea | Where it comes from | Value | Effort |
+|---|---|---|---|---|
+| 1 | **Pin a room**: click (or tap) keeps its tooltip and outlines it until another click; Escape clears. Rooms focusable with Tab, tooltip on focus | Plotly's hover label, which stays put on the point; the page's tooltip follows the cursor | High: readable on phones and with a keyboard | Small |
+| 2 | **Staircase pairs**: hovering or pinning a room with "Stair #n" outlines the room at the other end | not in the prototype; uses data the page has (`stair_info`) | High: transport stairs are the hardest thing to follow on the map | Small |
+| 3 | **Item Summary to map**: each row's Screen links to its level map with that room pinned | Plotly's linked selection, done simply | High | Small to medium |
+| 4 | **Legend as a filter**: clicking a door type dims the others (for example, show only bombable walls) | Plotly's legend toggling, which the prototype's dummy traces can't actually do | Medium | Small |
+| 5 | **Item search**: a box that outlines every room whose item, drop or cellar matches (for example "Sword", "Heart Container") | Plotly's selection, aimed at what players look for | Medium | Small |
+| 6 | **Zoom and pan** with a reset button: wheel or pinch on the SVG's viewBox | Plotly's default zoom, which the prototype disabled | Medium, mostly on phones, instead of the sideways scroll | Medium |
+| 7 | **Download the map** as SVG (or PNG) | Plotly's mode-bar "download plot" | Low to medium (sharing a spoiler) | Small |
+| 8 | Look only: the prototype's darker room outline (`#555`), door markers at 0.8 opacity with explicit colours (shutter `#8B4513`, bombable `#1E40FF`), 11 px labels | `plotly_proto.py` | Taste; changes parity with the Streamlit app | Trivial |
+
+Not recommended: box or lasso selection (rooms are few and fixed, so a click does the job) and
+free zoom without a reset (easy to get lost on an 8x8 map).
 
 ### Publishing (the owner's step; nothing is enabled)
 

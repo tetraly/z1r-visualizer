@@ -31,5 +31,8 @@ python3 -m pytest data_extractor_test.py spoiler_test.py
 node scripts/check_site.mjs testdata/*.nes
 ```
 
+The second type-checks the page's JavaScript (`tsc --noEmit` from its JSDoc types), then compares
+the single-file page with `cli.py --json` on each ROM in headless Chrome.
+
 The ROMs in `testdata/` are not in the repository. Most tests skip when their ROM is missing; the
 three oldest (`DataExtractorTest`) fail instead.
