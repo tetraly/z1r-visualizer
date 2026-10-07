@@ -1,9 +1,12 @@
 # Visual refresh: three design directions (stage 1, proposals)
 
-Status (2026-10-06): the owner chose **B, Quest Log**, and it has had a second iteration
-(below): an original mark in place of the triforce, rooms sized to fit every label, mode
-toggles, and room details as a popup or in a side panel. The real page (`site/`) is still
-unchanged; stage 2 applies the chosen design to it.
+Status (2026-10-06): the owner chose **B, Quest Log**. After a second iteration (below), it is
+**built on the real page** (stage 2):
+- `site/index.html`, `site/style.css` and the new `site/ui.js`;
+- the map changes in `site/app.js`;
+- room details as a popup by default, with the side panel as a remembered option.
+
+The mockups here are the design record. `contrast.py` also checks the page's own stylesheet.
 
 Each mockup is a working page, not a picture:
 - the real renderer (`site/app.js`, `site/validate.js`), inside the direction's own shell and

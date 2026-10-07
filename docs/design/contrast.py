@@ -2,7 +2,8 @@
 
     python3 docs/design/contrast.py
 
-Reads the light-dark() tokens in docs/design/<direction>/style.css. Text needs 4.5:1; focus
+Reads the light-dark() tokens in docs/design/<direction>/style.css and in the page's own
+site/style.css. Text needs 4.5:1; focus
 rings, map outlines and markers need 3:1 (non-text contrast). Map labels are checked against
 every one of the 64 NES colours as a room fill (a dungeon can have any of them), blended at the
 direction's --room-opacity over the map background: the worst case, before the labels' halo.
@@ -15,7 +16,13 @@ DESIGN = Path(__file__).resolve().parent
 sys.path.insert(0, str(DESIGN.parent.parent))
 from constants import PALETTE_COLORS  # noqa: E402
 
-DIRECTIONS = ["atlas", "quest-log", "tracker"]
+# Each direction's stylesheet, and the real page's (the chosen direction, as built).
+STYLESHEETS = {
+    "atlas": DESIGN / "atlas" / "style.css",
+    "quest-log": DESIGN / "quest-log" / "style.css",
+    "tracker": DESIGN / "tracker" / "style.css",
+    "page (site/style.css)": DESIGN.parent.parent / "site" / "style.css",
+}
 TEXT = 4.5
 GRAPHIC = 3.0
 CHECKS = [
@@ -83,8 +90,8 @@ def tokens(css):
 def main():
     failures = 0
     nes = [rgb(colour) for colour in PALETTE_COLORS]
-    for direction in DIRECTIONS:
-        values, opacity = tokens((DESIGN / direction / "style.css").read_text())
+    for direction, stylesheet in STYLESHEETS.items():
+        values, opacity = tokens(stylesheet.read_text())
         print("== %s" % direction)
         for theme, index in (("light", 0), ("dark", 1)):
             worst = []

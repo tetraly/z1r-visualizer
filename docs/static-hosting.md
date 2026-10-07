@@ -1,6 +1,16 @@
 # A static visualizer on GitHub Pages
 
-Status (2026-10-06): **built** as recommended (approach C), on `main`. Since then the page
+Status (2026-10-06): **built** as recommended (approach C), on `main`, and since restyled in the
+Quest Log design (docs/design/README.md):
+- **Navigation:** dungeon coins and view tabs.
+- **Map options:** "Show" presets and a Customise panel to show or hide each layer of the maps.
+- **Room details:** a popup by default, or a side panel, remembered per browser.
+- **Rooms fit their labels.**
+- **Themes:** light and dark follow the system, with a toggle. The build adds a light-only
+  fallback for browsers without `light-dark()`.
+
+`site/ui.js` holds this page furniture; `site/app.js` still draws the views and owns the data,
+which is unchanged. Since then the page
 draws everything from the seed format (docs/seed-format.md): seeds come from a ROM (Python in
 Pyodide), a seed file (.json) or ZORA's hand-off, and the last two need no Pyodide. GitHub Pages is **not**
 enabled; publishing is the owner's step (below). The Streamlit app is unchanged and still
