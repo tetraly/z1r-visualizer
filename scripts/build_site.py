@@ -14,6 +14,7 @@ ever sent anywhere.
 """
 import argparse
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -42,6 +43,39 @@ def version_label() -> str:
         return "unknown version"
 
 
+def light_dark_arguments(text: str, start: int):
+    """The two arguments of the light-dark( call whose "(" is at text[start], and the index after
+    its ")"; commas inside rgba() and the like are kept."""
+    depth, args, current = 0, [], start + 1
+    for i in range(start, len(text)):
+        if text[i] == "(":
+            depth += 1
+        elif text[i] == ")":
+            depth -= 1
+            if depth == 0:
+                args.append(text[current:i].strip())
+                return args, i + 1
+        elif text[i] == "," and depth == 1:
+            args.append(text[current:i].strip())
+            current = i + 1
+    raise SystemExit("style.css: an unclosed light-dark(")
+
+
+def with_light_fallback(css: str) -> str:
+    """style.css plus a light-only fallback for browsers without light-dark() (Chrome < 123,
+    Firefox < 120, Safari < 17.5): an @supports block giving each colour token its light value."""
+    tokens = []
+    for match in re.finditer(r"(--[\w-]+):\s*light-dark(?=\()", css):
+        args, _ = light_dark_arguments(css, match.end())
+        if len(args) != 2:
+            raise SystemExit("style.css: %s's light-dark() needs two colours" % match.group(1))
+        tokens.append("    %s: %s;" % (match.group(1), args[0]))
+    if not tokens:
+        return css
+    return css + ("\n/* Added by scripts/build_site.py: light colours where light-dark() is not supported. */\n"
+                  "@supports not (color: light-dark(#000, #fff)) {\n  :root {\n%s\n  }\n}\n" % "\n".join(tokens))
+
+
 def stamped_page(version: str) -> str:
     page = (SITE / "index.html").read_text()
     marker = '<span class="version" id="version">dev</span>'
@@ -56,6 +90,7 @@ def build_site(version: str) -> Path:
     (out / "py").mkdir(parents=True)
     for name in PAGE_FILES[1:]:
         shutil.copy(SITE / name, out / name)
+    (out / "style.css").write_text(with_light_fallback((SITE / "style.css").read_text()))
     (out / "index.html").write_text(stamped_page(version))
     for name in PYTHON_FILES:
         shutil.copy(ROOT / name, out / "py" / name)
@@ -71,7 +106,7 @@ def inline(text: str, end_tag: str, what: str) -> str:
 
 def build_single_file(version: str) -> Path:
     page = stamped_page(version)
-    style = inline((SITE / "style.css").read_text(), "</style", "style.css")
+    style = inline(with_light_fallback((SITE / "style.css").read_text()), "</style", "style.css")
     validator = inline((SITE / "validate.js").read_text(), "</script", "validate.js")
     script = inline((SITE / "app.js").read_text(), "</script", "app.js")
     worker = inline((SITE / "worker.js").read_text(), "</script", "worker.js")
@@ -83,7 +118,7 @@ def build_single_file(version: str) -> Path:
     stylesheet_tag = '<link rel="stylesheet" href="style.css">'
     validator_tag = '<script src="validate.js"></script>'
     script_tag = '<script src="app.js"></script>'
-    assert stylesheet_tag in page and validator_tag in page and script_tag in page, \
+    assert all(tag in page for tag in (stylesheet_tag, validator_tag, script_tag)), \
         "index.html lost its stylesheet or script tags"
     page = page.replace(stylesheet_tag, "<style>\n%s</style>" % style)
     page = page.replace(validator_tag, "<script>\n%s</script>" % validator)
