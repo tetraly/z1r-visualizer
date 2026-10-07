@@ -3,42 +3,121 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>Z1R Visualizer</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<main>
-  <header>
-    <h1>Z1R Visualizer</h1>
-    <span class="version" id="version">dev</span>
+<body data-state="empty">
+<a class="skip" href="#main">Skip to content</a>
+<div class="page">
+  <header class="banner">
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.5l6.5-2.5 7 2.5 6.5-2.5v15.5l-6.5 2.5-7-2.5-6.5 2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 3v15.5M15.5 5.5V21" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"/><path d="M5 16c2-3 4-1 6-4s3.5-3.5 6-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 2.2"/><circle cx="18" cy="7.6" r="1.8"/></svg>
+    <div class="title">
+      <span class="name">Z1R Visualizer</span>
+      <span class="subtitle">A spoiler map for <i>The Legend of Zelda</i> seeds · <span class="version" id="version">dev</span></span>
+    </div>
+    <button class="toggle" type="button" data-theme-toggle><span class="toggle-dot" aria-hidden="true"></span><span data-theme-label>System</span></button>
   </header>
-  <p class="privacy">Your ROM is read in this page only. It is never uploaded.</p>
 
-  <div class="upload">
-    <label for="rom">Upload a ROM, or a seed file (.json), by choosing a file below.</label>
-    <input type="file" id="rom" accept=".nes,.json">
-    <p id="status" class="status" role="status">Loading Python…</p>
+  <nav class="tabs" aria-label="Views" data-loaded-only>
+    <div class="coins" role="group" aria-label="Dungeons">
+      <button type="button" class="coin" data-view="Level 1"><span class="visually-hidden">Level </span>1</button>
+      <button type="button" class="coin" data-view="Level 2"><span class="visually-hidden">Level </span>2</button>
+      <button type="button" class="coin" data-view="Level 3"><span class="visually-hidden">Level </span>3</button>
+      <button type="button" class="coin" data-view="Level 4"><span class="visually-hidden">Level </span>4</button>
+      <button type="button" class="coin" data-view="Level 5"><span class="visually-hidden">Level </span>5</button>
+      <button type="button" class="coin" data-view="Level 6"><span class="visually-hidden">Level </span>6</button>
+      <button type="button" class="coin" data-view="Level 7"><span class="visually-hidden">Level </span>7</button>
+      <button type="button" class="coin" data-view="Level 8"><span class="visually-hidden">Level </span>8</button>
+      <button type="button" class="coin" data-view="Level 9"><span class="visually-hidden">Level </span>9</button>
+    </div>
+    <span class="divider" aria-hidden="true"></span>
+    <button type="button" class="tab" data-view="Overworld">Overworld</button>
+    <button type="button" class="tab" data-view="Item Summary">Items</button>
+    <button type="button" class="tab" data-view="Hint Texts">Hints</button>
+    <button type="button" class="tab" data-view="Recorder Info" data-advanced>Recorder</button>
+    <button type="button" class="tab" data-view="Seed Info" data-advanced>Seed</button>
+  </nav>
+
+  <!-- What the maps show, and how room details appear. -->
+  <div class="options" data-loaded-only data-map-only>
+    <fieldset class="segmented">
+      <legend>Show</legend>
+      <label><input type="radio" name="preset" value="everything" class="visually-hidden"><span>Everything</span></label>
+      <label><input type="radio" name="preset" value="route" class="visually-hidden"><span>Route</span></label>
+      <label><input type="radio" name="preset" value="items" class="visually-hidden"><span>Items</span></label>
+      <label><input type="radio" name="preset" value="layout" class="visually-hidden"><span>Layout only</span></label>
+      <span class="custom-note" data-custom-note hidden>Custom</span>
+    </fieldset>
+    <details class="customise">
+      <summary>Customise</summary>
+      <div class="customise-panel">
+        <fieldset class="layers">
+          <legend>On the maps</legend>
+          <label><input type="checkbox" data-layer="types"> Room types</label>
+          <label><input type="checkbox" data-layer="enemies"> Enemies</label>
+          <label><input type="checkbox" data-layer="items"> Items</label>
+          <label><input type="checkbox" data-layer="minor"> Minor items <small>(keys, bombs, rupees, maps, compasses, triforces)</small></label>
+          <label><input type="checkbox" data-layer="stairs"> Transport staircases</label>
+          <label><input type="checkbox" data-layer="doors"> Door markers</label>
+          <label><input type="checkbox" data-layer="highlight"> Outline rooms with a major item</label>
+          <label><input type="checkbox" data-layer="dim"> Fade rooms without one</label>
+        </fieldset>
+        <fieldset class="layers">
+          <legend>Views</legend>
+          <label><input type="checkbox" data-layer="advanced"> Recorder and Seed tabs</label>
+        </fieldset>
+      </div>
+    </details>
+    <fieldset class="segmented">
+      <legend>Room details</legend>
+      <label><input type="radio" name="details" value="popup" class="visually-hidden"><span>Popup</span></label>
+      <label><input type="radio" name="details" value="panel" class="visually-hidden"><span>Side panel</span></label>
+    </fieldset>
   </div>
 
-  <div id="messages"></div>
+  <main id="main" class="main" data-drop>
+    <section class="scroll-card" data-empty-only aria-labelledby="empty-title">
+      <h1 id="empty-title">Open a seed to explore it</h1>
+      <p>Drop a <code>.nes</code> ROM or a <code>.json</code> seed file on this page, or choose one.</p>
+      <label class="cta" for="rom">Choose a file</label>
+      <input type="file" id="rom" class="visually-hidden" accept=".nes,.json">
+      <dl class="supports">
+        <dt>Reads</dt>
+        <dd>The Legend of Zelda (PRG0, PRG1), Zelda Randomizer seeds made without “Race ROM”, ZORA seeds made without “Encode level data”, and seed files.</dd>
+        <dt>Privacy</dt>
+        <dd>Your ROM is read in this page only. It is never uploaded.</dd>
+      </dl>
+    </section>
 
-  <div id="picker" class="picker" hidden>
-    <label for="view">What information would you like to display?</label>
-    <select id="view"></select>
-  </div>
-
-  <div id="output"></div>
+    <div class="workspace">
+      <div class="content">
+        <div class="view-head" data-loaded-only>
+          <h1 data-view-title>Level 1</h1>
+          <span class="file"><span data-file-name></span> <button type="button" class="text-button" data-open-file>Open another</button></span>
+        </div>
+        <p id="status" class="status" role="status">Loading Python…</p>
+        <div id="messages"></div>
+        <div id="picker" hidden><label for="view">View</label><select id="view"></select></div>
+        <div id="output"></div>
+      </div>
+      <aside class="ledger" aria-label="Room details" data-details-panel>
+        <h2>Room ledger</h2>
+        <p class="placeholder">Hover over a room, or focus it with Tab, to read it here. Click it, or press Enter, to keep it here; Escape lets go.</p>
+      </aside>
+    </div>
+  </main>
 
   <footer>
-    Reads vanilla Legend of Zelda ROMs, Zelda Randomizer ROMs made without the ‘Race ROM’
-    flag, and ZORA ROMs made without ‘Encode level data’, and seeds in the
-    <a href="https://github.com/tetraly/z1r-visualizer/blob/main/docs/seed-format.md">seed format</a>.
-    ROMs are read by Python running in your browser through <a href="https://pyodide.org/">Pyodide</a>,
-    downloaded once from jsDelivr.
+    Seeds also open from a seed file in the
+    <a href="https://github.com/tetraly/z1r-visualizer/blob/main/docs/seed-format.md">seed format</a>, or from
+    ZORA’s “View in Visualizer”. ROMs are read by Python running in your browser through
+    <a href="https://pyodide.org/">Pyodide</a>, downloaded once from jsDelivr.
   </footer>
-</main>
+</div>
 <div id="tooltip" class="tooltip" hidden></div>
 <script src="validate.js"></script>
 <script src="app.js"></script>
+<script src="ui.js"></script>
 </body>
 </html>

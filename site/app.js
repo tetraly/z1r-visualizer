@@ -555,9 +555,10 @@ const WALL_SIZE = { north: [1, 0.05], south: [1, 0.05], east: [0.05, 1], west: [
 // Which neighbour (column, row change) a side faces; rows count down from the top.
 /** @type {Record<Direction, [number, number]>} */
 const NEIGHBOUR = { north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0] };
-/** @type {Array<[string, string]>} */
-const LEGEND = [["Open Door", "black"], ["Shutter Door", "brown"], ["Key-Locked Door", "orange"],
-                ["Bombable Wall", "blue"], ["Walk-Through Wall", "purple"], ["Solid Wall", "red"]];
+// The legend: each entry's label and the kind of door (or the wall) its swatch shows.
+/** @type {Array<[string, Door]>} */
+const LEGEND = [["Open Door", "open"], ["Shutter Door", "shutter"], ["Key-Locked Door", "locked"],
+                ["Bombable Wall", "bombable"], ["Walk-Through Wall", "walk-through"], ["Solid Wall", "solid"]];
 
 /**
  * @param {Seed} seed
@@ -645,9 +646,8 @@ function drawLevel(seed, level) {
 
   const legend = element("div", { className: "legend" }, [
     element("span", { className: "legend-title", textContent: "The Legend of Door & Wall Types" }),
-    ...LEGEND.map(([label, colour]) => element("span", { className: "legend-item" }, [
-      element("span", { className: `swatch${colour === "red" ? " solid" : ""}`, style: `background:${colour}` }),
-      label,
+    ...LEGEND.map(([label, kind]) => element("span", { className: "legend-item" }, [
+      element("span", { className: `swatch swatch-${kind}` }), label,
     ])),
   ]);
   makeInteractive(`Level ${level.number}`, svg, spots);

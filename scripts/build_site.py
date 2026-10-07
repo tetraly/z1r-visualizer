@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 BUILD = ROOT / "build"
-PAGE_FILES = ["index.html", "style.css", "validate.js", "app.js", "worker.js"]
+PAGE_FILES = ["index.html", "style.css", "validate.js", "app.js", "ui.js", "worker.js"]
 # The seed format's schema, which the page checks seeds against.
 SCHEMA = ROOT / "docs" / "seed-format.schema.json"
 # The parser, shared with app.py and cli.py. Keep in step with PYTHON_FILES in site/app.js.
@@ -109,6 +109,7 @@ def build_single_file(version: str) -> Path:
     style = inline(with_light_fallback((SITE / "style.css").read_text()), "</style", "style.css")
     validator = inline((SITE / "validate.js").read_text(), "</script", "validate.js")
     script = inline((SITE / "app.js").read_text(), "</script", "app.js")
+    furniture = inline((SITE / "ui.js").read_text(), "</script", "ui.js")
     worker = inline((SITE / "worker.js").read_text(), "</script", "worker.js")
     sources = {name: (ROOT / name).read_text() for name in PYTHON_FILES}
     # JSON can carry "</script" inside a string; escaping "</" keeps the element intact.
@@ -118,7 +119,8 @@ def build_single_file(version: str) -> Path:
     stylesheet_tag = '<link rel="stylesheet" href="style.css">'
     validator_tag = '<script src="validate.js"></script>'
     script_tag = '<script src="app.js"></script>'
-    assert all(tag in page for tag in (stylesheet_tag, validator_tag, script_tag)), \
+    furniture_tag = '<script src="ui.js"></script>'
+    assert all(tag in page for tag in (stylesheet_tag, validator_tag, script_tag, furniture_tag)), \
         "index.html lost its stylesheet or script tags"
     page = page.replace(stylesheet_tag, "<style>\n%s</style>" % style)
     page = page.replace(validator_tag, "<script>\n%s</script>" % validator)
@@ -128,6 +130,7 @@ def build_single_file(version: str) -> Path:
         '<script type="application/json" id="seed-schema">%s</script>' % schema_json,
         "<script>\n%s</script>" % script,
     ]))
+    page = page.replace(furniture_tag, "<script>\n%s</script>" % furniture)
     out = BUILD / "z1r-visualizer.html"
     out.write_text(page)
     return out
