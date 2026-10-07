@@ -486,18 +486,19 @@ const inMapOrder = (items) => [...items].sort((a, b) => a.row - b.row || a.colum
  * An empty map: `rect` and `text` place shapes in map units.
  * @param {number} widthUnits
  * @param {number} heightUnits
- * @param {number} unit  Pixels per map unit.
+ * @param {number} unit  Pixels per map unit, across.
  * @param {string} title
+ * @param {number} [unitY]  Pixels per map unit, down; cells can be wider than tall.
  */
-function plot(widthUnits, heightUnits, unit, title) {
+function plot(widthUnits, heightUnits, unit, title, unitY = unit) {
   const svg = svgElement("svg", {
-    viewBox: `0 0 ${widthUnits * unit} ${heightUnits * unit}`,
-    width: widthUnits * unit, height: heightUnits * unit, class: "map", role: "group", "aria-label": title,
+    viewBox: `0 0 ${widthUnits * unit} ${heightUnits * unitY}`,
+    width: widthUnits * unit, height: heightUnits * unitY, class: "map", role: "group", "aria-label": title,
   });
   /** @param {number} x */
   const toX = (x) => x * unit;
   /** @param {number} y */
-  const toY = (y) => (heightUnits - y) * unit;
+  const toY = (y) => (heightUnits - y) * unitY;
   /**
    * A rectangle centred on (cx, cy).
    * @param {number} cx
@@ -507,7 +508,7 @@ function plot(widthUnits, heightUnits, unit, title) {
    * @param {Record<string, string | number>} attrs
    */
   const rect = (cx, cy, w, h, attrs) => svgElement("rect", {
-    x: toX(cx - w / 2), y: toY(cy + h / 2), width: w * unit, height: h * unit, ...attrs,
+    x: toX(cx - w / 2), y: toY(cy + h / 2), width: w * unit, height: h * unitY, ...attrs,
   });
   /**
    * Left-aligned text, vertically centred on y.
@@ -531,10 +532,22 @@ const DIRECTIONS = ["north", "south", "east", "west"];
 const DOOR_COLOURS = {
   open: "#333333", bombable: "blue", locked: "orange", "walk-through": "purple", shutter: "brown", solid: "red",
 };
-// Relative to a room's top right corner, in map units: where a direction's door marker sits, and
-// where its solid wall's bar is centred; and the bar's size.
+// Level maps: cells wider than tall, so the longest label ("D Boomerang Upgrade", 112 px at 10 px)
+// fits its room; rooms fill most of their cell. The overworld's cells fit "Take Any" at 13 px.
+const LEVEL_CELL = { width: 132, height: 96, room: [0.92, 0.84], label: "10px", labelInset: 0.925 };
+const OVERWORLD_CELL = { width: 66, height: 44, room: 0.95, label: "13px", labelInset: 0.95 };
+// Relative to a room's top right corner, in map units: where a direction's door marker sits (east
+// and west ones in the gap between rooms, clear of the labels) and its size; where its solid
+// wall's bar is centred; and the bar's size.
 /** @type {Record<Direction, [number, number]>} */
-const DOOR_OFFSET = { north: [-0.5, -0.05], south: [-0.5, -0.95], east: [-0.05, -0.5], west: [-0.95, -0.5] };
+const DOOR_OFFSET = { north: [-0.5, -0.05], south: [-0.5, -0.95], east: [-0.04, -0.5], west: [-0.96, -0.5] };
+/** @type {Record<Direction, [number, number]>} */
+const DOOR_SIZE = { north: [0.1, 0.1], south: [0.1, 0.1], east: [0.05, 0.13], west: [0.05, 0.13] };
+// The order the details card lists a room's doors in.
+/** @type {Direction[]} */
+const CLOCKWISE = ["north", "east", "south", "west"];
+// A class for each of a room's four label lines, so the page can show or hide each kind.
+const LABEL_CLASSES = ["label label-type", "label label-enemies", "label label-item"];
 /** @type {Record<Direction, [number, number]>} */
 const WALL_OFFSET = { north: [-0.5, 0], south: [-0.5, -1], east: [0, -0.5], west: [-1, -0.5] };
 /** @type {Record<Direction, [number, number]>} */
@@ -551,7 +564,7 @@ const LEGEND = [["Open Door", "black"], ["Shutter Door", "brown"], ["Key-Locked 
  * @param {SeedLevel} level
  */
 function drawLevel(seed, level) {
-  const { svg, rect, text, toX, toY } = plot(8, 8, 100, `Level ${level.number} map`);
+  const { svg, rect, text, toX, toY } = plot(8, 8, LEVEL_CELL.width, `Level ${level.number} map`, LEVEL_CELL.height);
   const roomColour = level.color;
   // A room's top right corner in map units: x = column, y = rows above the bottom edge.
   const corner = (/** @type {SeedRoom} */ room) => [room.column, 9 - room.row];
@@ -561,7 +574,7 @@ function drawLevel(seed, level) {
   const spots = [];
   for (const room of inMapOrder(level.rooms)) {
     const [x, y] = corner(room);
-    const node = rect(x - 0.5, y - 0.5, 0.8, 0.8, {
+    const node = rect(x - 0.5, y - 0.5, LEVEL_CELL.room[0], LEVEL_CELL.room[1], {
       fill: roomColour, "fill-opacity": 0.6, stroke: roomColour, class: "room",
     });
     svg.append(node);
@@ -572,11 +585,15 @@ function drawLevel(seed, level) {
       key,
       label: [`Room ${key}`, ...roomLines(seed, room)].filter(Boolean).join(", "),
       fields: [
-        ["Room Number", key], ["Col", room.column], ["Row", room.row],
-        ["Stair", staircase ? (staircase.kind === "transport" ? `Stairway #${staircase.number}`
-          : staircase.item ? itemLabel(seed, staircase.item) : "No Item") : "None"],
-        ["Room Type", room.type], ["Enemy Type", enemies ? enemies.name : ""],
-        ["Num Enemies", enemies ? enemies.count : undefined],
+        ["Room", `${key} · ${room.type}`],
+        ["Enemies", enemies ? (enemies.count !== undefined ? `${enemies.count} ${enemies.name}` : enemies.name) : "None"],
+        ["Item", room.item
+          ? `${itemLabel(seed, room.item.name)} (${room.item.drop ? "dropped by the enemies" : "on the floor"})` : "None"],
+        ["Stairs", staircase ? (staircase.kind === "transport"
+          ? `Stairway #${staircase.number}, to room ${roomNumber(staircase.to)}`
+          : `Item cellar: ${staircase.item ? itemLabel(seed, staircase.item) : "empty"}`) : "None"],
+        ["Doors", CLOCKWISE.map((side) => `${side[0].toUpperCase()} ${room.doors[side]}`).join(" · ")],
+        ["Position", `column ${room.column}, row ${room.row}`],
       ],
       stair: staircase && staircase.kind === "transport" ? `Stair #${staircase.number}` : "",
       x: toX(x - 0.5),
@@ -589,9 +606,10 @@ function drawLevel(seed, level) {
       const door = room.doors[direction];
       if (door === "solid") continue;
       const [dx, dy] = DOOR_OFFSET[direction];
+      const [w, h] = DOOR_SIZE[direction];
       const colour = DOOR_COLOURS[door];
-      svg.append(rect(x + dx, y + dy, 0.1, 0.1, {
-        fill: colour, "fill-opacity": 0.6, stroke: colour, "pointer-events": "none",
+      svg.append(rect(x + dx, y + dy, w, h, {
+        fill: colour, "fill-opacity": 0.6, stroke: colour, "pointer-events": "none", class: `door door-${door}`,
       }));
     }
   }
@@ -611,14 +629,16 @@ function drawLevel(seed, level) {
     }
   }
   for (const [x, y, w, h] of walls.values()) {
-    svg.append(rect(x, y, w, h, { fill: "red", stroke: "red", "pointer-events": "none" }));
+    svg.append(rect(x, y, w, h, { fill: "red", stroke: "red", "pointer-events": "none", class: "wall" }));
   }
   for (const room of level.rooms) {
     const [x, y] = corner(room);
     roomLines(seed, room).forEach((line, i) => {
       if (!line) return;
-      const label = text(x - 0.86, y - 0.2 * (i + 1), line, "8pt");
+      const label = text(x - LEVEL_CELL.labelInset, y - 0.2 * (i + 1), line, LEVEL_CELL.label);
       label.setAttribute("pointer-events", "none");
+      label.setAttribute("class", i < 3 ? LABEL_CLASSES[i]
+        : room.staircase && room.staircase.kind === "transport" ? "label label-transport" : "label label-cellar");
       svg.append(label);
     });
   }
@@ -639,29 +659,33 @@ function drawLevel(seed, level) {
 
 /** @param {SeedScreen[]} screens */
 function drawOverworld(screens) {
-  const { svg, rect, text, toX, toY } = plot(16, 8, 50, "Overworld map");
+  const { svg, rect, text, toX, toY } = plot(16, 8, OVERWORLD_CELL.width, "Overworld map", OVERWORLD_CELL.height);
   /** @type {MapSpot[]} */
   const spots = [];
   for (const screen of inMapOrder(screens)) {
     const x = screen.column - 0.5;
     const y = 8.5 - screen.row;
-    const node = rect(x, y, 0.95, 0.95, { fill: "#4CAF50", "fill-opacity": 0.6, stroke: "#4CAF50", class: "room" });
+    const node = rect(x, y, OVERWORLD_CELL.room, OVERWORLD_CELL.room, {
+      fill: "#4CAF50", "fill-opacity": 0.6, stroke: "#4CAF50", class: "room",
+    });
     svg.append(node);
     const key = screen.number.toString(16);
     spots.push({
       node,
       key,
       label: `Screen ${key}, ${screen.cave.name}`,
-      fields: [["Screen Number", key], ["Col", screen.column], ["Row", screen.row], ["Cave", screen.cave.name],
-               ["Map Label", screen.cave.shortName]],
+      fields: [["Screen", `${key} · ${screen.cave.name}`], ["Map label", screen.cave.shortName],
+               ["Position", `column ${screen.column}, row ${screen.row}`]],
       stair: "",
       x: toX(x),
       y: toY(y),
     });
   }
   for (const screen of screens) {
-    const label = text(screen.column - 0.9, 8.5 - screen.row, screen.cave.shortName, "14px");
+    const label = text(screen.column - OVERWORLD_CELL.labelInset, 8.5 - screen.row, screen.cave.shortName,
+                       OVERWORLD_CELL.label);
     label.setAttribute("pointer-events", "none");
+    label.setAttribute("class", "label label-cave");
     svg.append(label);
   }
   makeInteractive("Overworld", svg, spots);
