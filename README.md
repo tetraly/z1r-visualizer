@@ -14,18 +14,18 @@ Visualizer" button by window messaging.
   never uploaded.
 
   ```bash
-  sh scripts/build.sh
+  python3 scripts/build.py
   ```
 
   ```bash
-  sh scripts/run.sh
+  python3 scripts/run.py
   ```
 
-  `build.sh` writes `build/site/` and `build/z1r-visualizer.html`, a single page that opens from
-  disk. `run.sh` serves `build/site/` on this computer and opens it in your browser; it builds
-  first if there is no build yet. It uses port 8000, or the next free one (`PORT=9000` starts
-  elsewhere, and `NO_OPEN=1` skips opening the browser). After a change, run `build.sh` again and
-  reload. docs/static-hosting.md has the details and the GitHub Pages steps.
+  `build.py` writes `build/site/` and `build/z1r-visualizer.html`, a single page that opens from
+  disk. `run.py` serves `build/site/` on this computer and opens it in your browser; it builds
+  first if there is no build yet. It uses port 8000, or the next free one (`--port 9000` starts
+  elsewhere, and `--no-open` skips opening the browser); Ctrl+C stops it. After a change, run
+  `build.py` again and reload. docs/static-hosting.md has the details and the GitHub Pages steps.
 - **Streamlit app** (`app.py`): `streamlit run app.py`. The hosted app deploys from the `streamlit`
   branch.
 - **Command line** (`cli.py`): `python3 cli.py --files=rom.nes` prints CSV lines. `--seed` prints the
