@@ -19,8 +19,8 @@ def display_overworld():
         ("Col", "@{col}"),
         ("Row", "@{row}"),
         ("Cave", "@{cave}"),
-        ("Cave2", "@{cave_name}"),
-        ("Cave3", "@{cave_name_short}"),
+        ("Cave2", "@{shown_cave_name}"),
+        ("Cave3", "@{shown_cave_name_short}"),
     ]
     p = figure(title="Overworld",
                width=800,
@@ -44,7 +44,7 @@ def display_overworld():
     x = dodge("col", .1, range=p.x_range)
     p.text(x=x,
            y=dodge("y_coord", 0, range=p.y_range),
-           text="cave_name_short",
+           text="shown_cave_name_short",
            text_font_size="14px",
            **text_props)
     p.outline_line_color = None
@@ -59,6 +59,7 @@ def display_overworld():
 
 
 def display_level(level_num):
+    """Draws a level, given by its door code, titled by the number it shows on entry."""
     palette = de.GetLevelColorPalette(level_num)
     data = de.data[level_num]
     df = pd.DataFrame.from_dict(data, orient='index')
@@ -102,7 +103,7 @@ def display_level(level_num):
     x_range = [str(x) for x in range(1, 9)]
     y_range = [str(y) for y in range(1, 9)]
 
-    p = figure(title="Level %d" % level_num,
+    p = figure(title="Level %d" % de.GetLevelShownNumbers()[level_num],
                width=800,
                height=800,
                x_range=x_range,
@@ -265,7 +266,7 @@ def display_item_summary():
 
     # Collect all level data first
     all_level_data = {}
-    for level_num in range(1, 10):
+    for level_num, shown in de.GetLevelShownNumbers().items():
         level_items = []
         if level_num in de.data:
             for room_num, room_data in de.data[level_num].items():
@@ -304,7 +305,7 @@ def display_item_summary():
                             'Location': 'Item Stairway'
                         })
 
-        all_level_data[level_num] = level_items
+        all_level_data[shown] = level_items
 
     # Display in 3x3 grid
     for row in range(3):
@@ -426,7 +427,8 @@ if selected_option.startswith("Level"):
     if not successfully_parsed_level_data:
         st.info("Sorry, level maps aren't available for this ROM")
     else:
-        display_level(int(selected_option.split(" ")[1]))
+        shown = int(selected_option.split(" ")[1])
+        display_level(next(level_num for level_num, number in de.GetLevelShownNumbers().items() if number == shown))
 elif selected_option == "Overworld":
     if not successfully_parsed_level_data:
         st.info("Sorry, level maps aren't available for this ROM")

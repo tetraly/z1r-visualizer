@@ -67,9 +67,12 @@ def _HasTestRom(name):
     return os.path.exists('testdata/%s' % name)
 
 
-# ZORA ROMs generated with zora.api.generate_rom from the Consternation preset without level
-# encoding ('8hq4BeR1JXo89BJ2!TFpTP02u8UJ3A'), or the same preset with B09 off for Progressive
-# Items ('8hq4BeR1JXo7yjOOHjbxryVQW!UJ3A'). The file names give the ZORA option and the seed.
+# ZORA ROMs generated with zora.api.generate_rom (now zora_web.api.generate_rom) from the
+# Consternation preset without level encoding ('8hq4BeR1JXo89BJ2!TFpTP02u8UJ3A'), or the same
+# preset with B09 off for Progressive Items ('8hq4BeR1JXo7yjOOHjbxryVQW!UJ3A'). The file names
+# give the ZORA option and the seed. zora-2q: second-quest dungeons, C02 = 1
+# ('8hq4BeR1JXo89BJ2!TFpTP02u8UJ2v'); zora-mixed: Mixed Quest, C02 = 2
+# ('8hq4BeR1JXo89BJ2!TFpTP02u8UJ32'); boots: the Pegasus Boots (ZORA flags '7.iQCEKa').
 class ZoraRomTest(unittest.TestCase):
 
     @unittest.skipUnless(_HasTestRom('zora-sword-seed1.nes'), 'ZORA ROM not present')
@@ -111,6 +114,40 @@ class ZoraRomTest(unittest.TestCase):
         self.assertFalse(de.has_progressive_items)
         self.assertEqual('Magical Sword', de.GetItemName(0x03))
         self.assertEqual('Blue Ring', de.GetItemName(0x12))
+
+    @unittest.skipUnless(_HasTestRom('zora-2q-seed1.nes'), 'ZORA ROM not present')
+    def test_second_quest_paired_levels_show_each_others_numbers(self):
+        de = _ParsedZoraRom('zora-2q-seed1.nes')
+        self.assertEqual({1: 1, 2: 3, 3: 2, 4: 5, 5: 4, 6: 6, 7: 8, 8: 7, 9: 9}, de.GetLevelShownNumbers())
+        doors = {screen['cave_name']: screen for screen in de.data[0].values() if 'cave_name' in screen}
+        self.assertEqual(('Level 3', 'L3'), (doors['Level 2']['shown_cave_name'], doors['Level 2']['shown_cave_name_short']))
+        self.assertEqual('White Sword Cave', doors['White Sword Cave']['shown_cave_name'])
+
+    @unittest.skipUnless(_HasTestRom('zora-mixed-seed2.nes'), 'ZORA ROM not present')
+    def test_mixed_quest_pairs_only_the_second_quest_half(self):
+        # This seed's levels 7 to 9 are second quest, 1 to 6 first quest.
+        de = _ParsedZoraRom('zora-mixed-seed2.nes')
+        self.assertEqual({1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 8, 8: 7, 9: 9}, de.GetLevelShownNumbers())
+
+    @unittest.skipUnless(_HasTestRom('zora-sword-seed1.nes'), 'ZORA ROM not present')
+    def test_first_quest_levels_show_their_own_numbers(self):
+        de = _ParsedZoraRom('zora-sword-seed1.nes')
+        self.assertEqual({n: n for n in range(1, 10)}, de.GetLevelShownNumbers())
+
+    @unittest.skipUnless(_HasTestRom('zora-boots-seed5.nes'), 'ZORA ROM not present')
+    def test_pegasus_boots(self):
+        de = _ParsedZoraRom('zora-boots-seed5.nes')
+        self.assertTrue(de.has_pegasus_boots)
+        self.assertEqual(['Pegasus Boots', 'Magical Boots'], [de.GetItemName(0x1D), de.GetItemName(0x1E)])
+        de.has_progressive_items = True
+        self.assertEqual('Boots Upgrade', de.GetItemName(0x1D))
+        self.assertEqual('Magical Boots', de.GetItemName(0x1E, by_line=False))
+
+    @unittest.skipUnless(_HasTestRom('zora-sword-seed1.nes'), 'ZORA ROM not present')
+    def test_boomerangs_without_pegasus_boots(self):
+        de = _ParsedZoraRom('zora-sword-seed1.nes')
+        self.assertFalse(de.has_pegasus_boots)
+        self.assertEqual(['Boomerang', 'Magical Boomerang'], [de.GetItemName(0x1D), de.GetItemName(0x1E)])
 
     @unittest.skipUnless(_HasTestRom('zora-sword-seed1.nes'), 'ZORA ROM not present')
     def test_all_hint_texts(self):

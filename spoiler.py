@@ -14,7 +14,7 @@ from constants import CAVE_NAME, ITEM_TYPES
 from data_extractor import DataExtractor, GarbledLevelDataError
 
 FORMAT = "z1r-seed"
-FORMAT_VERSION = "1.0"
+FORMAT_VERSION = "1.1"
 PRODUCER = "z1r-visualizer"
 
 DOOR_KINDS = {
@@ -84,11 +84,15 @@ def _Room(de: DataExtractor, level_num: int, room_num: int, room: Dict[str, Any]
 
 def _Screen(screen: Dict[str, Any]) -> Dict[str, Any]:
     name = screen.get('cave_name') or 'Unknown cave %s' % screen['cave'].upper()
+    cave = {'name': name, 'shortName': screen.get('cave_name_short') or name}
+    if int(screen['cave'], 16) in range(1, 10):  # a level door
+        cave['shownName'] = screen['shown_cave_name']
+        cave['shownShortName'] = screen['shown_cave_name_short']
     return {
         'number': int(screen['screen_num'], 16),
         'column': screen['col'] + 1,
         'row': 9 - screen['row'],
-        'cave': {'name': name, 'shortName': screen.get('cave_name_short') or name},
+        'cave': cave,
     }
 
 
@@ -116,6 +120,7 @@ def SeedDocument(de: DataExtractor, producer_version: str) -> Dict[str, Any]:
     """The parsed ROM's seed in the seed format. de must have parsed."""
     armos, coast = de.rom_reader.GetOverworldItemData()
     requirements = de.GetRequirements()
+    shown_numbers = de.GetLevelShownNumbers()
     seed = {
         'format': FORMAT,
         'formatVersion': FORMAT_VERSION,
@@ -123,6 +128,7 @@ def SeedDocument(de: DataExtractor, producer_version: str) -> Dict[str, Any]:
         'progressiveItems': de.has_progressive_items,
         'levels': [{
             'number': level_num,
+            'shownNumber': shown_numbers[level_num],
             'color': de.GetLevelColorPalette(level_num)[2],
             'rooms': [_Room(de, level_num, room_num, room) for room_num, room in de.data[level_num].items()],
         } for level_num in range(1, 10)],
@@ -164,9 +170,11 @@ def Read(rom: bytes, producer_version: str) -> Dict[str, Any]:
 
 
 def ItemSummary(de: DataExtractor) -> Dict[str, Any]:
-    """The Streamlit app's item summary tables for a parsed ROM."""
+    """The Streamlit app's item summary tables for a parsed ROM, its levels by their shown numbers."""
     levels = {}  # type: Dict[str, List[Dict[str, str]]]
-    for level_num in range(1, 10):
+    by_shown = {shown: level_num for level_num, shown in de.GetLevelShownNumbers().items()}
+    for shown in range(1, 10):
+        level_num = by_shown[shown]
         level_items = []
         for room_data in de.data[level_num].values():
             item_text = room_data['item_info']
@@ -186,7 +194,7 @@ def ItemSummary(de: DataExtractor) -> Dict[str, Any]:
                     'Screen': room_data['room_num'],
                     'Location': 'Item Stairway'
                 })
-        levels[str(level_num)] = level_items
+        levels[str(shown)] = level_items
 
     caves = []
     for cave_type in MAJOR_CAVES:

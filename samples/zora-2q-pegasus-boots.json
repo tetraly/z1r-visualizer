@@ -1,0 +1,5405 @@
+{
+ "format": "z1r-seed",
+ "formatVersion": "1.1",
+ "producer": {
+  "name": "z1r-visualizer",
+  "version": "sample"
+ },
+ "progressiveItems": false,
+ "levels": [
+  {
+   "number": 1,
+   "shownNumber": 1,
+   "color": "#F8B800",
+   "rooms": [
+    {
+     "number": 119,
+     "column": 4,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "bombable",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 120,
+     "column": 5,
+     "row": 8,
+     "type": "Four Fireball",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "solid",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 103,
+     "column": 4,
+     "row": 7,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix U",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 104,
+     "column": 5,
+     "row": 7,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix L",
+      "count": 6
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 87,
+     "column": 4,
+     "row": 6,
+     "type": "Horiz. Moat",
+     "enemies": {
+      "name": "1 Dodongo"
+     },
+     "item": {
+      "name": "Key",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "solid",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 71,
+     "column": 4,
+     "row": 5,
+     "type": "Single Six",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 3
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 72,
+     "column": 5,
+     "row": 5,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Blue Keese",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 56,
+     "column": 5,
+     "row": 4,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Enemy Mix Q",
+      "count": 5
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 55,
+     "column": 4,
+     "row": 4,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 6
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 39
+     },
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 39,
+     "column": 4,
+     "row": 3,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "Enemy Mix BB",
+      "count": 8
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 55
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 23,
+     "column": 4,
+     "row": 2,
+     "type": "Triforce Room",
+     "enemies": {
+      "name": "Blue Gohma"
+     },
+     "item": {
+      "name": "Key",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "locked",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 24,
+     "column": 5,
+     "row": 2,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 8,
+     "column": 5,
+     "row": 1,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "Vire",
+      "count": 6
+     },
+     "item": {
+      "name": "Wand",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "shutter",
+      "west": "open"
+     }
+    },
+    {
+     "number": 7,
+     "column": 4,
+     "row": 1,
+     "type": "Four Short",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "Magical Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "solid",
+      "west": "solid"
+     }
+    }
+   ]
+  },
+  {
+   "number": 2,
+   "shownNumber": 3,
+   "color": "#AC7C00",
+   "rooms": [
+    {
+     "number": 117,
+     "column": 7,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "locked",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 118,
+     "column": 8,
+     "row": 8,
+     "type": "Spike Trap",
+     "enemies": {
+      "name": "Enemy Mix L",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 102,
+     "column": 8,
+     "row": 7,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 8
+     },
+     "item": {
+      "name": "Pegasus Boots",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 101,
+     "column": 7,
+     "row": 7,
+     "type": "Four Tall",
+     "enemies": {
+      "name": "Enemy Mix R",
+      "count": 6
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "locked",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 85,
+     "column": 7,
+     "row": 6,
+     "type": "Desert Room",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 8
+     },
+     "item": {
+      "name": "Power Bracelet",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 69,
+     "column": 7,
+     "row": 5,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "Zol",
+      "count": 5
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 48
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 48,
+     "column": 2,
+     "row": 4,
+     "type": "Reverse C",
+     "enemies": {
+      "name": "Red Darknut",
+      "count": 5
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 69
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 32,
+     "column": 2,
+     "row": 3,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Hungry Enemy"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 53,
+     "column": 7,
+     "row": 4,
+     "type": "Single Six",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 8
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 37,
+     "column": 7,
+     "row": 3,
+     "type": "Horiz. Moat",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 21,
+     "column": 7,
+     "row": 2,
+     "type": "Zigzag",
+     "enemies": {
+      "name": "2 Head Gleeok"
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "locked",
+      "west": "solid"
+     }
+    }
+   ]
+  },
+  {
+   "number": 3,
+   "shownNumber": 2,
+   "color": "#0058F8",
+   "rooms": [
+    {
+     "number": 121,
+     "column": 3,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 105,
+     "column": 3,
+     "row": 7,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "Key",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 89,
+     "column": 3,
+     "row": 6,
+     "type": "Single Six",
+     "enemies": {
+      "name": "Blue Keese",
+      "count": 6
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 73,
+     "column": 3,
+     "row": 5,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "bombable",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 74,
+     "column": 4,
+     "row": 5,
+     "type": "Aqua Room",
+     "enemies": {
+      "name": "Blue Keese",
+      "count": 6
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "locked",
+      "south": "solid",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 75,
+     "column": 5,
+     "row": 5,
+     "type": "Gohma Room",
+     "enemies": {
+      "name": "Blue Keese",
+      "count": 8
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "open",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 91,
+     "column": 5,
+     "row": 6,
+     "type": "Four Short",
+     "enemies": {
+      "name": "Blue Wizzrobe",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "walk-through",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 90,
+     "column": 4,
+     "row": 6,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "bombable",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 107,
+     "column": 5,
+     "row": 7,
+     "type": "Gleeok Room",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 5
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 123,
+     "column": 5,
+     "row": 8,
+     "type": "Grid Room",
+     "enemies": {
+      "name": "4 Head Gleeok"
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 59,
+     "column": 5,
+     "row": 4,
+     "type": "Corridor Stair",
+     "enemies": null,
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 27
+     },
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 27,
+     "column": 5,
+     "row": 2,
+     "type": "Diamond Stair",
+     "enemies": {
+      "name": "Enemy Mix Y",
+      "count": 6
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 59
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 26,
+     "column": 4,
+     "row": 2,
+     "type": "Gleeok Room",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 5
+     },
+     "item": {
+      "name": "Silver Arrow",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "locked",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 25,
+     "column": 3,
+     "row": 2,
+     "type": "Triforce Room",
+     "enemies": null,
+     "item": {
+      "name": "Key",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 41,
+     "column": 3,
+     "row": 3,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix DD",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 57,
+     "column": 3,
+     "row": 4,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Enemy Mix X",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 58,
+     "column": 4,
+     "row": 4,
+     "type": "Vert. Chute",
+     "enemies": {
+      "name": "Aquamentus"
+     },
+     "item": {
+      "name": "Key",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 42,
+     "column": 4,
+     "row": 3,
+     "type": "Three Rows",
+     "enemies": {
+      "name": "Blue Moblin",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Red Ring"
+     },
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "open",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 43,
+     "column": 5,
+     "row": 3,
+     "type": "Reverse C",
+     "enemies": {
+      "name": "Gel",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "locked",
+      "west": "open"
+     }
+    },
+    {
+     "number": 10,
+     "column": 4,
+     "row": 1,
+     "type": "Plain",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "locked",
+      "west": "solid"
+     }
+    }
+   ]
+  },
+  {
+   "number": 4,
+   "shownNumber": 5,
+   "color": "#AC7C00",
+   "rooms": [
+    {
+     "number": 114,
+     "column": 5,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 98,
+     "column": 5,
+     "row": 7,
+     "type": "Single Block",
+     "enemies": {
+      "name": "Blue Wizzrobe",
+      "count": 6
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 16
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 16,
+     "column": 3,
+     "row": 2,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "4 Head Gleeok"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 98
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 0,
+     "column": 3,
+     "row": 1,
+     "type": "Three Rows",
+     "enemies": {
+      "name": "Red Moblin",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "walk-through",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 1,
+     "column": 4,
+     "row": 1,
+     "type": "Double Six",
+     "enemies": {
+      "name": "Enemy Mix X",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "locked",
+      "south": "open",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 17,
+     "column": 4,
+     "row": 2,
+     "type": "Grid Room",
+     "enemies": {
+      "name": "Enemy Mix X",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 18,
+     "column": 5,
+     "row": 2,
+     "type": "Horiz. Moat",
+     "enemies": {
+      "name": "3 Head Gleeok"
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "shutter",
+      "west": "open"
+     }
+    },
+    {
+     "number": 34,
+     "column": 5,
+     "row": 3,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "Enemy Mix M",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 50,
+     "column": 5,
+     "row": 4,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Red Moblin",
+      "count": 3
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 49,
+     "column": 4,
+     "row": 4,
+     "type": "Triforce Room",
+     "enemies": null,
+     "item": {
+      "name": "Map",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 65,
+     "column": 4,
+     "row": 5,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 6
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 64,
+     "column": 3,
+     "row": 5,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Wallmaster",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 2,
+     "column": 5,
+     "row": 1,
+     "type": "Grid Room",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Ladder"
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 97,
+     "column": 4,
+     "row": 7,
+     "type": "Plain",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 5
+     },
+     "item": {
+      "name": "Heart Container",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "locked",
+      "west": "open"
+     }
+    },
+    {
+     "number": 96,
+     "column": 3,
+     "row": 7,
+     "type": "Gleeok Room",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 80,
+     "column": 3,
+     "row": 6,
+     "type": "Zigzag",
+     "enemies": {
+      "name": "Moldorm"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 113
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 113,
+     "column": 4,
+     "row": 8,
+     "type": "Spiral Stair",
+     "enemies": {
+      "name": "Blue Wizzrobe",
+      "count": 3
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 80
+     },
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 112,
+     "column": 3,
+     "row": 8,
+     "type": "Gohma Room",
+     "enemies": {
+      "name": "Wallmaster",
+      "count": 6
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    }
+   ]
+  },
+  {
+   "number": 5,
+   "shownNumber": 4,
+   "color": "#787878",
+   "rooms": [
+    {
+     "number": 125,
+     "column": 4,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 124,
+     "column": 3,
+     "row": 8,
+     "type": "Chevy",
+     "enemies": {
+      "name": "Enemy Mix W",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 108,
+     "column": 3,
+     "row": 7,
+     "type": "Grid Room",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 3
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "walk-through",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 109,
+     "column": 4,
+     "row": 7,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 110,
+     "column": 5,
+     "row": 7,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Patra (Circle)"
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "bombable",
+      "south": "bombable",
+      "west": "open"
+     }
+    },
+    {
+     "number": 126,
+     "column": 5,
+     "row": 8,
+     "type": "Two Fireball",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 111,
+     "column": 6,
+     "row": 7,
+     "type": "Desert Room",
+     "enemies": {
+      "name": "Blue Lanmola"
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 95,
+     "column": 6,
+     "row": 6,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Red Gohma"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 94,
+     "column": 5,
+     "row": 6,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Red Tektite",
+      "count": 3
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 44
+     },
+     "doors": {
+      "north": "bombable",
+      "east": "locked",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 44,
+     "column": 3,
+     "row": 3,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Like Like",
+      "count": 5
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 94
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 60,
+     "column": 3,
+     "row": 4,
+     "type": "Zigzag",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "walk-through",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 76,
+     "column": 3,
+     "row": 5,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Blue Keese",
+      "count": 8
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 92,
+     "column": 3,
+     "row": 6,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Red Tektite",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "bombable",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 93,
+     "column": 4,
+     "row": 6,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 3
+     },
+     "item": {
+      "name": "Heart Container",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "open",
+      "south": "solid",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 77,
+     "column": 4,
+     "row": 5,
+     "type": "Vert. Moat",
+     "enemies": {
+      "name": "Enemy Mix W",
+      "count": 6
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "walk-through",
+      "west": "open"
+     }
+    },
+    {
+     "number": 78,
+     "column": 5,
+     "row": 5,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Rupee Boss"
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "bombable",
+      "west": "open"
+     }
+    },
+    {
+     "number": 62,
+     "column": 5,
+     "row": 4,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix W",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "open",
+      "south": "shutter",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 61,
+     "column": 4,
+     "row": 4,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Bomb Upgrade"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "walk-through",
+      "south": "solid",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 63,
+     "column": 6,
+     "row": 4,
+     "type": "Plain",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "walk-through",
+      "west": "open"
+     }
+    },
+    {
+     "number": 79,
+     "column": 6,
+     "row": 5,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix S",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 46,
+     "column": 5,
+     "row": 3,
+     "type": "Vertical Rows",
+     "enemies": {
+      "name": "Rope",
+      "count": 5
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 30,
+     "column": 5,
+     "row": 2,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "Blue Tektite",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "locked",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 29,
+     "column": 4,
+     "row": 2,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Hint #5"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "locked",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 31,
+     "column": 6,
+     "row": 2,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Patra (Ellipse)"
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 47,
+     "column": 6,
+     "row": 3,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Patra (Ellipse)"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Heart Container"
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 14,
+     "column": 5,
+     "row": 1,
+     "type": "Double Six",
+     "enemies": {
+      "name": "Stalfos",
+      "count": 5
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 13,
+     "column": 4,
+     "row": 1,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 12,
+     "column": 3,
+     "row": 1,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Mugger"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 28,
+     "column": 3,
+     "row": 2,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "Zol",
+      "count": 5
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": false
+     },
+     "staircase": {
+      "kind": "item",
+      "item": "White Sword"
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 45,
+     "column": 4,
+     "row": 3,
+     "type": "Four Tall",
+     "enemies": {
+      "name": "Enemy Mix W",
+      "count": 6
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    }
+   ]
+  },
+  {
+   "number": 6,
+   "shownNumber": 6,
+   "color": "#3CBCFC",
+   "rooms": [
+    {
+     "number": 116,
+     "column": 5,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 100,
+     "column": 5,
+     "row": 7,
+     "type": "Gleeok Room",
+     "enemies": {
+      "name": "Enemy Mix S",
+      "count": 8
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 99,
+     "column": 4,
+     "row": 7,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Rupee Boss"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 36
+     },
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 36,
+     "column": 5,
+     "row": 3,
+     "type": "Zigzag",
+     "enemies": {
+      "name": "Rupee Boss"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 99
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "locked",
+      "west": "open"
+     }
+    },
+    {
+     "number": 35,
+     "column": 4,
+     "row": 3,
+     "type": "Chevy",
+     "enemies": {
+      "name": "Enemy Mix N",
+      "count": 8
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "shutter",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 51,
+     "column": 4,
+     "row": 4,
+     "type": "Lava Moat",
+     "enemies": {
+      "name": "Zol",
+      "count": 5
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "shutter",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 67,
+     "column": 4,
+     "row": 5,
+     "type": "Spike Trap",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 22
+     },
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "open",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 22,
+     "column": 7,
+     "row": 2,
+     "type": "Spiral Stair",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 3
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 67
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 38,
+     "column": 7,
+     "row": 3,
+     "type": "Circle Moat",
+     "enemies": {
+      "name": "Enemy Mix CC",
+      "count": 8
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 54,
+     "column": 7,
+     "row": 4,
+     "type": "Vert. Moat",
+     "enemies": {
+      "name": "Enemy Mix O",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 66,
+     "column": 3,
+     "row": 5,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Red Tektite",
+      "count": 5
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "bombable",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 82,
+     "column": 3,
+     "row": 6,
+     "type": "Circle Moat",
+     "enemies": {
+      "name": "Like Like",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "locked",
+      "south": "solid",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 81,
+     "column": 2,
+     "row": 6,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Patra (Circle)"
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "walk-through",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 83,
+     "column": 4,
+     "row": 6,
+     "type": "Vert. Chute",
+     "enemies": {
+      "name": "Zol",
+      "count": 5
+     },
+     "item": {
+      "name": "Key",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "shutter",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 84,
+     "column": 5,
+     "row": 6,
+     "type": "Double Six",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "solid",
+      "south": "walk-through",
+      "west": "open"
+     }
+    },
+    {
+     "number": 68,
+     "column": 5,
+     "row": 5,
+     "type": "Triforce Room",
+     "enemies": null,
+     "item": {
+      "name": "Raft",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "bombable",
+      "west": "open"
+     }
+    },
+    {
+     "number": 52,
+     "column": 5,
+     "row": 4,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Blue Keese",
+      "count": 8
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "open",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 19,
+     "column": 4,
+     "row": 2,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Hint #5"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "locked",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 20,
+     "column": 5,
+     "row": 2,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Enemy Mix CC",
+      "count": 8
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 4,
+     "column": 5,
+     "row": 1,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Blue Gohma"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 5,
+     "column": 6,
+     "row": 1,
+     "type": "Reverse C",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Magical Boots"
+     },
+     "doors": {
+      "north": "solid",
+      "east": "bombable",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 6,
+     "column": 7,
+     "row": 1,
+     "type": "Maze Room",
+     "enemies": {
+      "name": "Like Like",
+      "count": 8
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "solid",
+      "west": "bombable"
+     }
+    }
+   ]
+  },
+  {
+   "number": 7,
+   "shownNumber": 8,
+   "color": "#008888",
+   "rooms": [
+    {
+     "number": 127,
+     "column": 8,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 111,
+     "column": 8,
+     "row": 7,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Enemy Mix P",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 7,
+      "to": 45
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "walk-through",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 45,
+     "column": 6,
+     "row": 3,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 6
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 7,
+      "to": 111
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 61,
+     "column": 6,
+     "row": 4,
+     "type": "NSU",
+     "enemies": {
+      "name": "Enemy Mix R",
+      "count": 6
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 77,
+     "column": 6,
+     "row": 5,
+     "type": "Gohma Room",
+     "enemies": {
+      "name": "Horiz. Traps"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 89
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 89,
+     "column": 2,
+     "row": 6,
+     "type": "Single Block",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 3
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 77
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 88,
+     "column": 1,
+     "row": 6,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Zol",
+      "count": 3
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "locked",
+      "south": "walk-through",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 104,
+     "column": 1,
+     "row": 7,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Enemy Mix P",
+      "count": 8
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "bombable",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 105,
+     "column": 2,
+     "row": 7,
+     "type": "Vert. Chute",
+     "enemies": {
+      "name": "Enemy Mix AA",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 3,
+      "to": 107
+     },
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 106,
+     "column": 3,
+     "row": 7,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 3
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 6,
+      "to": 24
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 24,
+     "column": 1,
+     "row": 2,
+     "type": "Single Block",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 6,
+      "to": 106
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 25,
+     "column": 2,
+     "row": 2,
+     "type": "Pointless Moat",
+     "enemies": null,
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "solid",
+      "south": "open",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 41,
+     "column": 2,
+     "row": 3,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Enemy Mix Q",
+      "count": 5
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 4,
+      "to": 47
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 47,
+     "column": 8,
+     "row": 3,
+     "type": "Spiral Stair",
+     "enemies": {
+      "name": "Zol",
+      "count": 3
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 4,
+      "to": 41
+     },
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 63,
+     "column": 8,
+     "row": 4,
+     "type": "Maze Room",
+     "enemies": {
+      "name": "Digdogger (1)"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 5,
+      "to": 14
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 14,
+     "column": 7,
+     "row": 1,
+     "type": "Zigzag",
+     "enemies": {
+      "name": "Enemy Mix AA",
+      "count": 8
+     },
+     "item": {
+      "name": "Red Candle",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 5,
+      "to": 63
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 13,
+     "column": 6,
+     "row": 1,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Blue Darknut",
+      "count": 5
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "solid",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 12,
+     "column": 5,
+     "row": 1,
+     "type": "Chevy",
+     "enemies": {
+      "name": "Enemy Mix BB",
+      "count": 8
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 15,
+     "column": 8,
+     "row": 1,
+     "type": "Spiral Stair",
+     "enemies": {
+      "name": "Blue Darknut",
+      "count": 5
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Heart Container"
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 31,
+     "column": 8,
+     "row": 2,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Hungry Enemy"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "locked",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 79,
+     "column": 8,
+     "row": 5,
+     "type": "Gohma Room",
+     "enemies": {
+      "name": "Digdogger (3)"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 95,
+     "column": 8,
+     "row": 6,
+     "type": "Maze Room",
+     "enemies": {
+      "name": "Digdogger (1)"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 40,
+     "column": 1,
+     "row": 3,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 56,
+     "column": 1,
+     "row": 4,
+     "type": "Chevy",
+     "enemies": {
+      "name": "Vire",
+      "count": 6
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 72,
+     "column": 1,
+     "row": 5,
+     "type": "T Room",
+     "enemies": {
+      "name": "Digdogger (1)"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "locked",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 73,
+     "column": 2,
+     "row": 5,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 57,
+     "column": 2,
+     "row": 4,
+     "type": "Double Moat",
+     "enemies": {
+      "name": "2 Head Gleeok"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 9,
+     "column": 2,
+     "row": 1,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Enemy Mix P",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "walk-through",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 8,
+     "column": 1,
+     "row": 1,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Zol",
+      "count": 3
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "locked",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 107,
+     "column": 4,
+     "row": 7,
+     "type": "Single Block",
+     "enemies": {
+      "name": "Enemy Mix BB",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 3,
+      "to": 105
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 108,
+     "column": 5,
+     "row": 7,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Zol",
+      "count": 5
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Bow"
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 109,
+     "column": 6,
+     "row": 7,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Blue Darknut",
+      "count": 3
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "solid",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 93,
+     "column": 6,
+     "row": 6,
+     "type": "Zigzag",
+     "enemies": {
+      "name": "Enemy Mix AA",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 11
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "locked",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 11,
+     "column": 4,
+     "row": 1,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "Digdogger (3)"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 93
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "solid",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 10,
+     "column": 3,
+     "row": 1,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Bomb Upgrade"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "bombable",
+      "south": "solid",
+      "west": "solid"
+     }
+    }
+   ]
+  },
+  {
+   "number": 8,
+   "shownNumber": 7,
+   "color": "#787878",
+   "rooms": [
+    {
+     "number": 121,
+     "column": 2,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 120,
+     "column": 1,
+     "row": 8,
+     "type": "Spike Trap",
+     "enemies": {
+      "name": "Red Moblin",
+      "count": 3
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 4,
+      "to": 58
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 58,
+     "column": 3,
+     "row": 4,
+     "type": "Gohma Room",
+     "enemies": {
+      "name": "3 Dodongos"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 4,
+      "to": 120
+     },
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 74,
+     "column": 3,
+     "row": 5,
+     "type": "Aqua Room",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "shutter",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 90,
+     "column": 3,
+     "row": 6,
+     "type": "Horiz. Moat",
+     "enemies": {
+      "name": "Patra (Ellipse)"
+     },
+     "item": {
+      "name": "Triforce",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 91,
+     "column": 4,
+     "row": 6,
+     "type": "Triforce Room",
+     "enemies": null,
+     "item": {
+      "name": "Heart Container",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 92,
+     "column": 5,
+     "row": 6,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Gel",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 3,
+      "to": 75
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 75,
+     "column": 4,
+     "row": 5,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "Enemy Mix M",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 3,
+      "to": 92
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 59,
+     "column": 4,
+     "row": 4,
+     "type": "Grid Room",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 62
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 62,
+     "column": 7,
+     "row": 4,
+     "type": "Double Six",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "Compass",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 59
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 78,
+     "column": 7,
+     "row": 5,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Mugger"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 94,
+     "column": 7,
+     "row": 6,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Blue Moblin",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "locked",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 110,
+     "column": 7,
+     "row": 7,
+     "type": "Reverse C",
+     "enemies": {
+      "name": "Blue Wizzrobe",
+      "count": 5
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 28
+     },
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 28,
+     "column": 5,
+     "row": 2,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Blue Moblin",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 110
+     },
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 27,
+     "column": 4,
+     "row": 2,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix DD",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 26,
+     "column": 3,
+     "row": 2,
+     "type": "Horiz. Moat",
+     "enemies": {
+      "name": "Enemy Mix T",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 42,
+     "column": 3,
+     "row": 3,
+     "type": "Aqua Room",
+     "enemies": {
+      "name": "Gel",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 29,
+     "column": 6,
+     "row": 2,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Mugger"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "solid",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 30,
+     "column": 7,
+     "row": 2,
+     "type": "Single Block",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 3
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 5,
+      "to": 46
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 46,
+     "column": 7,
+     "row": 3,
+     "type": "Zigzag",
+     "enemies": {
+      "name": "Red Wizzrobe",
+      "count": 6
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 5,
+      "to": 30
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 126,
+     "column": 7,
+     "row": 8,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 125,
+     "column": 6,
+     "row": 8,
+     "type": "Maze Room",
+     "enemies": {
+      "name": "Moldorm"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "solid",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 124,
+     "column": 5,
+     "row": 8,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Blue Wizzrobe",
+      "count": 8
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "locked",
+      "south": "solid",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 123,
+     "column": 4,
+     "row": 8,
+     "type": "Triforce Room",
+     "enemies": {
+      "name": "Patra (Circle)"
+     },
+     "item": {
+      "name": "Key",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 60,
+     "column": 5,
+     "row": 4,
+     "type": "Grid Room",
+     "enemies": {
+      "name": "Enemy Mix T",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "shutter",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 76,
+     "column": 5,
+     "row": 5,
+     "type": "Corridor Stair",
+     "enemies": {
+      "name": "Blue Wizzrobe",
+      "count": 3
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "item",
+      "item": "Heart Container"
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 122,
+     "column": 3,
+     "row": 8,
+     "type": "Desert Room",
+     "enemies": {
+      "name": "3 Dodongos"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    }
+   ]
+  },
+  {
+   "number": 9,
+   "shownNumber": 9,
+   "color": "#00A844",
+   "rooms": [
+    {
+     "number": 116,
+     "column": 5,
+     "row": 8,
+     "type": "Entrance Room",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 100,
+     "column": 5,
+     "row": 7,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Hint #1"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "shutter",
+      "south": "open",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 99,
+     "column": 4,
+     "row": 7,
+     "type": "Horiz. Chute",
+     "enemies": {
+      "name": "Blue Darknut",
+      "count": 3
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "open",
+      "south": "open",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 98,
+     "column": 3,
+     "row": 7,
+     "type": "Triforce Room",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 5
+     },
+     "item": {
+      "name": "Compass",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "locked",
+      "south": "solid",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 97,
+     "column": 2,
+     "row": 7,
+     "type": "NSU",
+     "enemies": {
+      "name": "Blue Keese",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "bombable",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 81,
+     "column": 2,
+     "row": 6,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "Horiz. Traps"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "shutter",
+      "south": "bombable",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 82,
+     "column": 3,
+     "row": 6,
+     "type": "Double Six",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "shutter",
+      "south": "open",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 83,
+     "column": 4,
+     "row": 6,
+     "type": "Gannon Room",
+     "enemies": {
+      "name": "Blue Darknut",
+      "count": 3
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "walk-through",
+      "south": "bombable",
+      "west": "open"
+     }
+    },
+    {
+     "number": 84,
+     "column": 5,
+     "row": 6,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "shutter",
+      "south": "open",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 85,
+     "column": 6,
+     "row": 6,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "The Kidnapped"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 86,
+     "column": 7,
+     "row": 6,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "solid",
+      "south": "walk-through",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 102,
+     "column": 7,
+     "row": 7,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix Q",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "solid",
+      "west": "locked"
+     }
+    },
+    {
+     "number": 101,
+     "column": 6,
+     "row": 7,
+     "type": "Three Rows",
+     "enemies": {
+      "name": "Enemy Mix AA",
+      "count": 8
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 70
+     },
+     "doors": {
+      "north": "solid",
+      "east": "locked",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 70,
+     "column": 7,
+     "row": 5,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 3
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 1,
+      "to": 101
+     },
+     "doors": {
+      "north": "bombable",
+      "east": "open",
+      "south": "bombable",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 69,
+     "column": 6,
+     "row": 5,
+     "type": "Horiz. Chute",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "open",
+      "south": "shutter",
+      "west": "open"
+     }
+    },
+    {
+     "number": 68,
+     "column": 5,
+     "row": 5,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Hint #3"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 53,
+     "column": 6,
+     "row": 4,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "bombable",
+      "east": "walk-through",
+      "south": "locked",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 52,
+     "column": 5,
+     "row": 4,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 51,
+     "column": 4,
+     "row": 4,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Enemy Mix P",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "locked",
+      "east": "shutter",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 50,
+     "column": 3,
+     "row": 4,
+     "type": "Black Room",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 3
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "open",
+      "south": "shutter",
+      "west": "open"
+     }
+    },
+    {
+     "number": 49,
+     "column": 2,
+     "row": 4,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Red Darknut",
+      "count": 6
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "walk-through",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 65,
+     "column": 2,
+     "row": 5,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Vire",
+      "count": 6
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "walk-through",
+      "east": "open",
+      "south": "open",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 64,
+     "column": 1,
+     "row": 5,
+     "type": "Plain",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "walk-through",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 80,
+     "column": 1,
+     "row": 6,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Enemy Mix L",
+      "count": 6
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "walk-through",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 66,
+     "column": 3,
+     "row": 5,
+     "type": "Chevy",
+     "enemies": {
+      "name": "Zol",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "shutter",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 34,
+     "column": 3,
+     "row": 3,
+     "type": "Reverse C",
+     "enemies": {
+      "name": "Zol",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 35,
+     "column": 4,
+     "row": 3,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Enemy Mix L",
+      "count": 6
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 3,
+      "to": 1
+     },
+     "doors": {
+      "north": "locked",
+      "east": "solid",
+      "south": "locked",
+      "west": "open"
+     }
+    },
+    {
+     "number": 1,
+     "column": 2,
+     "row": 1,
+     "type": "Diamond Stair",
+     "enemies": {
+      "name": "Red Bubble",
+      "count": 8
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 3,
+      "to": 35
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "bombable"
+     }
+    },
+    {
+     "number": 0,
+     "column": 1,
+     "row": 1,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Vire",
+      "count": 3
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "bombable",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 16,
+     "column": 1,
+     "row": 2,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Enemy Mix U",
+      "count": 8
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 17,
+     "column": 2,
+     "row": 2,
+     "type": "Vert. Moat",
+     "enemies": {
+      "name": "Vire",
+      "count": 5
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 18,
+     "column": 3,
+     "row": 2,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "walk-through",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 19,
+     "column": 4,
+     "row": 2,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Zol",
+      "count": 3
+     },
+     "item": {
+      "name": "Bombs",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "walk-through",
+      "south": "locked",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 20,
+     "column": 5,
+     "row": 2,
+     "type": "Diamond Stair",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": null,
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 115
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 115,
+     "column": 4,
+     "row": 8,
+     "type": "Five Pair",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": {
+      "name": "Map",
+      "drop": true
+     },
+     "staircase": {
+      "kind": "transport",
+      "number": 2,
+      "to": 20
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 36,
+     "column": 5,
+     "row": 3,
+     "type": "Two Fireball",
+     "enemies": {
+      "name": "Manhandala"
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "shutter",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 37,
+     "column": 6,
+     "row": 3,
+     "type": "Double Moat",
+     "enemies": {
+      "name": "Black Keese",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "bombable",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 21,
+     "column": 6,
+     "row": 2,
+     "type": "Pointless Moat",
+     "enemies": {
+      "name": "The Beast"
+     },
+     "item": {
+      "name": "Triforce of Power",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "shutter",
+      "south": "shutter",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 22,
+     "column": 7,
+     "row": 2,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "open",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 23,
+     "column": 8,
+     "row": 2,
+     "type": "Diamond Stair",
+     "enemies": {
+      "name": "Enemy Mix L",
+      "count": 6
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Heart Container"
+     },
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "shutter"
+     }
+    },
+    {
+     "number": 7,
+     "column": 8,
+     "row": 1,
+     "type": "Triforce Room",
+     "enemies": {
+      "name": "Blue Darknut",
+      "count": 3
+     },
+     "item": {
+      "name": "5 Rupees",
+      "drop": false
+     },
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "shutter",
+      "west": "open"
+     }
+    },
+    {
+     "number": 6,
+     "column": 7,
+     "row": 1,
+     "type": "Turnstile",
+     "enemies": null,
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "open",
+      "south": "open",
+      "west": "solid"
+     }
+    },
+    {
+     "number": 54,
+     "column": 7,
+     "row": 4,
+     "type": "Four Tall",
+     "enemies": {
+      "name": "Enemy Mix V",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "bombable",
+      "west": "walk-through"
+     }
+    },
+    {
+     "number": 71,
+     "column": 8,
+     "row": 5,
+     "type": "Double Block",
+     "enemies": {
+      "name": "Red Darknut",
+      "count": 5
+     },
+     "item": null,
+     "staircase": {
+      "kind": "item",
+      "item": "Book"
+     },
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "open",
+      "west": "open"
+     }
+    },
+    {
+     "number": 87,
+     "column": 8,
+     "row": 6,
+     "type": "Four Fireball",
+     "enemies": {
+      "name": "Blue Bubble",
+      "count": 3
+     },
+     "item": {
+      "name": "Key",
+      "drop": true
+     },
+     "staircase": null,
+     "doors": {
+      "north": "open",
+      "east": "solid",
+      "south": "solid",
+      "west": "open"
+     }
+    },
+    {
+     "number": 67,
+     "column": 4,
+     "row": 5,
+     "type": "Zelda Room",
+     "enemies": {
+      "name": "Enemy Mix BB",
+      "count": 8
+     },
+     "item": null,
+     "staircase": null,
+     "doors": {
+      "north": "solid",
+      "east": "solid",
+      "south": "bombable",
+      "west": "solid"
+     }
+    }
+   ]
+  }
+ ],
+ "overworld": {
+  "screens": [
+   {
+    "number": 1,
+    "column": 2,
+    "row": 1,
+    "cave": {
+     "name": "Level 2",
+     "shortName": "L2",
+     "shownName": "Level 3",
+     "shownShortName": "L3"
+    }
+   },
+   {
+    "number": 3,
+    "column": 4,
+    "row": 1,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 4,
+    "column": 5,
+    "row": 1,
+    "cave": {
+     "name": "Potion Shop",
+     "shortName": "Potion"
+    }
+   },
+   {
+    "number": 5,
+    "column": 6,
+    "row": 1,
+    "cave": {
+     "name": "Medium Secret",
+     "shortName": "30R"
+    }
+   },
+   {
+    "number": 7,
+    "column": 8,
+    "row": 1,
+    "cave": {
+     "name": "Medium Secret",
+     "shortName": "30R"
+    }
+   },
+   {
+    "number": 10,
+    "column": 11,
+    "row": 1,
+    "cave": {
+     "name": "Hint Shop 1",
+     "shortName": "Hints 1"
+    }
+   },
+   {
+    "number": 11,
+    "column": 12,
+    "row": 1,
+    "cave": {
+     "name": "Money Making Game",
+     "shortName": "MMG"
+    }
+   },
+   {
+    "number": 12,
+    "column": 13,
+    "row": 1,
+    "cave": {
+     "name": "Shop 1",
+     "shortName": "Shop 1"
+    }
+   },
+   {
+    "number": 13,
+    "column": 14,
+    "row": 1,
+    "cave": {
+     "name": "Small Secret",
+     "shortName": "10R"
+    }
+   },
+   {
+    "number": 14,
+    "column": 15,
+    "row": 1,
+    "cave": {
+     "name": "Small Secret",
+     "shortName": "10R"
+    }
+   },
+   {
+    "number": 15,
+    "column": 16,
+    "row": 1,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 16,
+    "column": 1,
+    "row": 2,
+    "cave": {
+     "name": "Any Road",
+     "shortName": "Any Rd."
+    }
+   },
+   {
+    "number": 18,
+    "column": 3,
+    "row": 2,
+    "cave": {
+     "name": "White Sword Clue",
+     "shortName": "WS Clue"
+    }
+   },
+   {
+    "number": 19,
+    "column": 4,
+    "row": 2,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 20,
+    "column": 5,
+    "row": 2,
+    "cave": {
+     "name": "Shop 3",
+     "shortName": "Shop 3"
+    }
+   },
+   {
+    "number": 22,
+    "column": 7,
+    "row": 2,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 26,
+    "column": 11,
+    "row": 2,
+    "cave": {
+     "name": "Shop 4",
+     "shortName": "Shop 4"
+    }
+   },
+   {
+    "number": 28,
+    "column": 13,
+    "row": 2,
+    "cave": {
+     "name": "Money Making Game",
+     "shortName": "MMG"
+    }
+   },
+   {
+    "number": 29,
+    "column": 14,
+    "row": 2,
+    "cave": {
+     "name": "Shop 3",
+     "shortName": "Shop 3"
+    }
+   },
+   {
+    "number": 30,
+    "column": 15,
+    "row": 2,
+    "cave": {
+     "name": "Level 3",
+     "shortName": "L3",
+     "shownName": "Level 2",
+     "shownShortName": "L2"
+    }
+   },
+   {
+    "number": 31,
+    "column": 16,
+    "row": 2,
+    "cave": {
+     "name": "Any Road",
+     "shortName": "Any Rd."
+    }
+   },
+   {
+    "number": 33,
+    "column": 2,
+    "row": 3,
+    "cave": {
+     "name": "Wood Sword Cave",
+     "shortName": "Wood"
+    }
+   },
+   {
+    "number": 34,
+    "column": 3,
+    "row": 3,
+    "cave": {
+     "name": "Shop 1",
+     "shortName": "Shop 1"
+    }
+   },
+   {
+    "number": 35,
+    "column": 4,
+    "row": 3,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 36,
+    "column": 5,
+    "row": 3,
+    "cave": {
+     "name": "Take Any",
+     "shortName": "Take Any"
+    }
+   },
+   {
+    "number": 37,
+    "column": 6,
+    "row": 3,
+    "cave": {
+     "name": "Any Road",
+     "shortName": "Any Rd."
+    }
+   },
+   {
+    "number": 38,
+    "column": 7,
+    "row": 3,
+    "cave": {
+     "name": "Level 6",
+     "shortName": "L6",
+     "shownName": "Level 6",
+     "shownShortName": "L6"
+    }
+   },
+   {
+    "number": 39,
+    "column": 8,
+    "row": 3,
+    "cave": {
+     "name": "Medium Secret",
+     "shortName": "30R"
+    }
+   },
+   {
+    "number": 40,
+    "column": 9,
+    "row": 3,
+    "cave": {
+     "name": "Large Secret",
+     "shortName": "100R"
+    }
+   },
+   {
+    "number": 44,
+    "column": 13,
+    "row": 3,
+    "cave": {
+     "name": "White Sword Cave",
+     "shortName": "White"
+    }
+   },
+   {
+    "number": 45,
+    "column": 14,
+    "row": 3,
+    "cave": {
+     "name": "Level 9",
+     "shortName": "L9",
+     "shownName": "Level 9",
+     "shownShortName": "L9"
+    }
+   },
+   {
+    "number": 47,
+    "column": 16,
+    "row": 3,
+    "cave": {
+     "name": "Shop 2",
+     "shortName": "Shop 2"
+    }
+   },
+   {
+    "number": 51,
+    "column": 4,
+    "row": 4,
+    "cave": {
+     "name": "Potion Shop",
+     "shortName": "Potion"
+    }
+   },
+   {
+    "number": 52,
+    "column": 5,
+    "row": 4,
+    "cave": {
+     "name": "Take Any",
+     "shortName": "Take Any"
+    }
+   },
+   {
+    "number": 55,
+    "column": 8,
+    "row": 4,
+    "cave": {
+     "name": "Level 1",
+     "shortName": "L1",
+     "shownName": "Level 1",
+     "shownShortName": "L1"
+    }
+   },
+   {
+    "number": 60,
+    "column": 13,
+    "row": 4,
+    "cave": {
+     "name": "Level 7",
+     "shortName": "L7",
+     "shownName": "Level 8",
+     "shownShortName": "L8"
+    }
+   },
+   {
+    "number": 66,
+    "column": 3,
+    "row": 5,
+    "cave": {
+     "name": "Medium Secret",
+     "shortName": "30R"
+    }
+   },
+   {
+    "number": 68,
+    "column": 5,
+    "row": 5,
+    "cave": {
+     "name": "Shop 1",
+     "shortName": "Shop 1"
+    }
+   },
+   {
+    "number": 69,
+    "column": 6,
+    "row": 5,
+    "cave": {
+     "name": "Shop 3",
+     "shortName": "Shop 3"
+    }
+   },
+   {
+    "number": 70,
+    "column": 7,
+    "row": 5,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 71,
+    "column": 8,
+    "row": 5,
+    "cave": {
+     "name": "Small Secret",
+     "shortName": "10R"
+    }
+   },
+   {
+    "number": 72,
+    "column": 9,
+    "row": 5,
+    "cave": {
+     "name": "Medium Secret",
+     "shortName": "30R"
+    }
+   },
+   {
+    "number": 73,
+    "column": 10,
+    "row": 5,
+    "cave": {
+     "name": "Shop 1",
+     "shortName": "Shop 1"
+    }
+   },
+   {
+    "number": 74,
+    "column": 11,
+    "row": 5,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 75,
+    "column": 12,
+    "row": 5,
+    "cave": {
+     "name": "Medium Secret",
+     "shortName": "30R"
+    }
+   },
+   {
+    "number": 77,
+    "column": 14,
+    "row": 5,
+    "cave": {
+     "name": "Shop 2",
+     "shortName": "Shop 2"
+    }
+   },
+   {
+    "number": 78,
+    "column": 15,
+    "row": 5,
+    "cave": {
+     "name": "Any Road",
+     "shortName": "Any Rd."
+    }
+   },
+   {
+    "number": 81,
+    "column": 2,
+    "row": 6,
+    "cave": {
+     "name": "Potion Shop",
+     "shortName": "Potion"
+    }
+   },
+   {
+    "number": 86,
+    "column": 7,
+    "row": 6,
+    "cave": {
+     "name": "Potion Shop",
+     "shortName": "Potion"
+    }
+   },
+   {
+    "number": 91,
+    "column": 12,
+    "row": 6,
+    "cave": {
+     "name": "Take Any",
+     "shortName": "Take Any"
+    }
+   },
+   {
+    "number": 94,
+    "column": 15,
+    "row": 6,
+    "cave": {
+     "name": "Hint Shop 2",
+     "shortName": "Hints 2"
+    }
+   },
+   {
+    "number": 98,
+    "column": 3,
+    "row": 7,
+    "cave": {
+     "name": "Level 8",
+     "shortName": "L8",
+     "shownName": "Level 7",
+     "shownShortName": "L7"
+    }
+   },
+   {
+    "number": 99,
+    "column": 4,
+    "row": 7,
+    "cave": {
+     "name": "Small Secret",
+     "shortName": "10R"
+    }
+   },
+   {
+    "number": 100,
+    "column": 5,
+    "row": 7,
+    "cave": {
+     "name": "Magical Sword Clue",
+     "shortName": "MS Clue"
+    }
+   },
+   {
+    "number": 102,
+    "column": 7,
+    "row": 7,
+    "cave": {
+     "name": "Medium Secret",
+     "shortName": "30R"
+    }
+   },
+   {
+    "number": 103,
+    "column": 8,
+    "row": 7,
+    "cave": {
+     "name": "Shop 2",
+     "shortName": "Shop 2"
+    }
+   },
+   {
+    "number": 104,
+    "column": 9,
+    "row": 7,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 106,
+    "column": 11,
+    "row": 7,
+    "cave": {
+     "name": "Letter Cave",
+     "shortName": "Letter"
+    }
+   },
+   {
+    "number": 107,
+    "column": 12,
+    "row": 7,
+    "cave": {
+     "name": "Door Repair",
+     "shortName": "-20R"
+    }
+   },
+   {
+    "number": 109,
+    "column": 14,
+    "row": 7,
+    "cave": {
+     "name": "Potion Shop",
+     "shortName": "Potion"
+    }
+   },
+   {
+    "number": 111,
+    "column": 16,
+    "row": 7,
+    "cave": {
+     "name": "Money Making Game",
+     "shortName": "MMG"
+    }
+   },
+   {
+    "number": 112,
+    "column": 1,
+    "row": 8,
+    "cave": {
+     "name": "Level 5",
+     "shortName": "L5",
+     "shownName": "Level 4",
+     "shownShortName": "L4"
+    }
+   },
+   {
+    "number": 113,
+    "column": 2,
+    "row": 8,
+    "cave": {
+     "name": "Large Secret",
+     "shortName": "100R"
+    }
+   },
+   {
+    "number": 116,
+    "column": 5,
+    "row": 8,
+    "cave": {
+     "name": "Money Making Game",
+     "shortName": "MMG"
+    }
+   },
+   {
+    "number": 117,
+    "column": 6,
+    "row": 8,
+    "cave": {
+     "name": "Potion Shop",
+     "shortName": "Potion"
+    }
+   },
+   {
+    "number": 118,
+    "column": 7,
+    "row": 8,
+    "cave": {
+     "name": "Take Any",
+     "shortName": "Take Any"
+    }
+   },
+   {
+    "number": 119,
+    "column": 8,
+    "row": 8,
+    "cave": {
+     "name": "Shop 3",
+     "shortName": "Shop 3"
+    }
+   },
+   {
+    "number": 120,
+    "column": 9,
+    "row": 8,
+    "cave": {
+     "name": "Magical Sword Cave",
+     "shortName": "Mags"
+    }
+   },
+   {
+    "number": 121,
+    "column": 10,
+    "row": 8,
+    "cave": {
+     "name": "Money Making Game",
+     "shortName": "MMG"
+    }
+   },
+   {
+    "number": 123,
+    "column": 12,
+    "row": 8,
+    "cave": {
+     "name": "Level 4",
+     "shortName": "L4",
+     "shownName": "Level 5",
+     "shownShortName": "L5"
+    }
+   },
+   {
+    "number": 124,
+    "column": 13,
+    "row": 8,
+    "cave": {
+     "name": "Potion Shop",
+     "shortName": "Potion"
+    }
+   },
+   {
+    "number": 125,
+    "column": 14,
+    "row": 8,
+    "cave": {
+     "name": "Large Secret",
+     "shortName": "100R"
+    }
+   }
+  ],
+  "armos": "Heart Container",
+  "coast": "Heart Container"
+ },
+ "caves": [
+  {
+   "name": "Wood Sword Cave",
+   "kind": "item",
+   "wares": [
+    {
+     "item": "Blue Candle"
+    },
+    {
+     "item": "Wood Sword"
+    }
+   ]
+  },
+  {
+   "name": "Take Any",
+   "kind": "take-any",
+   "wares": [
+    {
+     "item": "Red Potion"
+    },
+    {
+     "item": "Blue Candle"
+    },
+    {
+     "item": "Heart Container"
+    }
+   ]
+  },
+  {
+   "name": "White Sword Cave",
+   "kind": "item",
+   "wares": [
+    {
+     "item": "Recorder"
+    }
+   ]
+  },
+  {
+   "name": "Magical Sword Cave",
+   "kind": "item",
+   "wares": [
+    {
+     "item": "Magical Sword"
+    }
+   ]
+  },
+  {
+   "name": "Letter Cave",
+   "kind": "item",
+   "wares": [
+    {
+     "item": "Letter"
+    }
+   ]
+  },
+  {
+   "name": "Shop 1",
+   "kind": "shop",
+   "wares": [
+    {
+     "item": "Heart",
+     "price": 26
+    },
+    {
+     "item": "Bait",
+     "price": 56
+    },
+    {
+     "item": "Shield",
+     "price": 135
+    }
+   ]
+  },
+  {
+   "name": "Shop 2",
+   "kind": "shop",
+   "wares": [
+    {
+     "item": "Shield",
+     "price": 92
+    },
+    {
+     "item": "Blue Ring",
+     "price": 242
+    },
+    {
+     "item": "Wooden Arrow",
+     "price": 88
+    }
+   ]
+  },
+  {
+   "name": "Shop 3",
+   "kind": "shop",
+   "wares": [
+    {
+     "item": "Bait",
+     "price": 120
+    },
+    {
+     "item": "Key",
+     "price": 94
+    },
+    {
+     "item": "Shield",
+     "price": 145
+    }
+   ]
+  },
+  {
+   "name": "Shop 4",
+   "kind": "shop",
+   "wares": [
+    {
+     "item": "Bombs",
+     "price": 32
+    },
+    {
+     "item": "Key",
+     "price": 99
+    },
+    {
+     "item": "Blue Candle",
+     "price": 43
+    }
+   ]
+  },
+  {
+   "name": "Potion Shop",
+   "kind": "potion-shop",
+   "wares": [
+    {
+     "item": "Blue Potion",
+     "price": 45
+    },
+    {
+     "item": "Red Potion",
+     "price": 55
+    }
+   ]
+  }
+ ],
+ "hints": [
+  {
+   "text": "TAKE THE CANDLE YOU COWARD!"
+  },
+  {
+   "text": "14 HEARTS NEEDED"
+  },
+  {
+   "text": "I CHALLENGE YOU TO A STAIRING CONTEST!"
+  },
+  {
+   "text": "THE ELDER HAS THE RECORDER IN THE DRY DESERT FOR 6 HEARTS"
+  },
+  {
+   "text": "BONUS CHANCE PRESS 'A' BUTTON"
+  },
+  {
+   "text": "STAND CLEAR OF THE CLOSING DOORS PLEASE"
+  },
+  {
+   "text": "SHOW ME SOMETHING"
+  },
+  {
+   "text": "MEET THE MERCHANT NEAR START WITH 14 HEARTS"
+  },
+  {
+   "text": "SHAKE WELL BEFORE USE"
+  },
+  {
+   "text": "THIS IS NOT LEGAL ADVICE"
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 30"
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 6"
+  },
+  {
+   "text": "HEED THIS, YOUNG ONE, THE LADDER LIES IN LEVEL-5."
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 9"
+  },
+  {
+   "text": "HELLO TRAVELER! HOW CAN I HELP YOU?"
+  },
+  {
+   "text": "DOWNLOAD OUR APP TO EARN DISCOUNTS ON FUTURE PURCHASES!"
+  },
+  {
+   "text": "AH YES, THE TWO GENDERS ..."
+  },
+  {
+   "text": "THERE'S ALWAYS MONEY IN THE BANANA STAND"
+  },
+  {
+   "text": "I ONLY CAME FOR CAKE"
+  },
+  {
+   "text": "SIXTH SENSE"
+  },
+  {
+   "text": "IT IS SAID THAT LEVEL-1 LIES AROUND A LAKE."
+  },
+  {
+   "text": "AN ELDER ONCE SAID THAT LEVEL-9 LIES BY THE COAST."
+  },
+  {
+   "text": "AN OLD TALE SAYS THAT LEVEL-7 LIES IN THE DEAD WOODS."
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 13"
+  },
+  {
+   "text": "A WILD LINK APPEARS"
+  },
+  {
+   "text": "SOMEONE SET UP US THE BOMB UPGRADE"
+  },
+  {
+   "text": "LEGEND TELLS THAT THE POWER BRACELET PERSISTS IN LEVEL-3."
+  },
+  {
+   "text": "LEAVE YOUR LIFE OR KEYS"
+  },
+  {
+   "text": "TRAVELERS SAY THAT LEVEL-8 LIES HIDDEN IN A FOREST."
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 39"
+  },
+  {
+   "text": "I HAVE HEARD THAT THE BOW BIDES IN LEVEL-8."
+  },
+  {
+   "text": "THE WIND WHISPERS THAT LEVEL-5 LIES BY THE COAST."
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 17"
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 11"
+  },
+  {
+   "text": "YOU NEED EIGHT TRIFORCE PIECES."
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 19"
+  },
+  {
+   "text": "ZELDA IS IN THE SOUTH-EAST"
+  },
+  {
+   "text": "THE COMPASS IS GUARDED BY BUBBLE"
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 10"
+  },
+  {
+   "text": "THE MAGICAL KEY NEEDS THE LADDER"
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 27"
+  },
+  {
+   "text": "PRAISE THE SUN"
+  },
+  {
+   "text": "THE HERO'S PATH NEEDS NO BRACELET"
+  },
+  {
+   "text": "THE HERO'S PATH NEEDS NO RAFT"
+  },
+  {
+   "text": "INSERT COMMUNITY HINT 40"
+  }
+ ],
+ "requirements": {
+  "whiteSwordHearts": 6,
+  "magicalSwordHearts": 14,
+  "level9Triforces": 8,
+  "doorRepairCost": 18
+ }
+}

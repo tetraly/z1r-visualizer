@@ -6,12 +6,16 @@ from typing import Any, Dict, List, Optional, Tuple
 from constants import Direction, WallType, ROOM_TYPES, ENEMY_TYPES, ITEM_TYPES
 from constants import ENTRANCE_DIRECTION_MAP, PALETTE_COLORS, CAVE_NAME_SHORT, CAVE_NAME
 from constants import OVERWORLD_BLOCK_TYPES, DOOR_TYPES
-from constants import BOMB_UPGRADE_PERSON, TALKING_PERSON
+from constants import BOMB_UPGRADE_PERSON, TALKING_PERSON, PEGASUS_BOOTS_ITEM_TYPES
 
 PALETTE_OFFSET = 0xB
 START_ROOM_OFFSET = 0x2F
 STAIRWAY_LIST_OFFSET = 0x34
 DISPLAY_OFFSET_OFFSET = 0x2D
+# The number the game shows on entering the level (LevelInfo_LevelNumber). In a second-quest set
+# the paired levels 2 and 3, 4 and 5, and 7 and 8 show each other's numbers: the level behind
+# the door with code 2 says LEVEL-3 (zora-ng docs/spec/shapes-behavior.md, SH-NUM-03).
+SHOWN_LEVEL_NUMBER_OFFSET = 0x33
 
 MAGICAL_SWORD_CODE = 0x03
 
@@ -30,6 +34,7 @@ PROGRESSIVE_LINES = {
     0x1D: "Boomerang Upgrade",
     0x1E: "Boomerang Upgrade",
 }
+BOOTS_LINE = "Boots Upgrade"  # the boomerangs' line with ZORA's Pegasus Boots
 
 
 class GarbledLevelDataError(Exception):
@@ -46,6 +51,7 @@ class DataExtractor(object):
         self.shop_data = {}
         self.nothing_code = self.rom_reader.GetNothingCode()
         self.has_progressive_items = self.rom_reader.HasProgressiveItems()
+        self.has_pegasus_boots = self.rom_reader.HasPegasusBoots()
 
         for level_num in range(0, 10):
             level_info = self.rom_reader.GetLevelInfo(level_num)
@@ -100,8 +106,11 @@ class DataExtractor(object):
         and only in ROMs that keep $03 as their nothing code (see GetRoomItemName). With
         by_line, a ROM with Progressive Items names line items by their line ("Sword Upgrade").
         """
+        boots = self.has_pegasus_boots and code in PEGASUS_BOOTS_ITEM_TYPES
         if by_line and self.has_progressive_items and code in PROGRESSIVE_LINES:
-            return PROGRESSIVE_LINES[code]
+            return BOOTS_LINE if boots else PROGRESSIVE_LINES[code]
+        if boots:
+            return PEGASUS_BOOTS_ITEM_TYPES[code]
         if code == MAGICAL_SWORD_CODE:
             return "Magical Sword"
         return ITEM_TYPES.get(code, "Unknown Item %02X" % code)
@@ -155,6 +164,17 @@ class DataExtractor(object):
             return Direction.SOUTH
         return ENTRANCE_DIRECTION_MAP[self._GetRawLevelStairwayRoomNumberList(level_num)[-1]]
 
+    def GetLevelShownNumbers(self) -> Dict[int, int]:
+        """Each level's number as the game shows it on entry, by its door code (1-9).
+
+        The two differ only for a second-quest set's paired levels. A ROM whose bytes don't
+        give each of 1-9 once keeps the door codes.
+        """
+        shown = {level_num: self.level_info[level_num][SHOWN_LEVEL_NUMBER_OFFSET] for level_num in range(1, 10)}
+        if sorted(shown.values()) != list(range(1, 10)):
+            return {level_num: level_num for level_num in range(1, 10)}
+        return shown
+
     def GetLevelStartRoomNumber(self, level_num: int) -> int:
         return self.level_info[level_num][START_ROOM_OFFSET]
 
@@ -185,6 +205,7 @@ class DataExtractor(object):
 
     def ProcessOverworld(self) -> None:
         self.data[0] = {}
+        shown_numbers = self.GetLevelShownNumbers()
         for screen_num in range(0, 0x80):
             # Skip any screens that aren't "Secret in 1st Quest"
             if (self.GetRoomData(0, screen_num + 5 * 0x80) & 0x80) > 0:
@@ -210,10 +231,15 @@ class DataExtractor(object):
                 'cave': '%x' % destination,
                 'block_type': block_type,
             }
+            # A level door's cave_name is its code's; its shown_cave_name, the number the level
+            # shows inside, as the player knows it.
+            shown = shown_numbers.get(destination, destination)
             if destination in CAVE_NAME:
                 self.data[0][screen_num]['cave_name'] = CAVE_NAME[destination]
+                self.data[0][screen_num]['shown_cave_name'] = CAVE_NAME[shown]
             if destination in CAVE_NAME_SHORT:
                 self.data[0][screen_num]['cave_name_short'] = CAVE_NAME_SHORT[destination]
+                self.data[0][screen_num]['shown_cave_name_short'] = CAVE_NAME_SHORT[shown]
 
         for shop_type in range(0x10, 0x24):
             base_index = 4 * 0x80 + 3 * (shop_type - 0x10)

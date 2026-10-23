@@ -1,4 +1,4 @@
-# The seed format, version 1.0
+# The seed format, version 1.1
 
 A JSON description of one Legend of Zelda seed **as a player sees it**: its dungeons, overworld
 caves, shops, items and hint texts. It says nothing about how any program stores a seed, and
@@ -29,7 +29,7 @@ and this page is wrong.
 ```json
 {
   "format": "z1r-seed",
-  "formatVersion": "1.0",
+  "formatVersion": "1.1",
   "producer": { "name": "ZORA", "version": "0.3.0" },
   "seed": { "number": "12345", "flags": "...", "zoraFlags": "1.D", "code": ["Bow", "Raft", "Clock", "Fairy"] },
   "progressiveItems": false,
@@ -46,10 +46,10 @@ and this page is wrong.
 | Field | Required | What |
 |---|---|---|
 | `format` | yes | always `"z1r-seed"` |
-| `formatVersion` | yes | `"<major>.<minor>"`; this page describes `1.0` |
+| `formatVersion` | yes | `"<major>.<minor>"`; this page describes `1.1` (section 4 lists what 1.1 added) |
 | `producer` | yes | `name` and `version` of the program that wrote it. The visualizer shows them |
 | `seed` | no | how the player made it: `number` (a string, since seed numbers can exceed JSON's safe integers), `flags`, `zoraFlags`, `code` (the seed's code, as item names) |
-| `progressiveItems` | no | `true` when swords, candles, arrows, rings and boomerangs upgrade one level at a time (section 3.6). Default `false` |
+| `progressiveItems` | no | `true` when swords, candles, arrows, rings and boomerangs (or boots) upgrade one level at a time (section 3.6). Default `false` |
 | `levels` | yes | the dungeons, 1 to 9 of them (section 3.1) |
 | `overworld` | yes | the screens with a cave, and the Armos and coast items (section 3.2) |
 | `caves` | yes | the caves that give or sell items (section 3.3) |
@@ -63,7 +63,7 @@ and this page is wrong.
 ### 3.1 Levels and rooms
 
 ```json
-{ "number": 4, "color": "#5C94FC", "rooms": [
+{ "number": 4, "shownNumber": 5, "color": "#5C94FC", "rooms": [
   { "number": 10, "column": 5, "row": 1, "type": "Chevy",
     "enemies": { "name": "Digdogger (3)" },
     "item": { "name": "Magical Sword", "drop": true },
@@ -72,7 +72,13 @@ and this page is wrong.
 ```
 
 - **Level:**
-  - `number`: 1-9.
+  - `number`: 1-9, the level's door code: the overworld door with this code leads in, and the
+    game reads this level's data by it.
+  - `shownNumber` (1.1, optional): the number the game shows on entering the level ("LEVEL-5"),
+    which is how a player knows it. It differs from `number` only in a second-quest set of
+    dungeons, whose paired levels 2 and 3, 4 and 5, and 7 and 8 show each other's numbers: the
+    level behind door code 4 says LEVEL-5. Without it, readers take `number`. The visualizer
+    shows each level as its `shownNumber` ("Level 5").
   - `color`: the level's map colour, `#RRGGBB`.
   - `rooms`: the rooms a player can reach.
 - **Room:**
@@ -100,6 +106,9 @@ positions, so producers list every side.
   - `number`: 0-127.
   - `column` (1-16) and `row` (1-8, from the top).
   - `cave`: its `name`, e.g. "White Sword Cave" or "Level 5", and `shortName`, the map label, e.g. "White" or "L5".
+    A level door is named by its door code (the level's `number`). From 1.1 it may also have
+    `shownName` and `shownShortName`, named by the level's `shownNumber` ("Level 4", "L4" on the
+    door with code 5 of a second-quest set); the visualizer shows those when present.
 - `armos` and `coast`: the item under the Armos statue and the one on the coast; `null` for none.
 
 ### 3.3 Caves
@@ -126,6 +135,8 @@ The visualizer shows the caves in the order given. The item summary takes the `i
 The game's texts in its own order (old men, shopkeepers, hint shops), each `{"text": ...}`. The
 visualizer numbers them from 0.
 - `speaker`: **ZORA extra.** Who says it, in words, e.g. "Level 3, room 2A" or "Hint Shop 1".
+- `shownSpeaker` (1.1): **ZORA extra.** The same, with a level named by its `shownNumber`. The
+  visualizer shows it when present.
 
 ### 3.5 Recorder
 
@@ -142,9 +153,14 @@ Item names come from a fixed list (`$defs/itemName` in the schema): "Wood Sword"
 "Red Ring", "Boomerang", "Magical Boomerang", "Heart Container", "Triforce", and the rest. One
 more form is allowed: "Unknown Item XX", for a code a reader could not name.
 
+**ZORA extra (1.1):** with ZORA's Pegasus Boots option, the boomerang and magical boomerang
+become the "Pegasus Boots" and "Magical Boots" (the same item codes). Producers should name them
+so. A document that names them "Boomerang" and "Magical Boomerang", as 1.0 producers had to, is
+still valid.
+
 Items always carry **their own** name. With `progressiveItems`, the visualizer shows the five
 lines as "Sword Upgrade", "Candle Upgrade", "Arrow Upgrade", "Ring Upgrade" and "Boomerang
-Upgrade". **ZORA extra:** this is the progressive-items meaning.
+Upgrade" ("Boots Upgrade" for the boots). **ZORA extra:** this is the progressive-items meaning.
 
 ### 3.7 Settings (ZORA extra)
 
@@ -170,7 +186,12 @@ The visualizer lists them on its "Seed Info" view.
   drawing it, and refuses one that does not validate, naming the first problems.
 
 The schema allows unknown properties everywhere, so a 1.1 document validates against the 1.0
-schema.
+schema, except where it uses a new item name.
+
+**1.1** added, all optional: a level's `shownNumber`, a level door's `shownName` and
+`shownShortName` (section 3.2), a hint's `shownSpeaker` (section 3.4), and the item names
+"Pegasus Boots" and "Magical Boots" (section 3.6). ZORA already wrote the `shown*` fields as
+extras, under these names, in its 1.0 documents.
 
 ## 5. The hand-off: "View in Visualizer"
 

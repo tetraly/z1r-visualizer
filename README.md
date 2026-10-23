@@ -47,5 +47,9 @@ second type-checks the page's JavaScript (`tsc --noEmit` from its JSDoc types), 
 Chrome, compares the single-file page with `cli.py` on each ROM, and checks that the same seed sent
 as a seed file or by ZORA's hand-off renders every view exactly as the ROM does.
 
+`samples/` holds two seed documents of one ZORA seed with second-quest dungeons and the Pegasus
+Boots: the visualizer's own reading (format 1.1) and ZORA's (1.0). Both checks use them without
+any ROM (`spoiler_test.py` says how they were made).
+
 The ROMs in `testdata/` are not in the repository. Most tests skip when their ROM is missing; the
 three oldest (`DataExtractorTest`) fail instead.

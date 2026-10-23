@@ -9,7 +9,10 @@
 // - the hand-off (docs/seed-format.md section 5): a harness page opens the visualizer as a popup,
 //   answers its ready message with the seed, and every view must render exactly as from the ROM;
 //   a wrong major version, a seed that breaks the schema, text that is not JSON, and a message
-//   that is not from the opener must all be refused or ignored.
+//   that is not from the opener must all be refused or ignored;
+// - the sample seeds (samples/, and the older 1.0 docs/design/sample-seed.json): each level is
+//   drawn under the number it shows on entry (a second-quest set's paired levels show each
+//   other's), level doors are labelled so, and the boots are named.
 //
 //   python3 scripts/build_site.py --single-file
 //   node scripts/check_site.mjs testdata/*.nes
@@ -18,7 +21,7 @@
 // downloads TypeScript (pinned below) through npx, and Pyodide from jsDelivr into a throwaway
 // Chrome profile.
 import { execFileSync, spawn } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -26,6 +29,8 @@ const CHROME = process.env.CHROME || "/Applications/Google Chrome.app/Contents/M
 const PORT = 9333;
 const PAGE = resolve("build/z1r-visualizer.html");
 const PAGE_URL = `file://${PAGE}`;
+const SAMPLES = ["samples/zora-2q-pegasus-boots.json", "samples/zora-2q-pegasus-boots.zora-1.0.json",
+                 "docs/design/sample-seed.json"];
 const VIEWS = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6", "Level 7", "Level 8", "Level 9",
                "Overworld", "Recorder Info", "Item Summary", "Hint Texts", "Seed Info"];
 // TypeScript 6.0.3: the last release of the JavaScript compiler; 7 is the native port, whose
@@ -202,6 +207,56 @@ try {
     else fail(`seed file of ${rom.split("/").pop()} renders differently from the ROM`);
   }
 
+  // The sample seeds.
+  for (const path of SAMPLES) {
+    const json = readFileSync(path, "utf8");
+    const seed = JSON.parse(json);
+    const refused = await main.evaluate(`window.z1rVisualizer.showSeedJson(${JSON.stringify(json)}, "a sample")`);
+    if (refused) {
+      fail(`${path}: refused (${refused})`);
+      continue;
+    }
+    const drawn = await main.evaluate(`(() => {
+      const select = document.getElementById("view");
+      const output = document.getElementById("output");
+      const show = (view) => {
+        select.value = view;
+        select.dispatchEvent(new Event("change"));
+      };
+      const levels = {};
+      for (let number = 1; number <= 9; number++) {
+        show("Level " + number);
+        levels[number] = [output.querySelector("figcaption").textContent, output.querySelectorAll("rect.room").length];
+      }
+      show("Item Summary");
+      const summary = output.innerText;
+      show("Overworld");
+      const doors = [...output.querySelectorAll("rect.room")].map((node) => node.getAttribute("aria-label"));
+      return { levels, summary, doors };
+    })()`);
+    const problems = [];
+    const usesShown = seed.levels.every((level) => level.shownNumber !== undefined);
+    for (let number = 1; number <= 9; number++) {
+      const level = seed.levels.find((candidate) => (usesShown ? candidate.shownNumber : candidate.number) === number);
+      if (!sameJson(drawn.levels[number], [`Level ${number}`, level.rooms.length])) {
+        problems.push(`"Level ${number}" draws ${JSON.stringify(drawn.levels[number])}, not door code ${level.number}'s ` +
+                      `${level.rooms.length} rooms`);
+      }
+    }
+    for (const screen of seed.overworld.screens.filter((candidate) => candidate.cave.shownName)) {
+      const label = `Screen ${screen.number.toString(16)}, ${screen.cave.shownName}`;
+      if (!drawn.doors.includes(label)) problems.push(`no overworld door "${label}"`);
+    }
+    const items = new Set([...seed.levels.flatMap((level) => level.rooms.flatMap((room) => [
+      room.item && room.item.name, room.staircase && room.staircase.kind === "item" && room.staircase.item])),
+                          ...seed.caves.flatMap((cave) => cave.wares.map((ware) => ware.item))]);
+    for (const boots of ["Pegasus Boots", "Magical Boots"]) {
+      if (items.has(boots) && !drawn.summary.includes(boots)) problems.push(`the item summary has no ${boots}`);
+    }
+    if (problems.length) fail(`${path}: ${problems.join("; ")}`);
+    else console.log(`ok   ${path}`);
+  }
+
   // The hand-off: a harness page that opens the visualizer, as ZORA would.
   const harness = join(work, "harness.html");
   writeFileSync(harness, `<!doctype html><meta charset="utf-8"><title>harness</title><script>
@@ -253,7 +308,7 @@ try {
     const status = await popup.status();
     if (!reply.ok) fail(`hand-off of ${name}: refused (${reply.error})`);
     else if (!sameJson(await popup.viewHashes(), fromRom.get(rom).hashes)) fail(`hand-off of ${name}: renders differently`);
-    else if (!/a seed from z1r-visualizer .+ \(seed format 1\.0\)/.test(status)) fail(`hand-off of ${name}: status "${status}"`);
+    else if (!/a seed from z1r-visualizer .+ \(seed format 1\.1\)/.test(status)) fail(`hand-off of ${name}: status "${status}"`);
     else console.log(`ok   hand-off of ${name}`);
   }
   const pythonLoaded = await popup.evaluate("performance.getEntriesByType('resource').some((e) => e.name.includes('pyodide'))");

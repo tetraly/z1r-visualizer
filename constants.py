@@ -142,6 +142,13 @@ CAVE_NAME_SHORT = {
     0x23: '10R'
 }
 
+# ZORA's Pegasus Boots option turns the boomerangs into boots, keeping their codes (zora-ng
+# docs/zora-extras.md, section 14). RomReader.HasPegasusBoots tells such a ROM.
+PEGASUS_BOOTS_ITEM_TYPES = {
+    0x1D: "Pegasus Boots",
+    0x1E: "Magical Boots",
+}
+
 ITEM_TYPES = {
     0x00: "Bombs",
     0x01: "Wood Sword",

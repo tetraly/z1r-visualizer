@@ -33,6 +33,11 @@ ZORA_PROGRESSIVE_ITEMS_ADDRESS = 0x7E40
 # ZORA's "Encode level data" rewrites InitMode2_Sub0's JSR to call its level decoder at $9220
 # (zora-ng docs/rom-map.md). Unencoded ROMs keep PRG0's JSR $80D7 here.
 LEVEL_DECODER_JSR_ADDRESS = 0x1806C
+
+# The attract screen's item list (DemoTextFields): ZORA's Pegasus Boots option writes "BOOTS" over
+# its "BOOMERANG" (zora-ng docs/rom-map.md, pegasus-boots).
+DEMO_BOOMERANG_TEXT_ADDRESS = 0x9348
+PEGASUS_BOOTS_DEMO_TEXT = [0x24, 0x24, 0x0B, 0x18, 0x18, 0x1D, 0x1C, 0x24, 0x24]  # "  BOOTS  "
 ZORA_LEVEL_DECODER_JSR = [0x20, 0x20, 0x92]
 
 
@@ -184,3 +189,6 @@ class RomReader:
 
     def HasZoraEncodedLevelData(self) -> bool:
         return self._ReadMemory(LEVEL_DECODER_JSR_ADDRESS, 0x03) == ZORA_LEVEL_DECODER_JSR
+
+    def HasPegasusBoots(self) -> bool:
+        return self._ReadMemory(DEMO_BOOMERANG_TEXT_ADDRESS, len(PEGASUS_BOOTS_DEMO_TEXT)) == PEGASUS_BOOTS_DEMO_TEXT

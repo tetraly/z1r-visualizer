@@ -23,8 +23,9 @@
  * @typedef {{number: number, column: number, row: number, type: string,
  *   enemies: {name: string, count?: number} | null, item: {name: string, drop: boolean} | null,
  *   staircase: Staircase | null, doors: Record<Direction, Door>}} SeedRoom
- * @typedef {{number: number, color: string, rooms: SeedRoom[]}} SeedLevel
- * @typedef {{number: number, column: number, row: number, cave: {name: string, shortName: string}}} SeedScreen
+ * @typedef {{number: number, shownNumber?: number, color: string, rooms: SeedRoom[]}} SeedLevel
+ * @typedef {{number: number, column: number, row: number,
+ *   cave: {name: string, shortName: string, shownName?: string, shownShortName?: string}}} SeedScreen
  * @typedef {{item: string, price?: number, sellsOnce?: boolean}} Ware
  * @typedef {{name: string, kind: "item" | "take-any" | "shop" | "potion-shop", wares: Ware[]}} Cave
  * @typedef {{text: string, notes: number[]}} RecorderTune
@@ -32,7 +33,7 @@
  *   seed?: {number?: string, flags?: string, zoraFlags?: string, code?: string[]},
  *   progressiveItems?: boolean, levels: SeedLevel[],
  *   overworld: {screens: SeedScreen[], armos: string | null, coast: string | null},
- *   caves: Cave[], hints: Array<{text: string, speaker?: string}>, recorder?: RecorderTune,
+ *   caves: Cave[], hints: Array<{text: string, speaker?: string, shownSpeaker?: string}>, recorder?: RecorderTune,
  *   requirements?: {whiteSwordHearts?: number, magicalSwordHearts?: number, level9Triforces?: number,
  *     doorRepairCost?: number},
  *   settings?: Array<{id?: string, name: string, chosen: string, resolved: string}>}} Seed
@@ -238,6 +239,7 @@ const PROGRESSIVE_LINES = {
   "Wooden Arrow": "Arrow Upgrade", "Silver Arrow": "Arrow Upgrade",
   "Blue Ring": "Ring Upgrade", "Red Ring": "Ring Upgrade",
   "Boomerang": "Boomerang Upgrade", "Magical Boomerang": "Boomerang Upgrade",
+  "Pegasus Boots": "Boots Upgrade", "Magical Boots": "Boots Upgrade",
 };
 
 /**
@@ -245,6 +247,26 @@ const PROGRESSIVE_LINES = {
  * @param {string} item
  */
 const itemLabel = (seed, item) => (seed.progressiveItems && PROGRESSIVE_LINES[item]) || item;
+
+/**
+ * The number a level shows on entry, which the views name it by: its shownNumber, unless the
+ * seed has none or repeats one, else its door code. They differ for a second-quest set's paired
+ * levels (docs/seed-format.md section 3.1).
+ * @param {Seed} seed
+ * @param {SeedLevel} level
+ */
+function shownNumber(seed, level) {
+  const shown = seed.levels.map((candidate) => candidate.shownNumber);
+  const usable = shown.every((number) => number !== undefined) && new Set(shown).size === shown.length;
+  return usable && level.shownNumber !== undefined ? level.shownNumber : level.number;
+}
+
+/**
+ * The level that shows this number on entry.
+ * @param {Seed} seed
+ * @param {number} number
+ */
+const levelShowing = (seed, number) => seed.levels.find((level) => shownNumber(seed, level) === number);
 
 /** @param {number} number */
 const roomNumber = (number) => number.toString(16).toUpperCase();
@@ -565,7 +587,8 @@ const LEGEND = [["Open Door", "open"], ["Shutter Door", "shutter"], ["Key-Locked
  * @param {SeedLevel} level
  */
 function drawLevel(seed, level) {
-  const { svg, rect, text, toX, toY } = plot(8, 8, LEVEL_CELL.width, `Level ${level.number} map`, LEVEL_CELL.height);
+  const shown = shownNumber(seed, level);
+  const { svg, rect, text, toX, toY } = plot(8, 8, LEVEL_CELL.width, `Level ${shown} map`, LEVEL_CELL.height);
   const roomColour = level.color;
   // A room's top right corner in map units: x = column, y = rows above the bottom edge.
   const corner = (/** @type {SeedRoom} */ room) => [room.column, 9 - room.row];
@@ -650,10 +673,14 @@ function drawLevel(seed, level) {
       element("span", { className: `swatch swatch-${kind}` }), label,
     ])),
   ]);
-  makeInteractive(`Level ${level.number}`, svg, spots);
+  makeInteractive(`Level ${shown}`, svg, spots);
+  const doorCode = shown === level.number ? []
+    : [element("p", { className: "map-hint", textContent: `The game shows this level as LEVEL-${shown}. Its door ` +
+                      `code is ${level.number}: second-quest levels 2 and 3, 4 and 5, and 7 and 8 show each ` +
+                      "other's numbers." })];
   return element("figure", { className: "plot level" }, [
-    element("figcaption", { textContent: `Level ${level.number}` }), element("div", { className: "scroll" }, [svg]), legend,
-    element("p", { className: "map-hint", textContent: MAP_HINT }),
+    element("figcaption", { textContent: `Level ${shown}` }), element("div", { className: "scroll" }, [svg]), legend,
+    element("p", { className: "map-hint", textContent: MAP_HINT }), ...doorCode,
   ]);
 }
 
@@ -670,11 +697,12 @@ function drawOverworld(screens) {
     });
     svg.append(node);
     const key = screen.number.toString(16);
+    const name = screen.cave.shownName || screen.cave.name;
     spots.push({
       node,
       key,
-      label: `Screen ${key}, ${screen.cave.name}`,
-      fields: [["Screen", `${key} · ${screen.cave.name}`], ["Map label", screen.cave.shortName],
+      label: `Screen ${key}, ${name}`,
+      fields: [["Screen", `${key} · ${name}`], ["Map label", screen.cave.shownShortName || screen.cave.shortName],
                ["Position", `column ${screen.column}, row ${screen.row}`]],
       stair: "",
       x: toX(x),
@@ -682,8 +710,8 @@ function drawOverworld(screens) {
     });
   }
   for (const screen of screens) {
-    const label = text(screen.column - OVERWORLD_CELL.labelInset, 8.5 - screen.row, screen.cave.shortName,
-                       OVERWORLD_CELL.label);
+    const label = text(screen.column - OVERWORLD_CELL.labelInset, 8.5 - screen.row,
+                       screen.cave.shownShortName || screen.cave.shortName, OVERWORLD_CELL.label);
     label.setAttribute("pointer-events", "none");
     label.setAttribute("class", "label label-cave");
     svg.append(label);
@@ -752,7 +780,7 @@ function itemSummaryTables(seed) {
   for (let number = 1; number <= 9; number++) {
     /** @type {Row[]} */
     const rows = [];
-    const level = seed.levels.find((candidate) => candidate.number === number);
+    const level = levelShowing(seed, number);
     for (const room of level ? level.rooms : []) {
       if (room.item) {
         const item = itemLabel(seed, room.item.name);
@@ -851,10 +879,11 @@ function itemSummary(seed) {
  * @returns {HTMLElement[]}
  */
 function hintTexts(seed) {
-  const speakers = seed.hints.some((hint) => hint.speaker !== undefined);
+  const speakers = seed.hints.some((hint) => hint.speaker !== undefined || hint.shownSpeaker !== undefined);
   /** @type {Row[]} */
   const rows = seed.hints.map((hint, num) => /** @type {Row} */ (speakers
-    ? { "Text #": num, Text: hint.text, "Said By": hint.speaker || "" } : { "Text #": num, Text: hint.text }));
+    ? { "Text #": num, Text: hint.text, "Said By": hint.shownSpeaker || hint.speaker || "" }
+    : { "Text #": num, Text: hint.text }));
   if (seed.recorder && seed.recorder.text) {
     rows.push(speakers ? { "Text #": "Recorder", Text: seed.recorder.text, "Said By": "" }
       : { "Text #": "Recorder", Text: seed.recorder.text });
@@ -925,7 +954,7 @@ function renderView() {
   let content;
   if (view.startsWith("Level ")) {
     const number = Number(view.split(" ")[1]);
-    const level = seed ? seed.levels.find((candidate) => candidate.number === number) : undefined;
+    const level = seed ? levelShowing(seed, number) : undefined;
     content = !seed ? [infoBox("Sorry, level maps aren't available for this ROM")]
       : level ? [drawLevel(seed, level)] : [infoBox(`This seed has no Level ${number}.`)];
   } else if (view === "Overworld") {
